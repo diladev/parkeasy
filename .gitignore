@@ -1,0 +1,91 @@
+# ═══════════════════════════════════════════════════════════════════
+# ParkEasy monorepo .gitignore — Flutter (mobile/) · NestJS (backend/) · Vue (web/)
+# ═══════════════════════════════════════════════════════════════════
+
+# ─── Secrets — NEVER commit these ────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+# .env.example IS committed on purpose (it has no real secrets)
+
+# ─── Node (backend/ and web/) ────────────────────────────────────────
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+
+# ─── Vite (web/) ─────────────────────────────────────────────────────
+web/dist/
+web/.vite/
+*.local
+
+# ─── Flutter / Dart (mobile/) ────────────────────────────────────────
+mobile/.dart_tool/
+mobile/.packages
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.pub-cache/
+mobile/.pub/
+mobile/coverage/
+*.g.dart.bak
+
+# Flutter — iOS
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/Flutter/Flutter.framework
+mobile/ios/Flutter/Flutter.podspec
+mobile/ios/Flutter/ephemeral/
+mobile/ios/Flutter/flutter_export_environment.sh
+mobile/ios/Flutter/Generated.xcconfig
+mobile/ios/Runner.xcworkspace/xcuserdata/
+mobile/ios/Runner.xcodeproj/xcuserdata/
+**/*.xcuserstate
+
+# Flutter — Android
+mobile/android/.gradle/
+mobile/android/app/debug/
+mobile/android/app/profile/
+mobile/android/app/release/
+mobile/android/local.properties
+mobile/android/key.properties
+*.jks
+*.keystore
+
+# ─── Databases & logs ────────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+logs/
+*.log
+
+# ─── Docker ──────────────────────────────────────────────────────────
+docker-data/
+mysql-data/
+
+# ─── IDEs & editors ──────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*.iml
+
+# ─── OS junk ─────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─── Misc ────────────────────────────────────────────────────────────
+tmp/
+temp/
+*.zip

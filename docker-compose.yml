@@ -1,0 +1,23 @@
+name: parkeasy
+
+services:
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-parkeasy}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-parkeasy_dev_password}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+        "-uroot", "-p${DB_PASSWORD:-parkeasy_dev_password}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  mysql-data:
