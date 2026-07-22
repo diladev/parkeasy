@@ -1,0 +1,6 @@
+{
+    "UserNotFound": "بەکارهێنەر نەدۆزرایەوە",
+    "UserWithUsernameNotFound": "بەکارهێنەر بە ناوی {username} نەدۆزرایەوە",
+    "UserWithUsernameAlreadyExists": "بەکارهێنەر بە ناوی {username} پێشتر هەیە",
+    "UserCreatedSuccessfully": "بەکارهێنەر بە سەرکەوتوویی دروستکرا"
+}

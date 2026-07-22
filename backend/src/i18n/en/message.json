@@ -1,0 +1,6 @@
+{
+    "UserNotFound": "User Not Found",
+    "UserWithUsernameNotFound": "User with username {username} don't exist",
+    "UserWithUsernameAlreadyExists": "User with username {username} already exists",
+    "UserCreatedSuccessfully": "User created successfully"
+}

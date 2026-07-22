@@ -28,6 +28,7 @@
     "bcrypt": "^6.0.0",
     "class-validator": "^0.15.1",
     "mysql2": "^3.23.1",
+    "nestjs-i18n": "^10.8.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sequelize": "^6.37.8",

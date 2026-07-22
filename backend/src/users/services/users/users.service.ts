@@ -5,20 +5,23 @@ import { WhereOptions } from 'sequelize/lib/model';
 import * as bcrypt from 'bcrypt';
 import bcryptKeys from 'src/common/bcryptkeys';
 import { CreateUserDto } from 'src/users/dtos/create-user.dto';
+import { TranslationService } from 'src/i18n/translation.service';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectModel(User) private userModel: typeof User,
+        private readonly translationService: TranslationService,
     ) { }
+    
 
     async findOne(options: WhereOptions): Promise<User> {
         const user = await this.userModel.findOne({ where: options });
         if (!user && 'username' in options) {
-            throw new NotFoundException(`User with username ${options['username']} not found`);
+            throw new NotFoundException('message.UserWithUsernameNotFound');
         }
         if (!user) {
-            throw new NotFoundException(`User Not Found`);
+            throw new NotFoundException('message.UserNotFound');
         }
         return user;
     }
@@ -26,7 +29,7 @@ export class UsersService {
     async storeUser(userDetails: CreateUserDto) {
         const existing = await this.userModel.findOne({ where: { username: userDetails.username } });
         if (existing) {
-            throw new Error(`User with username ${userDetails.username} already exists`);
+            throw new Error('message.UserWithUsernameAlreadyExists');
         }
 
         const salt = bcrypt.genSaltSync(bcryptKeys().saltRounds);
@@ -34,6 +37,6 @@ export class UsersService {
         const hashedPassword = await bcrypt.hash(pepperedPassword + salt, bcryptKeys().saltRounds);
         userDetails.password = hashedPassword;
         const user = await this.userModel.create({ ...userDetails, refreshToken: null });
-        return { message: `User with username ${userDetails.username} created successfully`, user };
+        return { message: this.translationService.translate('message.UserCreatedSuccessfully'), user };
     }
 }
