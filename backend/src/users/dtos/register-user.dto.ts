@@ -1,14 +1,9 @@
 import { MaxLength, MinLength, IsEmail, Matches, IsNumber } from "class-validator";
 
-
-export class CreateUserDto {
+export class RegisterUserDto {
     @MaxLength(50, { message: '$property.MAX,$constraint1' })
     @MinLength(3, { message: '$property.MIN,$constraint1' })
     name!: string;
-
-    @MaxLength(50, { message: '$property.MAX,$constraint1' })
-    @MinLength(3, { message: '$property.MIN,$constraint1' })
-    username!: string;
 
     @IsEmail({}, { message: '$property.EMAIL_PATTERN' })
     email!: string;
@@ -19,6 +14,4 @@ export class CreateUserDto {
     @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: '$property.PW_PATTERN' })
     password!: string;
 
-    @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: '$property.DATE_PATTERN' })
-    date_of_birth!: string;
 }

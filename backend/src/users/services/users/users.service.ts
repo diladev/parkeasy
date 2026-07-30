@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from '../../entities/user.entitiy';
+import { User } from 'src/users/entities/user.entity';
 import { WhereOptions } from 'sequelize/lib/model';
 import * as bcrypt from 'bcrypt';
 import bcryptKeys from 'src/common/bcryptkeys';
@@ -13,7 +13,7 @@ export class UsersService {
         @InjectModel(User) private userModel: typeof User,
         private readonly translationService: TranslationService,
     ) { }
-    
+
 
     async findOne(options: WhereOptions): Promise<User> {
         const user = await this.userModel.findOne({ where: options });

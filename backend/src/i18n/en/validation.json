@@ -1,0 +1,10 @@
+{
+    "MIN": "The length of {property} must be at least {constraint1} characters",
+    "MAX": "The length of {property} must not exceed {constraint1} characters",
+    "EMAIL_PATTERN": "{property} must be a valid email address",
+    "PW_PATTERN": "{property} must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character",
+    "DATE_PATTERN": "{property} must be in the format YYYY-MM-DD",
+    "NUM_PATTERN": "{property} must be a valid number",
+    "OTP_PATTERN": "{property} must be a 6-digit number",
+    "PASSWORD_PATTERN": "{property} must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character"
+}

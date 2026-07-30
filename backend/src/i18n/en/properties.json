@@ -1,0 +1,12 @@
+{
+    "name": "name",
+    "email": "email",
+    "password": "password",
+    "phone": "phone",
+    "date_of_birth": "date of birth",
+    "otp": "OTP",
+    "brand": "brand",
+    "model": "model",
+    "license_plate": "license plate",
+    "color": "color"
+}
