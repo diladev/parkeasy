@@ -1,4 +1,5 @@
-import {Table, Column, Model } from 'sequelize-typescript';
+import {Table, Column, Model, HasMany } from 'sequelize-typescript';
+import { Vehicle } from './vehicle.entity';
 
 @Table({
   tableName: 'users',
@@ -26,4 +27,10 @@ export class User extends Model{
 
     @Column
     declare refreshToken: string | null;
+
+    @Column
+    declare otp: string | null;
+
+    @HasMany(() => Vehicle)
+    declare vehicles: Vehicle[];
 }

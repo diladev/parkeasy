@@ -1,6 +1,18 @@
 {
-    "UserNotFound": "User Not Found",
-    "UserWithUsernameNotFound": "User with username {username} don't exist",
-    "UserWithUsernameAlreadyExists": "User with username {username} already exists",
-    "UserCreatedSuccessfully": "User created successfully"
+    "UserNotFound": "User not found.",
+    "UserWithUsernameNotFound": "User with username {username} does not exist.",
+    "UserWithUsernameAlreadyExists": "User with username {username} already exists.",
+    "UserCreatedSuccessfully": "User created successfully.",
+    "UserNameAlreadyExists": "User with name {name} already exists.",
+    "EmailTaken": "Email {email} is already in use.",
+    "UserRegisteredSuccessfully": "User registered successfully.",
+    "UserProfileUpdatedSuccessfully": "User profile updated successfully.",
+    "UserPasswordUpdatedSuccessfully": "User password updated successfully.",
+    "UserDeletedSuccessfully": "User deleted successfully.",
+    "UserWithEmailNotFound": "User with email {email} does not exist.",
+    "VehicleWithLicensePlateAlreadyExists": "Vehicle with license plate {license_plate} already exists.",
+    "VehicleAddedToUserSuccessfully": "Vehicle added to user successfully.",
+    "VehicleNotFoundForUser": "Vehicle with ID {vehicleId} was not found for this user.",
+    "VehicleDeletedSuccessfully": "Vehicle deleted successfully.",
+    "DefaultVehicleSetSuccessfully": "Default vehicle set successfully."
 }
