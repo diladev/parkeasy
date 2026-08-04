@@ -4,11 +4,11 @@ import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
 import { WhereOptions } from 'sequelize/lib/model';
 import * as bcrypt from 'bcrypt';
-import bcryptKeys from 'src/common/bcryptkeys';
+import bcryptKeys from 'src/config/bcrypt-keys';
 import { TranslationService } from 'src/i18n/translation.service';
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
-import { CreateUserDto, EditUserDto, CreateVehicleDto } from 'src/users/dtos';
+import { CreateUserDto, EditUserDto, CreateVehicleDto, RegisterUserDto } from 'src/users/dtos';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +28,7 @@ export class UsersService {
         if (!user && 'username' in options) {
             throw new NotFoundException(
                 this.translationService.translate(
-                    'message.UserWithUsernameNotFound',
+                    'message.USER_WITH_USERNAME_NOT_FOUND',
                     {
                         lang: lang, args: { username: options.username }
                     }
@@ -38,7 +38,7 @@ export class UsersService {
         if (!user) {
             throw new NotFoundException(
                 this.translationService.translate(
-                    'message.UserNotFound',
+                    'message.USER_NOT_FOUND',
                     {
                         lang: lang
                     }
@@ -62,13 +62,13 @@ export class UsersService {
     }
 
     private async hashPassword(password: string): Promise<string> {
-        const { saltRounds, pepper_secret } = bcryptKeys();
+        const { salt_rounds, pepper_secret } = bcryptKeys();
 
         const pepperedPassword = password + pepper_secret;
 
         return await bcrypt.hash(
             pepperedPassword,
-            saltRounds
+            salt_rounds
         );
     }
 
@@ -78,7 +78,7 @@ export class UsersService {
         if (existing) {
             throw new ConflictException(
                 this.translationService.translate(
-                    'message.UserWithUsernameAlreadyExists',
+                    'message.USER_WITH_USERNAME_ALREADY_EXISTS',
                     {
                         lang: lang, args: { username: userDetails.username }
                     }
@@ -95,19 +95,19 @@ export class UsersService {
         });
         return {
             message: this.translationService.translate(
-                'message.UserCreatedSuccessfully',
+                'message.USER_CREATED_SUCCESSFULLY',
                 { lang: lang }),
             user
         };
     }
 
-    async registerUser(userDetails: CreateUserDto, lang: string):
+    async registerUser(userDetails: RegisterUserDto, lang: string):
         Promise<{ message: string, user: User }> {
         const existing = await this.userModel.findOne({ where: { email: userDetails.email } });
         if (existing) {
             throw new ConflictException(
                 this.translationService.translate(
-                    'message.EmailTaken',
+                    'message.USER_WITH_EMAIL_ALREADY_EXISTS',
                     {
                         lang: lang, args: { email: userDetails.email }
                     }
@@ -128,7 +128,7 @@ export class UsersService {
 
         return {
             message: this.translationService.translate(
-                'message.UserRegisteredSuccessfully',
+                'message.USER_REGISTERED_SUCCESSFULLY',
                 { lang: lang }),
             user
         };
@@ -140,7 +140,7 @@ export class UsersService {
         await user.update(newInfo);
         return {
             message: this.translationService.translate(
-                'message.UserProfileUpdatedSuccessfully',
+                'message.USER_PROFILE_UPDATED_SUCCESSFULLY',
                 { lang: lang }),
             user
         };
@@ -154,7 +154,7 @@ export class UsersService {
         await user.update({ password: hashedPassword });
         return {
             message: this.translationService.translate(
-                'message.UserPasswordUpdatedSuccessfully',
+                'message.USER_PASSWORD_UPDATED_SUCCESSFULLY',
                 { lang: lang }),
             user
         };
@@ -173,7 +173,7 @@ export class UsersService {
         if (!user) {
             throw new NotFoundException(
                 this.translationService.translate(
-                    'message.UserWithEmailNotFound',
+                    'message.USER_WITH_EMAIL_NOT_FOUND',
                     {
                         lang: lang, args: { email: email }
                     }
@@ -194,7 +194,7 @@ export class UsersService {
         await user.destroy();
         return {
             message: this.translationService.translate(
-                'message.UserDeletedSuccessfully',
+                'message.USER_DELETED_SUCCESSFULLY',
                 { args: { username }, lang: lang }),
         };
     }
@@ -209,7 +209,7 @@ export class UsersService {
         if (existingVehicle) {
             throw new ConflictException(
                 this.translationService.translate(
-                    'message.VehicleWithLicensePlateAlreadyExists',
+                    'message.VEHICLE_WITH_LICENSE_PLATE_ALREADY_EXISTS',
                     {
                         lang: lang, args: { license_plate: vehicle.license_plate }
                     }
@@ -225,7 +225,7 @@ export class UsersService {
         });
         return {
             message: this.translationService.translate(
-                'message.VehicleAddedToUserSuccessfully',
+                'message.VEHICLE_ADDED_SUCCESSFULLY',
                 { lang: lang }),
         };
     }
@@ -241,7 +241,7 @@ export class UsersService {
         if (!vehicle) {
             throw new NotFoundException(
                 this.translationService.translate(
-                    'message.VehicleNotFoundForUser',
+                    'message.VEHICLE_NOT_FOUND_FOR_USER',
                     {
                         lang: lang, args: { vehicleId: vehicleId }
                     }
@@ -251,7 +251,7 @@ export class UsersService {
         await vehicle.destroy();
         return {
             message: this.translationService.translate(
-                'message.VehicleDeletedSuccessfully',
+                'message.VEHICLE_DELETED_SUCCESSFULLY',
                 { lang: lang }),
         };
     }
@@ -262,7 +262,7 @@ export class UsersService {
         if (!vehicle) {
             throw new NotFoundException(
                 this.translationService.translate(
-                    'message.VehicleNotFoundForUser',
+                    'message.VEHICLE_NOT_FOUND_FOR_USER',
                     {
                         lang: lang, args: { vehicleId: vehicleId }
                     }
@@ -273,7 +273,7 @@ export class UsersService {
         await vehicle.update({ is_default: true }, { where: { id: vehicle.id } });
         return {
             message: this.translationService.translate(
-                'message.DefaultVehicleSetSuccessfully',
+                'message.VEHICLE_DEFAULT_SET_SUCCESSFULLY',
                 { lang: lang }),
         };
     }

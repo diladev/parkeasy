@@ -1,6 +1,6 @@
 import { IsEmail, Matches } from "class-validator";
 
-export class LocalLoginDto {
+export class UserLocalLoginDto {
     @IsEmail({}, { message: '$property.EMAIL_PATTERN' })
     email!: string;
 

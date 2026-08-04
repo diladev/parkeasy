@@ -6,7 +6,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Dialect } from 'sequelize';
 import { ConfigModule } from '@nestjs/config';
 
-import { User } from './users/entities/user.entitiy';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [

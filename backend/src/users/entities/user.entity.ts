@@ -31,6 +31,12 @@ export class User extends Model{
     @Column
     declare otp: string | null;
 
+    @Column
+    declare otp_expires_at: Date | null;
+
+    @Column({allowNull: false, defaultValue: 'active'})
+    declare status: string;
+
     @HasMany(() => Vehicle)
     declare vehicles: Vehicle[];
 }
