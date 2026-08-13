@@ -1,24 +1,50 @@
 import { MaxLength, MinLength, IsEmail, Matches, IsNumber } from "class-validator";
-
+import { ApiProperty } from "@nestjs/swagger";
+import { IsStrongPassword } from "src/common/validators/decorators/is-strong-password.decorator";
+import { i18nValidationMessage } from "nestjs-i18n";
 
 export class CreateUserDto {
-    @MaxLength(50, { message: '$property.MAX,$constraint1' })
-    @MinLength(3, { message: '$property.MIN,$constraint1' })
+    @ApiProperty({
+        description: 'USER_NAME',
+        example: 'John Doe',
+    })
+    @MaxLength(50, { message: i18nValidationMessage('$property.MAX,$constraint1') })
+    @MinLength(3, { message: i18nValidationMessage('$property.MIN,$constraint1') })
     name!: string;
 
-    @MaxLength(50, { message: '$property.MAX,$constraint1' })
-    @MinLength(3, { message: '$property.MIN,$constraint1' })
+    @ApiProperty({
+        description: 'USER_USERNAME',
+        example: 'johndoe',
+    })
+    @MaxLength(50, { message: i18nValidationMessage('$property.MAX,$constraint1') })
+    @MinLength(3, { message: i18nValidationMessage('$property.MIN,$constraint1') })
     username!: string;
 
-    @IsEmail({}, { message: '$property.EMAIL_PATTERN' })
+    @ApiProperty({
+        description: 'USER_EMAIL',
+        example: 'johndoe@example.com',
+    })
+    @IsEmail({}, { message: i18nValidationMessage('$property.EMAIL_PATTERN') })
     email!: string;
 
-    @IsNumber({}, { message: '$property.NUM_PATTERN' })
+    @ApiProperty({
+        description: 'USER_PHONE',
+        example: 1234567890,
+    })
+    @IsNumber({}, { message: i18nValidationMessage('$property.NUM_PATTERN') })
     phone!: number;
 
-    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: '$property.PW_PATTERN' })
+    @ApiProperty({
+        description: 'USER_PASSWORD',
+        example: 'Password123!',
+    })
+    @IsStrongPassword({ message: i18nValidationMessage('validation.PASSWORD_PATTERN') })
     password!: string;
 
-    @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: '$property.DATE_PATTERN' })
+    @ApiProperty({
+        description: 'USER_DATE_OF_BIRTH',
+        example: '1990-01-01',
+    })
+    @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: i18nValidationMessage('$property.DATE_PATTERN') })
     date_of_birth!: string;
 }

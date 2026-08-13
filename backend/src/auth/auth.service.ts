@@ -85,12 +85,12 @@ export class AuthService {
         return user;
     }
 
-    async signInLocalUser(userLocalLoginDto: UserLocalLoginDto, lang: string):
+    async signInLocalUser(userLocalLoginDto: UserLocalLoginDto):
         Promise<{ accessToken: string; refreshToken: string, user: User }> {
 
-        const { email, password } = userLocalLoginDto;
-        const user = await this.validateUser(email, password, lang);
-        const tokens = await this.getTokens(user.id, user.username, user.status, lang);
+        const { email, password, language } = userLocalLoginDto;
+        const user = await this.validateUser(email, password, language);
+        const tokens = await this.getTokens(user.id, user.username, user.status, language);
 
         return {
             accessToken: tokens.accessToken,
@@ -99,11 +99,11 @@ export class AuthService {
         };
     }
 
-    async registerUser(registerUserDto: RegisterUserDto, lang: string):
+    async registerUser(registerUserDto: RegisterUserDto):
         Promise<{ accessToken: string; refreshToken: string, user: User }> {
-        const user = (await this.usersService.registerUser(registerUserDto, lang)).user;
-        const tokens = await this.getTokens(user.id, user.username, user.status, lang);
-        await this.usersService.updateRefreshToken(user.id, tokens.refreshToken, lang);
+        const user = (await this.usersService.registerUser(registerUserDto)).user;
+        const tokens = await this.getTokens(user.id, user.username, user.status, registerUserDto.language);
+        await this.usersService.updateRefreshToken(user.id, tokens.refreshToken, registerUserDto.language);
 
         return {
             accessToken: tokens.accessToken,
@@ -122,7 +122,7 @@ export class AuthService {
         };
     }
 
-    async updateRefreshToken(refreshToken: string): Promise<void> {
+    async updateRefreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
         const user = await this.userModel.findOne({ where: { refreshToken } });
         if (!user) {
             throw new NotFoundException(
@@ -131,15 +131,21 @@ export class AuthService {
                 )
             );
         }
+        const tokens = await this.getTokens(user.id, user.username, user.status, 'en');
+        await this.usersService.updateRefreshToken(user.id, tokens.refreshToken, 'en');
+        return {
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken
+        };
     }
 
-    async forgotPassword(forgotPasswordDto: ForgotPasswordDto, lang: string):
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto):
         Promise<{ message: string }> {
         const user = await this.usersService.findUserByEmail(forgotPasswordDto.email);
         if (!user) {
             throw new NotFoundException(
                 this.translationService.translate(
-                    'message.EMAIL_SENT', { lang: lang }
+                    'message.EMAIL_SENT', { lang: forgotPasswordDto.language }
                 )
             );
         }
@@ -147,13 +153,13 @@ export class AuthService {
         const otp = crypto.randomInt(100000, 999999).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-        await this.usersService.storeOtp(user.email, otp, expiresAt, lang);
+        await this.usersService.storeOtp(user.email, otp, expiresAt, forgotPasswordDto.language);
 
         try {
             await this.mailerService.sendMail({
                 to: user.email,
                 subject: this.translationService.translate(
-                    'message.FORGOT_PASSWORD_SUBJECT', { lang: lang }
+                    'message.FORGOT_PASSWORD_SUBJECT', { lang: forgotPasswordDto.language }
                 ),
                 template: 'forgot-password',
                 context: {
@@ -171,81 +177,81 @@ export class AuthService {
             }
             throw new Error(
                 this.translationService.translate(
-                    'message.EMAIL_SEND_FAILED', { lang: lang }
+                    'message.EMAIL_SEND_FAILED', { lang: forgotPasswordDto.language }
                 )
             );
         }
         return {
             message: this.translationService.translate(
-                'message.EMAIL_SENT', { lang: lang }
+                'message.EMAIL_SENT', { lang: forgotPasswordDto.language }
             )
         }
     }
 
-    async verifyOtp(verifyOtpDto: VerifyOtpDto, lang: string):
-        Promise<{message: string, token: string}> {
-            const user = await this.usersService.findUserByEmail(verifyOtpDto.email);
-            if (!user) {
-                throw new UnauthorizedException(
-                    this.translationService.translate(
-                        'message.INVALID_OTP', { lang: lang }
-                    )
-                );
-            }
-
-            const isExpired = new Date() > new Date(user.otp_expires_at || 0);
-            if (isExpired || user.otp !== verifyOtpDto.otp) {
-                throw new UnauthorizedException(
-                    this.translationService.translate(
-                        'message.INVALID_OTP', { lang: lang }
-                    )
-                );
-            }
-
-            const resetToken = await this.jwtService.signAsync(
-                { sub: user.id, username: user.username, status: user.status, lang: lang },
-                { secret: process.env.JWT_RESET_PASSWORD_SECRET, expiresIn: 60 * 15 }
-            );
-
-            await this.usersService.clearOtp(user.id, lang);
-
-            return {
-                message: this.translationService.translate(
-                    'message.OTP_VERIFIED', { lang: lang }
-                ),
-                token: resetToken
-            };
-        }
-
-        async resetPassword(resetPasswordDto: ResetPasswordDto, lang: string):
-        Promise<{ message: string }> {
-            let payload: any;
-            try {
-                payload = await this.jwtService.verifyAsync(
-                    resetPasswordDto.token,
-                    { secret: process.env.JWT_RESET_PASSWORD_SECRET }
-                );
-            } catch (error) {
-                throw new UnauthorizedException(
-                    this.translationService.translate(
-                        'message.INVALID_TOKEN', { lang: lang }
-                    )
-                );
-            }
-
-            const user = await this.usersService.findOne({ id: payload.sub }, lang);
-
-            const hashedPassword = await bcrypt.hash(
-                resetPasswordDto.new_password + bcryptKeys().pepper_secret,
-                bcryptKeys().salt_rounds
-            );
-
-            await this.usersService.updateUserPassword(user.id, hashedPassword, lang);
-
-            return {
-                message: this.translationService.translate(
-                    'message.PASSWORD_RESET_SUCCESS', { lang: lang }
+    async verifyOtp(verifyOtpDto: VerifyOtpDto):
+        Promise<{ message: string, token: string }> {
+        const user = await this.usersService.findUserByEmail(verifyOtpDto.email);
+        if (!user) {
+            throw new UnauthorizedException(
+                this.translationService.translate(
+                    'message.INVALID_OTP', { lang: verifyOtpDto.language }
                 )
-            };
+            );
         }
+
+        const isExpired = new Date() > new Date(user.otp_expires_at || 0);
+        if (isExpired || user.otp !== verifyOtpDto.otp) {
+            throw new UnauthorizedException(
+                this.translationService.translate(
+                    'message.INVALID_OTP', { lang: verifyOtpDto.language }
+                )
+            );
+        }
+
+        const resetToken = await this.jwtService.signAsync(
+            { sub: user.id, username: user.username, status: user.status, lang: verifyOtpDto.language },
+            { secret: process.env.JWT_RESET_PASSWORD_SECRET, expiresIn: 60 * 15 }
+        );
+
+        await this.usersService.clearOtp(user.id, verifyOtpDto.language);
+
+        return {
+            message: this.translationService.translate(
+                'message.OTP_VERIFIED', { lang: verifyOtpDto.language }
+            ),
+            token: resetToken
+        };
+    }
+
+    async resetPassword(resetPasswordDto: ResetPasswordDto):
+        Promise<{ message: string }> {
+        let payload: any;
+        try {
+            payload = await this.jwtService.verifyAsync(
+                resetPasswordDto.token,
+                { secret: process.env.JWT_RESET_PASSWORD_SECRET }
+            );
+        } catch (error) {
+            throw new UnauthorizedException(
+                this.translationService.translate(
+                    'message.INVALID_TOKEN', { lang: resetPasswordDto.language }
+                )
+            );
+        }
+
+        const user = await this.usersService.findOne({ id: payload.sub }, resetPasswordDto.language);
+
+        const hashedPassword = await bcrypt.hash(
+            resetPasswordDto.new_password + bcryptKeys().pepper_secret,
+            bcryptKeys().salt_rounds
+        );
+
+        await this.usersService.updateUserPassword(user.id, hashedPassword, resetPasswordDto.language);
+
+        return {
+            message: this.translationService.translate(
+                'message.PASSWORD_RESET_SUCCESS', { lang: resetPasswordDto.language }
+            )
+        };
+    }
 }

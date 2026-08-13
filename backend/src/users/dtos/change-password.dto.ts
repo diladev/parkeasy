@@ -1,9 +1,29 @@
-import { Matches } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { i18nValidationMessage } from 'nestjs-i18n';
+import { IsStrongPassword } from 'src/common/validators/decorators/is-strong-password.decorator';
 
 export class ChangePasswordDto {
-    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: '$property.PASSWORD_PATTERN' })
+
+    @ApiProperty({
+        description: "The user's current password.",
+        example: 'OldPassword123!',
+    })
+    @IsStrongPassword({
+        message: i18nValidationMessage(
+            'validation.PASSWORD_PATTERN',
+        ),
+    })
     old_password!: string;
 
-    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, { message: '$property.PASSWORD_PATTERN' })
+
+    @ApiProperty({
+        description: "The user's new password.",
+        example: 'NewPassword123!',
+    })
+    @IsStrongPassword({
+        message: i18nValidationMessage(
+            'validation.PASSWORD_PATTERN',
+        ),
+    })
     new_password!: string;
 }

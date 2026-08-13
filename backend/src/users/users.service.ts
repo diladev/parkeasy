@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
@@ -8,7 +8,7 @@ import bcryptKeys from 'src/config/bcrypt-keys';
 import { TranslationService } from 'src/i18n/translation.service';
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
-import { CreateUserDto, EditUserDto, CreateVehicleDto, RegisterUserDto } from 'src/users/dtos';
+import { CreateUserDto, EditUserDto, CreateVehicleDto, RegisterUserDto, ChangePasswordDto } from 'src/users/dtos';
 
 @Injectable()
 export class UsersService {
@@ -101,7 +101,7 @@ export class UsersService {
         };
     }
 
-    async registerUser(userDetails: RegisterUserDto, lang: string):
+    async registerUser(userDetails: RegisterUserDto):
         Promise<{ message: string, user: User }> {
         const existing = await this.userModel.findOne({ where: { email: userDetails.email } });
         if (existing) {
@@ -109,7 +109,7 @@ export class UsersService {
                 this.translationService.translate(
                     'message.USER_WITH_EMAIL_ALREADY_EXISTS',
                     {
-                        lang: lang, args: { email: userDetails.email }
+                        lang: userDetails.language, args: { email: userDetails.email }
                     }
                 )
             );
@@ -129,7 +129,7 @@ export class UsersService {
         return {
             message: this.translationService.translate(
                 'message.USER_REGISTERED_SUCCESSFULLY',
-                { lang: lang }),
+                { lang: userDetails.language }),
             user
         };
     }
@@ -146,10 +146,23 @@ export class UsersService {
         };
     }
 
-    async updateUserPassword(userId: number, newPassword: string, lang: string):
+    async updateUserPassword(userId: number, userPasswords: ChangePasswordDto, lang: string):
         Promise<{ message: string, user: User }> {
         const user = await this.findOne({ id: userId }, lang);
-        const hashedPassword = await this.hashPassword(newPassword);
+        const isOldPasswordValid = await bcrypt.compare(
+            userPasswords.old_password + bcryptKeys().pepper_secret,
+            user.password
+        );
+        if (!isOldPasswordValid) {
+            throw new BadRequestException(
+                this.translationService.translate(
+                    'message.OLD_PASSWORD_INCORRECT',
+                    { lang: lang }
+                )
+            );
+        }
+        
+        const hashedPassword = await this.hashPassword(userPasswords.new_password);
 
         await user.update({ password: hashedPassword });
         return {

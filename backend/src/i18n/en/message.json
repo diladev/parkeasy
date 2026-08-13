@@ -24,5 +24,6 @@
     "INVALID_OTP": "The verification code is invalid or has expired.",
     "OTP_VERIFIED": "OTP verified successfully.",
     "INVALID_TOKEN": "The password reset token is invalid or has expired.",
-    "PASSWORD_RESET_SUCCESS": "Password has been reset successfully."
+    "PASSWORD_RESET_SUCCESS": "Password has been reset successfully.",
+    "OLD_PASSWORD_INCORRECT": "The old password provided is incorrect."
 }
