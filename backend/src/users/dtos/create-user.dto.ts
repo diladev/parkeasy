@@ -5,7 +5,7 @@ import { i18nValidationMessage } from "nestjs-i18n";
 
 export class CreateUserDto {
     @ApiProperty({
-        description: 'USER_NAME',
+        description: 'The name of the user.',
         example: 'John Doe',
     })
     @MaxLength(50, { message: i18nValidationMessage('$property.MAX,$constraint1') })
@@ -13,7 +13,7 @@ export class CreateUserDto {
     name!: string;
 
     @ApiProperty({
-        description: 'USER_USERNAME',
+        description: 'The username of the user.',
         example: 'johndoe',
     })
     @MaxLength(50, { message: i18nValidationMessage('$property.MAX,$constraint1') })
@@ -21,28 +21,28 @@ export class CreateUserDto {
     username!: string;
 
     @ApiProperty({
-        description: 'USER_EMAIL',
+        description: `The user's email address.`,
         example: 'johndoe@example.com',
     })
     @IsEmail({}, { message: i18nValidationMessage('$property.EMAIL_PATTERN') })
     email!: string;
 
     @ApiProperty({
-        description: 'USER_PHONE',
+        description: `The user's phone number.`,
         example: 1234567890,
     })
     @IsNumber({}, { message: i18nValidationMessage('$property.NUM_PATTERN') })
     phone!: number;
 
     @ApiProperty({
-        description: 'USER_PASSWORD',
+        description: `The user's password.`,
         example: 'Password123!',
     })
     @IsStrongPassword({ message: i18nValidationMessage('validation.PASSWORD_PATTERN') })
     password!: string;
 
     @ApiProperty({
-        description: 'USER_DATE_OF_BIRTH',
+        description: `The user's date of birth.`,
         example: '1990-01-01',
     })
     @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: i18nValidationMessage('$property.DATE_PATTERN') })

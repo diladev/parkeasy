@@ -6,5 +6,9 @@
     "DATE_PATTERN": "{property} must be in the format YYYY-MM-DD",
     "NUM_PATTERN": "{property} must be a valid number",
     "OTP_PATTERN": "{property} must be a 6-digit number",
-    "PASSWORD_PATTERN": "{property} must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character"
+    "PASSWORD_PATTERN": "{property} must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character",
+    "STRING_PATTERN": "{property} must be a string",
+    "BOOLEAN_PATTERN": "{property} must be a boolean",
+    "TIME_PATTERN": "{property} must be a valid time in HH:mm format",
+    "LEVEL_PATTERN": "{property} must be a valid floor level such as B1, G, or F1"
 }
