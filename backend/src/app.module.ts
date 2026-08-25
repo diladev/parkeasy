@@ -18,6 +18,9 @@ import { TranslationModule } from './i18n/translation.module';
 import { ParkingModule } from './parking/parking.module';
 import { ParkingLot } from './parking/entities/parking-lot.entity';
 import { ParkingSlot } from './parking/entities/parking-slot.entity';
+import { WalletModule } from './wallet/wallet.module';
+import { Wallet } from './wallet/entities/wallet.entity';
+import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
 
 @Module({
   imports: [
@@ -55,7 +58,7 @@ import { ParkingSlot } from './parking/entities/parking-slot.entity';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       timezone: '+03:00',
-      models: [User, Vehicle, ParkingLot, ParkingSlot],
+      models: [User, Vehicle, ParkingLot, ParkingSlot, Wallet, WalletTransaction],
       synchronize: true,
       autoLoadModels: true,
       logging: false,
@@ -64,6 +67,7 @@ import { ParkingSlot } from './parking/entities/parking-slot.entity';
     UsersModule,
     AuthModule,
     ParkingModule,
+    WalletModule,
   ],
 
   controllers: [],

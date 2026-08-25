@@ -17,15 +17,15 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { ParkingService } from './parking.service';
+import { ParkingService } from 'src/parking/parking.service';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
 
 import {
   CreateParkingLotDto,
+  UpdateParkingLotDto,
   CreateParkingSlotDto,
-  CreateParkingSlotsDto,
-  UpdateParkingLotDto
-} from './dtos'
+  CreateParkingSlotsDto
+} from 'src/parking/dtos';
 
 @ApiTags('Parking')
 @UsePipes(ValidationPipe)
@@ -36,14 +36,14 @@ export class ParkingController {
     private readonly parkingService: ParkingService,
   ) { }
 
-  @Post('lot')
+  @Post()
   async createLot(
     @Body() dto: CreateParkingLotDto,
   ) {
     return this.parkingService.createLot(dto);
   }
 
-  @Patch(':id/lot')
+  @Patch(':id')
   async updateLot(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateParkingLotDto,
@@ -52,7 +52,7 @@ export class ParkingController {
     return this.parkingService.updateLot(id, dto, lang);
   }
 
-  @Delete(':id/lot')
+  @Delete(':id')
   async deleteLot(
     @Param('id', ParseIntPipe) id: number,
     @Headers('x-lang') lang: string,
