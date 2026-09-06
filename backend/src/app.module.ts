@@ -21,6 +21,8 @@ import { ParkingSlot } from './parking/entities/parking-slot.entity';
 import { WalletModule } from './wallet/wallet.module';
 import { Wallet } from './wallet/entities/wallet.entity';
 import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
+import { BookingModule } from './booking/booking.module';
+import { Booking } from './booking/entities/booking.entity';
 
 @Module({
   imports: [
@@ -58,7 +60,7 @@ import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       timezone: '+03:00',
-      models: [User, Vehicle, ParkingLot, ParkingSlot, Wallet, WalletTransaction],
+      models: [User, Vehicle, ParkingLot, ParkingSlot, Wallet, WalletTransaction, Booking],
       synchronize: true,
       autoLoadModels: true,
       logging: false,
@@ -68,6 +70,7 @@ import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
     AuthModule,
     ParkingModule,
     WalletModule,
+    BookingModule,
   ],
 
   controllers: [],

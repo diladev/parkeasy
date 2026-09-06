@@ -9,5 +9,6 @@ import { WalletTransaction } from './entities/wallet-transaction.entity';
   imports: [SequelizeModule.forFeature([Wallet, WalletTransaction])],
   controllers: [WalletController],
   providers: [WalletService],
+  exports: [WalletService],
 })
 export class WalletModule {}

@@ -9,5 +9,6 @@ import { ParkingSlot } from './entities/parking-slot.entity';
   imports: [SequelizeModule.forFeature([ParkingLot, ParkingSlot])],
   controllers: [ParkingController],
   providers: [ParkingService],
+  exports: [ParkingService],
 })
 export class ParkingModule { }
