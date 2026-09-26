@@ -1,4 +1,3 @@
-// ─── Forgot Password Screen ───────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
@@ -44,106 +43,108 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             }
           },
           builder: (context, state) {
-            return Column(
-              children: [
-                AppTopBar(title: 'Reset password'),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(22),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 30),
-                          // Icon
-                          Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              color: AppColors.purple15,
-                              borderRadius: BorderRadius.circular(22),
-                              border: Border.all(
-                                color: AppColors.purple,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.lock_rounded,
-                              size: 36,
-                              color: AppColors.purple,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Forgot your password?',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            "Enter the email linked to your account\nand we'll send you a reset code.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textHint,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          AppInputField(
-                            label: 'Email address',
-                            hint: 'you@example.com',
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              if (!v.contains('@'))
-                                return 'Enter a valid email';
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 24),
-                          AppButton(
-                            label: 'Send reset code',
-                            isLoading: state is AuthLoading,
-                            onTap: () {
-                              if (_formKey.currentState!.validate()) {
-                                context.read<AuthBloc>().add(
-                                  ForgotPasswordRequested(
-                                    email: _emailController.text.trim(),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Remembered it? ',
-                                style: TextStyle(color: AppColors.textHint),
-                              ),
-                              GestureDetector(
-                                onTap: () => Navigator.pop(context),
-                                child: const Text(
-                                  'Back to sign in',
-                                  style: TextStyle(
-                                    color: AppColors.teal,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+            return SafeArea(
+              child: Column(
+                children: [
+                  AppTopBar(title: 'Reset password'),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(22),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 30),
+                            // Icon
+                            Container(
+                              width: 76,
+                              height: 76,
+                              decoration: BoxDecoration(
+                                color: AppColors.purple15,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: AppColors.purple,
+                                  width: 1.5,
                                 ),
                               ),
-                            ],
-                          ),
-                        ],
+                              child: const Icon(
+                                Icons.lock_rounded,
+                                size: 36,
+                                color: AppColors.purple,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              'Forgot your password?',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            const Text(
+                              "Enter the email linked to your account\nand we'll send you a reset code.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textHint,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            AppInputField(
+                              label: 'Email address',
+                              hint: 'you@example.com',
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (v) {
+                                if (v == null || v.isEmpty) return 'Required';
+                                if (!v.contains('@'))
+                                  return 'Enter a valid email';
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 24),
+                            AppButton(
+                              label: 'Send reset code',
+                              isLoading: state is AuthLoading,
+                              onTap: () {
+                                if (_formKey.currentState!.validate()) {
+                                  context.read<AuthBloc>().add(
+                                    ForgotPasswordRequested(
+                                      email: _emailController.text.trim(),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Remembered it? ',
+                                  style: TextStyle(color: AppColors.textHint),
+                                ),
+                                GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  child: const Text(
+                                    'Back to sign in',
+                                    style: TextStyle(
+                                      color: AppColors.teal,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),

@@ -190,46 +190,48 @@ class ResetPasswordSuccessScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseScreenWrapper(
       child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.tealBg,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.teal, width: 1.5),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.tealBg,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.teal, width: 1.5),
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 40,
+                    color: AppColors.tealLight,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  size: 40,
-                  color: AppColors.tealLight,
+                const SizedBox(height: 24),
+                const Text(
+                  'Password reset!',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Password reset!',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+                const SizedBox(height: 12),
+                const Text(
+                  'Your password has been updated successfully.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: AppColors.textHint),
                 ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Your password has been updated successfully.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppColors.textHint),
-              ),
-              const SizedBox(height: 40),
-              AppButton(
-                label: 'Sign in now',
-                onTap: () => AppRouter.toLogin(context),
-              ),
-            ],
+                const SizedBox(height: 40),
+                AppButton(
+                  label: 'Sign in now',
+                  onTap: () => AppRouter.toLogin(context),
+                ),
+              ],
+            ),
           ),
         ),
       ),

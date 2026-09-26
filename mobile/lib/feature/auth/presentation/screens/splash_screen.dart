@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -21,19 +22,32 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
+    // Hide system UI while the splash screen is displayed.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 3000),
     );
+
     _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
+
     _controller.forward();
 
-    // Trigger auth check
+    // Trigger auth check.
     context.read<AuthBloc>().add(AppStarted());
+  }
+
+  void _restoreSystemUI() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   @override
   void dispose() {
+    // Restore system UI when the splash screen is removed.
+    _restoreSystemUI();
+
     _controller.dispose();
     super.dispose();
   }
@@ -44,11 +58,21 @@ class _SplashScreenState extends State<SplashScreen>
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
           Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) AppRouter.toLogin(context);
+            if (!mounted) return;
+
+            // Restore system UI before navigating.
+            _restoreSystemUI();
+
+            AppRouter.toLogin(context);
           });
         } else if (state is AuthAuthenticated) {
           Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) AppRouter.toHome(context);
+            if (!mounted) return;
+
+            // Restore system UI before navigating.
+            _restoreSystemUI();
+
+            AppRouter.toHome(context);
           });
         }
       },
@@ -82,7 +106,9 @@ class _SplashScreenState extends State<SplashScreen>
                     color: Colors.white,
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
                 const Text(
                   'ParkEasy',
                   style: TextStyle(
@@ -92,7 +118,9 @@ class _SplashScreenState extends State<SplashScreen>
                     fontFamily: 'Inter',
                   ),
                 ),
+
                 const SizedBox(height: 8),
+
                 Text(
                   'Find & book parking in seconds',
                   style: TextStyle(
@@ -101,7 +129,9 @@ class _SplashScreenState extends State<SplashScreen>
                     fontFamily: 'Inter',
                   ),
                 ),
+
                 const SizedBox(height: 60),
+
                 // Loading bar
                 SizedBox(
                   width: 140,
