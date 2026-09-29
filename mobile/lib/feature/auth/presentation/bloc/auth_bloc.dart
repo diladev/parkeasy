@@ -1,5 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/feature/auth/domain/usecase/auth_usecase.dart';
+import 'package:mobile/feature/auth/domain/usecases/forgot_password.dart';
+import 'package:mobile/feature/auth/domain/usecases/reset_password.dart';
+import 'package:mobile/feature/auth/domain/usecases/user_login.dart';
+import 'package:mobile/feature/auth/domain/usecases/user_logout.dart';
+import 'package:mobile/feature/auth/domain/usecases/user_register.dart';
+import 'package:mobile/feature/auth/domain/usecases/verify_otp.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
