@@ -5,28 +5,46 @@ import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 abstract class ProfileRepository {
   const ProfileRepository();
 
-  ResultFuture<UserEntity> getProfile();
+  User? getCachedProfile();
 
-  ResultVoid updateProfile({
-    String? name,
-    String? email,
-    String? phone,
-    String? dateOfBirth,
+  ResultFuture<User> getProfile();
+
+  ResultFuture<User> updateProfile({
+    required String name,
+    required String email,
+    required String phone,
+    DateTime? dateOfBirth,
   });
 
-  ResultVoid changePassword({required String password});
+  ResultVoid changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 
-  ResultVoid addVehicle({
+  ResultVoid deleteAccount({required String password});
+
+  ResultFuture<List<Vehicle>> getVehicles();
+
+  ResultFuture<Vehicle> addVehicle({
     required String brand,
     required String model,
     required int year,
     required String color,
     required String plateNumber,
+    required VehicleType type,
   });
 
-  ResultFuture<List<VehicleEntity>> getVehicles();
+  ResultFuture<Vehicle> updateVehicle({
+    required int vehicleId,
+    required String brand,
+    required String model,
+    required int year,
+    required String color,
+    required String plateNumber,
+    required VehicleType type,
+  });
 
   ResultVoid deleteVehicle({required int vehicleId});
 
-  ResultVoid setDefaultVehicle({required int vehicleId});
+  ResultFuture<Vehicle> setDefaultVehicle({required int vehicleId});
 }

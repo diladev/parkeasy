@@ -1,8 +1,9 @@
-const String baseUrl = 'http://127.0.0.1:3001';
+const String kbaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://127.0.0.1:3001',
+);
 
-const kUser = '$baseUrl/user';
-
-const kAuth = '$kUser/local';
+const kAuth = '$kbaseUrl/user/local';
 const kLogin = '$kAuth/login';
 const kLogout = '$kAuth/logout';
 const kRefreshToken = '$kAuth/refresh';
@@ -11,10 +12,13 @@ const kForgotPassword = '$kAuth/forgot-password';
 const kResetPassword = '$kAuth/reset-password';
 const kVerifyOtp = '$kAuth/verify-otp';
 
-const kVehicle = '$baseUrl/vehicle';
+const kUsers = '$kbaseUrl/users';
+const kProfile = '$kUsers/profile';
+const kChangePassword = '$kUsers/change-password';
+const kVehicles = '$kUsers/vehicles';
 
-const kParking = '$baseUrl/parking';
+const kParking = '$kbaseUrl/parking';
 
-const kWallet = '$baseUrl/wallet';
+const kWallet = '$kbaseUrl/wallet';
 
-const kNotification = '$baseUrl/notification';
+const kNotification = '$kbaseUrl/notification';

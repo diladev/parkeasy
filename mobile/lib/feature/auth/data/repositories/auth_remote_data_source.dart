@@ -1,22 +1,24 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:mobile/core/constants/end_points.dart';
 import 'package:mobile/core/errors/exception.dart';
-import 'package:mobile/feature/auth/data/models/user_model.dart';
-import 'package:mobile/feature/auth/domain/entities/user_entity.dart';
+import 'package:mobile/core/network/api_client.dart';
+import 'package:mobile/feature/auth/data/models/auth_model.dart';
+import 'package:mobile/feature/profile/data/models/user_model.dart';
 
 abstract class AuthenticationRemoteDataSource {
-  Future<User> login({required String email, required String password});
-  Future<User> register({
+  Future<(UserModel, AuthModel)> login({
+    required String email,
+    required String password,
+  });
+  Future<(UserModel, AuthModel)> register({
     required String email,
     required String password,
     required String name,
     required String phone,
   });
-  Future<User> refreshToken({required String refreshToken});
-  Future<void> logout({required String accessToken});
+  Future<(UserModel, AuthModel)> refreshToken({required String refreshToken});
+  Future<void> logout();
   Future<void> forgotPassword({required String email});
-  Future<void> verifyOtp({required String email, required String otp});
+  Future<String> verifyOtp({required String email, required String otp});
   Future<void> resetPassword({
     required String token,
     required String newPassword,
@@ -25,123 +27,64 @@ abstract class AuthenticationRemoteDataSource {
 
 class AuthenticationRemoteDataSourceImpl
     implements AuthenticationRemoteDataSource {
-  final http.Client _client;
+  final ApiClient _client;
 
   AuthenticationRemoteDataSourceImpl(this._client);
 
   @override
   Future<void> forgotPassword({required String email}) async {
-    try {
-      final response = await _client.post(
-        Uri.parse(kForgotPassword),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
-      );
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw APIException(
-          message: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      throw APIException(message: e.toString(), statusCode: 505);
-    }
+    await _client.post(kForgotPassword, auth: false, body: {'email': email});
   }
 
   @override
-  Future<User> login({required String email, required String password}) async {
-    try {
-      final response = await _client.post(
-        Uri.parse(kLogin),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
-      );
-      if (response.statusCode == 200) {
-        return UserModel.fromJson(response.body);
-      } else {
-        throw APIException(
-          message: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      throw APIException(message: e.toString(), statusCode: 500);
-    }
+  Future<(UserModel, AuthModel)> login({
+    required String email,
+    required String password,
+  }) async {
+    final response = await _client.post(
+      kLogin,
+      auth: false,
+      body: {'email': email, 'password': password},
+    );
+
+    return _session(response);
   }
 
   @override
-  Future<void> logout({required String accessToken}) async {
-    try {
-      final response = await _client.post(
-        Uri.parse(kLogout),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw APIException(
-          message: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      throw APIException(message: e.toString(), statusCode: 505);
-    }
+  Future<void> logout() async {
+    await _client.post(kLogout);
   }
 
   @override
-  Future<User> refreshToken({required String refreshToken}) async {
-    try {
-      final response = await _client.post(
-        Uri.parse(kRefreshToken),
-        headers: {
-          'Authorization': 'Bearer $refreshToken',
-          'Content-Type': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        return UserModel.fromMap(jsonDecode(response.body));
-      } else {
-        throw APIException(
-          message: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      throw APIException(message: e.toString(), statusCode: 505);
-    }
+  Future<(UserModel, AuthModel)> refreshToken({
+    required String refreshToken,
+  }) async {
+    final response = await _client.post(
+      kRefreshToken,
+      auth: false,
+      headers: {'Cookie': 'refreshToken=$refreshToken'},
+    );
+    return _session(response);
   }
 
   @override
-  Future<User> register({
+  Future<(UserModel, AuthModel)> register({
     required String email,
     required String password,
     required String name,
     required String phone,
   }) async {
-    try {
-      final response = await _client.post(
-        Uri.parse(kRegister),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'name': name,
-          'phone': phone,
-        }),
-      );
-      if (response.statusCode == 200 && response.statusCode == 201) {
-        return UserModel.fromMap(jsonDecode(response.body));
-      } else {
-        throw APIException(
-          message: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      throw APIException(message: e.toString(), statusCode: 505);
-    }
+    final response = await _client.post(
+      kRegister,
+      auth: false,
+      body: {
+        'email': email,
+        'password': password,
+        'name': name,
+        'phone': phone,
+      },
+    );
+    return _session(response);
   }
 
   @override
@@ -149,39 +92,39 @@ class AuthenticationRemoteDataSourceImpl
     required String token,
     required String newPassword,
   }) async {
-    try {
-      final response = await _client.post(
-        Uri.parse(kResetPassword),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'token': token, 'new_password': newPassword}),
-      );
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw APIException(
-          message: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      throw APIException(message: e.toString(), statusCode: 505);
-    }
+    await _client.post(
+      kResetPassword,
+      auth: false,
+      body: {'token': token, 'new_password': newPassword},
+    );
   }
 
   @override
-  Future<void> verifyOtp({required String email, required String otp}) async {
-    try {
-      final response = await _client.post(
-        Uri.parse(kVerifyOtp),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'otp': otp}),
+  Future<String> verifyOtp({required String email, required String otp}) async {
+    final response = await _client.post(
+      kVerifyOtp,
+      auth: false,
+      body: {'email': email, 'otp': otp},
+    );
+    return response.data['token'] as String;
+  }
+
+  (UserModel, AuthModel) _session(ApiResponse response) {
+    final cookie = response.headers['set-cookie'] ?? '';
+    final match = RegExp(r'refreshToken=([^;,\s]+)').firstMatch(cookie);
+    if (match == null) {
+      throw APIException(
+        message: 'Refresh token not found in response headers',
+        statusCode: 500,
       );
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw APIException(
-          message: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-    } catch (e) {
-      throw APIException(message: e.toString(), statusCode: 505);
     }
+
+    final body = response.map;
+    final user = UserModel.fromMap(body['user'] as Map<String, dynamic>);
+    final auth = AuthModel.fromResponse(
+      body,
+      refreshToken: Uri.decodeComponent(match.group(1)!),
+    );
+    return (user, auth);
   }
 }

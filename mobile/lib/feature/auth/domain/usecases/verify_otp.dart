@@ -13,11 +13,11 @@ class VerifyOtpWithParams extends Equatable {
   List<Object?> get props => [email, otp];
 }
 
-class VerifyOtp extends UsecaseWithParams<void, VerifyOtpWithParams> {
+class VerifyOtp extends UsecaseWithParams<String, VerifyOtpWithParams> {
   final AuthenticationRepository _repository;
   VerifyOtp(this._repository);
 
   @override
-  ResultVoid call(VerifyOtpWithParams params) async =>
+  ResultFuture<String> call(VerifyOtpWithParams params) async =>
       _repository.verifyOtp(email: params.email, otp: params.otp);
 }

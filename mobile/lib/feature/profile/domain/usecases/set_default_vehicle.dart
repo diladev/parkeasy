@@ -1,15 +1,16 @@
 import 'package:equatable/equatable.dart';
 import 'package:mobile/core/usecase/usecase.dart';
 import 'package:mobile/core/utils/typedef.dart';
+import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 import 'package:mobile/feature/profile/domain/repositories/profile_repository.dart';
 
 class SetDefaultVehicle
-    extends UsecaseWithParams<void, SetDefaultVehicleParams> {
+    extends UsecaseWithParams<Vehicle, SetDefaultVehicleParams> {
   const SetDefaultVehicle(this._repository);
   final ProfileRepository _repository;
 
   @override
-  ResultVoid call(SetDefaultVehicleParams params) =>
+  ResultFuture<Vehicle> call(SetDefaultVehicleParams params) =>
       _repository.setDefaultVehicle(vehicleId: params.vehicleId);
 }
 

@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:mobile/core/usecase/usecase.dart';
 import 'package:mobile/core/utils/typedef.dart';
-import 'package:mobile/feature/auth/domain/entities/user_entity.dart';
+import 'package:mobile/feature/auth/domain/entities/auth_entity.dart';
+import 'package:mobile/feature/profile/domain/entities/user_entity.dart';
 import 'package:mobile/feature/auth/domain/repositories/auth_repository.dart';
 
 class UserLoginWithParams extends Equatable {
@@ -14,12 +15,12 @@ class UserLoginWithParams extends Equatable {
   List<Object?> get props => [email, password];
 }
 
-class UserLogin extends UsecaseWithParams<User, UserLoginWithParams> {
+class UserLogin extends UsecaseWithParams<(User, Auth), UserLoginWithParams> {
   final AuthenticationRepository _repository;
   UserLogin(this._repository);
 
   @override
-  ResultFuture<User> call(UserLoginWithParams params) async =>
+  ResultFuture<(User, Auth)> call(UserLoginWithParams params) async =>
       _repository.userLogin(email: params.email, password: params.password);
 
   Future<bool> checkAuthStatus() async {

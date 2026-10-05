@@ -1,164 +1,145 @@
 import 'package:dartz/dartz.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile/core/errors/exception.dart';
 import 'package:mobile/core/errors/failure.dart';
 import 'package:mobile/core/utils/typedef.dart';
-import 'package:mobile/feature/auth/data/models/user_model.dart';
+import 'package:mobile/feature/auth/data/repositories/auth_local_data_source.dart';
 import 'package:mobile/feature/auth/data/repositories/auth_remote_data_source.dart';
-import 'package:mobile/feature/auth/domain/entities/user_entity.dart';
+import 'package:mobile/feature/auth/data/repositories/auth_token_provider.dart';
+import 'package:mobile/feature/auth/domain/entities/auth_entity.dart';
 import 'package:mobile/feature/auth/domain/repositories/auth_repository.dart';
+import 'package:mobile/feature/profile/data/repositories/profile_local_data_source.dart';
+import 'package:mobile/feature/profile/domain/entities/user_entity.dart';
 
 class AuthenticationRepositoryImpl implements AuthenticationRepository {
-  static const String _userCacheKey = 'user';
+  AuthenticationRepositoryImpl(
+    this._remoteDataSource,
+    this._authCache,
+    this._userCache,
+    this._tokens,
+  );
+
   final AuthenticationRemoteDataSource _remoteDataSource;
-  final SharedPreferences _cachedDataSource;
+  final AuthenticationLocalDataSource _authCache;
+  final ProfileLocalDataSource _userCache;
+  final AuthTokenProvider _tokens;
 
-  AuthenticationRepositoryImpl(this._remoteDataSource, this._cachedDataSource);
-
-  Future<void> _cachedUserData(UserModel user) async {
-    await _cachedDataSource.setString(_userCacheKey, user.toJson());
-  }
-
-  Future<void> _clearUserData() async {
-    await _cachedDataSource.remove(_userCacheKey);
+  @override
+  ResultFuture<(User, Auth)> userLogin({
+    required String email,
+    required String password,
+  }) {
+    return _guard(() async {
+      final (user, auth) = await _remoteDataSource.login(
+        email: email,
+        password: password,
+      );
+      await _tokens.saveSession(user, auth);
+      return (user, auth);
+    });
   }
 
   @override
-  ResultVoid forgotPassword({required String email}) async {
-    try {
-      await _remoteDataSource.forgotPassword(email: email);
-      return const Right(null);
-    } on APIException catch (e) {
-      return Left(APIFailure.fromException(e));
-    }
+  ResultFuture<(User, Auth)> userRegister({
+    required String email,
+    required String password,
+    required String name,
+    required String phone,
+  }) {
+    return _guard(() async {
+      final (user, auth) = await _remoteDataSource.register(
+        email: email,
+        password: password,
+        name: name,
+        phone: phone,
+      );
+      await _tokens.saveSession(user, auth);
+      return (user, auth);
+    });
   }
 
   @override
-  ResultFuture<User> refreshUser() async {
-    try {
-      final userJson = _cachedDataSource.getString(_userCacheKey);
-      if (userJson == null) {
+  ResultFuture<(User, Auth)> refreshUser() {
+    return _guard(() async {
+      final token = await _tokens.refreshAccessToken();
+      final user = _userCache.getUser();
+      final auth = _authCache.getAuth();
+      if (token == null || user == null || auth == null) {
         throw const APIException(
-          message: 'No user data found',
+          message: 'Your session has expired. Please sign in again.',
           statusCode: 401,
         );
       }
-      final user = UserModel.fromJson(userJson);
-      final refreshed = await _remoteDataSource.refreshToken(
-        refreshToken: user.refreshToken,
-      );
-      await _cachedUserData(refreshed as UserModel);
-      return Right(refreshed);
-    } on APIException catch (e) {
-      return Left(APIFailure.fromException(e));
-    }
-  }
-
-  @override
-  ResultVoid resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
-    try {
-      await _remoteDataSource.resetPassword(
-        token: token,
-        newPassword: newPassword,
-      );
-      return const Right(null);
-    } on APIException catch (e) {
-      return Left(APIFailure.fromException(e));
-    }
+      return (user, auth);
+    });
   }
 
   @override
   ResultFuture<bool> userAuthenticated() async {
-    try {
-      final userJson = _cachedDataSource.getString(_userCacheKey);
-      if (userJson == null) {
-        return const Right(false);
-      }
-      final user = UserModel.fromJson(userJson);
-      final now = DateTime.now();
-
-      if (DateTime.parse(user.accessTokenExpiration).isAfter(now)) {
-        return const Right(true);
-      } else if (DateTime.parse(user.refreshTokenExpiration).isAfter(now)) {
-        final result = await refreshUser();
-        return result.fold((_) async {
-          await _clearUserData();
-          return const Right(false);
-        }, (_) => const Right(true));
-      } else {
-        await _clearUserData();
-        return const Right(false);
-      }
-    } catch (e) {
-      await _clearUserData();
+    if (_authCache.getAuth() == null || _userCache.getUser() == null) {
+      await _tokens.clearSession();
       return const Right(false);
     }
-  }
-
-  @override
-  ResultFuture<User> userLogin({
-    required String email,
-    required String password,
-  }) async {
     try {
-      final user = await _remoteDataSource.login(
-        email: email,
-        password: password,
-      );
-      await _cachedUserData(user as UserModel);
-      return Right(user);
-    } on APIException catch (e) {
-      return Left(APIFailure.fromException(e));
+      final token = await _tokens.getAccessToken();
+      return Right(token != null);
+    } on APIException {
+      return const Right(true);
     }
   }
 
   @override
   ResultVoid userLogout() async {
     try {
-      final userJson = _cachedDataSource.getString(_userCacheKey);
-      if (userJson == null) {
-        return const Right(null);
-      }
-      final user = UserModel.fromJson(userJson);
-      await _remoteDataSource.logout(accessToken: user.accessToken);
-      await _clearUserData();
-      return const Right(null);
-    } on APIException catch (e) {
-      return Left(APIFailure.fromException(e));
+      await _remoteDataSource.logout();
+    } on APIException {
+      // Signing out on this device must work even offline.
+    } finally {
+      await _tokens.clearSession();
     }
+    return const Right(null);
   }
 
   @override
-  ResultFuture<User> userRegister({
-    required String email,
-    required String password,
-    required String name,
-    required String phone,
-  }) async {
+  ResultVoid clearSession() async {
+    await _tokens.clearSession();
+    return const Right(null);
+  }
+
+  @override
+  ResultVoid forgotPassword({required String email}) {
+    return _guard(() => _remoteDataSource.forgotPassword(email: email));
+  }
+
+  @override
+  ResultFuture<String> verifyOtp({required String email, required String otp}) {
+    return _guard(() => _remoteDataSource.verifyOtp(email: email, otp: otp));
+  }
+
+  @override
+  ResultVoid resetPassword({
+    required String token,
+    required String newPassword,
+  }) {
+    return _guard(
+      () => _remoteDataSource.resetPassword(
+        token: token,
+        newPassword: newPassword,
+      ),
+    );
+  }
+
+  ResultFuture<T> _guard<T>(Future<T> Function() action) async {
     try {
-      final user = await _remoteDataSource.register(
-        email: email,
-        password: password,
-        name: name,
-        phone: phone,
+      return Right(await action());
+    } on APIException catch (e) {
+      return Left(APIFailure.fromException(e));
+    } catch (_) {
+      return const Left(
+        APIFailure(
+          message: 'Something went wrong. Please try again.',
+          statusCode: 500,
+        ),
       );
-      await _cachedUserData(user as UserModel);
-      return Right(user);
-    } on APIException catch (e) {
-      return Left(APIFailure.fromException(e));
-    }
-  }
-
-  @override
-  ResultVoid verifyOtp({required String email, required String otp}) async {
-    try {
-      await _remoteDataSource.verifyOtp(email: email, otp: otp);
-      return const Right(null);
-    } on APIException catch (e) {
-      return Left(APIFailure.fromException(e));
     }
   }
 }
