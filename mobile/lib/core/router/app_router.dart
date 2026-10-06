@@ -6,6 +6,13 @@ import 'package:mobile/feature/auth/presentation/screens/forgot_password_screen.
 import 'package:mobile/feature/auth/presentation/screens/otp_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/reset_password_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/location_permission_screen.dart';
+import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
+import 'package:mobile/feature/profile/presentation/screens/change_password_screen.dart';
+import 'package:mobile/feature/profile/presentation/screens/delete_account_screen.dart';
+import 'package:mobile/feature/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:mobile/feature/profile/presentation/screens/my_vehicles_screen.dart';
+import 'package:mobile/feature/profile/presentation/screens/profile_screen.dart';
+import 'package:mobile/feature/profile/presentation/screens/vehicle_form_screen.dart';
 import 'package:mobile/feature/stub/stub_screen.dart';
 
 class AppRouter {
@@ -45,6 +52,7 @@ class AppRouter {
   static const String paymentMethods = '/payment-methods';
   static const String wallet = '/wallet';
   static const String myVehicles = '/my-vehicles';
+  static const String vehicleForm = '/vehicle-form';
   static const String notificationSettings = '/notification-settings';
   static const String helpSupport = '/help-support';
   static const String changePassword = '/change-password';
@@ -73,9 +81,33 @@ class AppRouter {
         return _route(const ResetPasswordSuccessScreen(), settings);
       case locationPermission:
         return _route(const LocationPermissionScreen(), settings);
+      case vehicleSetup:
+        // Step 3 of sign-up: the same form as "Add vehicle", with a Skip button.
+        return _route(const VehicleFormScreen(isOnboarding: true), settings);
 
-      // Everything else (vehicle setup, home, profile...) is a stub until
-      // its feature is committed.
+      // Main app: a stub until the shell (bottom tabs) is added.
+      case home:
+        return _route(StubScreen(routeName: settings.name ?? 'home'), settings);
+
+      // Profile
+      case profile:
+        return _route(const ProfileScreen(), settings);
+      case editProfile:
+        return _route(const EditProfileScreen(), settings);
+      case changePassword:
+        return _route(const ChangePasswordScreen(), settings);
+      case deleteAccount:
+        return _route(const DeleteAccountScreen(), settings);
+      case myVehicles:
+        return _route(const MyVehiclesScreen(), settings);
+      case vehicleForm:
+        final vehicle = settings.arguments as Vehicle?;
+        // Typed <Vehicle> because toVehicleForm awaits a Vehicle result:
+        // Navigator casts the route to Route<Vehicle?>, and a
+        // MaterialPageRoute<dynamic> would fail that cast at runtime.
+        return _route<Vehicle>(VehicleFormScreen(vehicle: vehicle), settings);
+
+      // All remaining screens are stubs — will be replaced as features are built
       default:
         return _route(
           StubScreen(routeName: settings.name ?? 'unknown'),
@@ -167,6 +199,13 @@ class AppRouter {
 
   static void toMyVehicles(BuildContext context) =>
       Navigator.pushNamed(context, myVehicles);
+
+  /// Opens the vehicle form: adds a vehicle, or edits [vehicle].
+  /// Completes with the saved vehicle, or null if the user went back.
+  static Future<Vehicle?> toVehicleForm(
+    BuildContext context, {
+    Vehicle? vehicle,
+  }) => Navigator.pushNamed<Vehicle>(context, vehicleForm, arguments: vehicle);
 
   static void toNotificationSettings(BuildContext context) =>
       Navigator.pushNamed(context, notificationSettings);

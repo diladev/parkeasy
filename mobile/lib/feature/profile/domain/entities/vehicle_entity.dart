@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 enum VehicleType {
   sedan('Sedan'),
   suv('SUV'),
-  hatchback('Truck');
+  truck('Truck');
 
   const VehicleType(this.label);
   final String label;
@@ -37,8 +37,11 @@ class Vehicle extends Equatable {
   final VehicleType type;
   final bool isDefault;
 
+  String get displayName => '$brand $model';
+
   @override
   List<Object?> get props => [
+    id,
     brand,
     model,
     year,

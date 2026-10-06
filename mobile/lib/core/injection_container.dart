@@ -1,4 +1,8 @@
 import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
 import 'package:mobile/core/locale/app_language.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/network/token_provider.dart';
@@ -16,11 +20,13 @@ import 'package:mobile/feature/auth/domain/usecases/user_login.dart';
 import 'package:mobile/feature/auth/domain/usecases/user_logout.dart';
 import 'package:mobile/feature/auth/domain/usecases/user_register.dart';
 import 'package:mobile/feature/auth/domain/usecases/verify_otp.dart';
+import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_local_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_remote_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_repository_implementation.dart';
 import 'package:mobile/feature/profile/domain/repositories/profile_repository.dart';
 import 'package:mobile/feature/profile/domain/usecases/add_vehicle.dart';
+import 'package:mobile/feature/profile/domain/usecases/change_password.dart';
 import 'package:mobile/feature/profile/domain/usecases/delete_account.dart';
 import 'package:mobile/feature/profile/domain/usecases/delete_vehicle.dart';
 import 'package:mobile/feature/profile/domain/usecases/get_profile.dart';
@@ -28,27 +34,28 @@ import 'package:mobile/feature/profile/domain/usecases/get_vehicles.dart';
 import 'package:mobile/feature/profile/domain/usecases/set_default_vehicle.dart';
 import 'package:mobile/feature/profile/domain/usecases/update_profile.dart';
 import 'package:mobile/feature/profile/domain/usecases/update_vehicle.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
-import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
+import 'package:mobile/feature/profile/presentation/bloc/profile_bloc.dart';
+import 'package:mobile/feature/profile/presentation/cubit/change_password_cubit.dart';
+import 'package:mobile/feature/profile/presentation/cubit/delete_account_cubit.dart';
+import 'package:mobile/feature/profile/presentation/cubit/edit_profile_cubit.dart';
+import 'package:mobile/feature/profile/presentation/cubit/vehicle_form_cubit.dart';
+import 'package:mobile/feature/profile/presentation/cubit/vehicles_cubit.dart';
 
 final sl = GetIt.instance;
+
 Future<void> init() async {
   // External dependencies
   final prefs = await SharedPreferences.getInstance();
-  sl.registerLazySingleton(() => prefs);
-  sl.registerLazySingleton(() => http.Client());
+  sl.registerLazySingleton<SharedPreferences>(() => prefs);
+  sl.registerLazySingleton<http.Client>(() => http.Client());
 
-  // Session: one instance, used as AuthTokenProvider and as TokenProvider.
-  sl.registerLazySingleton(() => AuthTokenProvider(sl(), sl(), sl()));
-  sl.registerLazySingleton<TokenProvider>(() => sl<AuthTokenProvider>());
-
-  // Services
+  // Core
   sl.registerLazySingleton(() => ConnectivityService());
+  sl.registerLazySingleton(() => AppLanguage(sl()));
   sl.registerLazySingleton(
     () => ApiClient(
       sl(),
+      // Looked up on use: AuthTokenProvider itself needs ApiClient (for /refresh).
       tokenProvider: () => sl<TokenProvider>(),
       languageCode: () => sl<AppLanguage>().code,
     ),
@@ -68,6 +75,10 @@ Future<void> init() async {
     () => ProfileLocalDataSourceImpl(sl()),
   );
 
+  // Session: one instance, used as AuthTokenProvider and as TokenProvider.
+  sl.registerLazySingleton(() => AuthTokenProvider(sl(), sl(), sl()));
+  sl.registerLazySingleton<TokenProvider>(() => sl<AuthTokenProvider>());
+
   // Repositories
   sl.registerLazySingleton<AuthenticationRepository>(
     () => AuthenticationRepositoryImpl(sl(), sl(), sl(), sl()),
@@ -82,12 +93,13 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UserRegister(sl()));
   sl.registerLazySingleton(() => ForgotPassword(sl()));
   sl.registerLazySingleton(() => ResetPassword(sl()));
-  sl.registerLazySingleton((() => VerifyOtp(sl())));
+  sl.registerLazySingleton(() => VerifyOtp(sl()));
   sl.registerLazySingleton(() => ClearSession(sl()));
 
   // Use cases: profile
   sl.registerLazySingleton(() => GetProfile(sl()));
   sl.registerLazySingleton(() => UpdateProfile(sl()));
+  sl.registerLazySingleton(() => ChangePassword(sl()));
   sl.registerLazySingleton(() => DeleteAccount(sl()));
   sl.registerLazySingleton(() => GetVehicles(sl()));
   sl.registerLazySingleton(() => AddVehicle(sl()));
@@ -95,7 +107,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteVehicle(sl()));
   sl.registerLazySingleton(() => SetDefaultVehicle(sl()));
 
-  // Blocs
+  // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
   sl.registerFactory(() => ConnectivityCubit(sl()));
   sl.registerFactory(
@@ -110,4 +122,10 @@ Future<void> init() async {
       sessionExpired: sl<ApiClient>().sessionExpired,
     ),
   );
+  sl.registerFactory(() => ProfileBloc(sl()));
+  sl.registerFactory(() => EditProfileCubit(sl()));
+  sl.registerFactory(() => ChangePasswordCubit(sl()));
+  sl.registerFactory(() => DeleteAccountCubit(sl()));
+  sl.registerFactory(() => VehiclesCubit(sl(), sl(), sl()));
+  sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
 }

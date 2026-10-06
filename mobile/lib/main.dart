@@ -8,6 +8,8 @@ import 'package:mobile/core/injection_container.dart' as di;
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_state.dart';
+import 'package:mobile/feature/profile/presentation/bloc/profile_bloc.dart';
+import 'package:mobile/feature/profile/presentation/bloc/profile_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +30,7 @@ class ParkEasy extends StatelessWidget {
         ),
         // AppStarted is sent once, by the splash screen.
         BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()),
+        BlocProvider<ProfileBloc>(create: (_) => di.sl<ProfileBloc>()),
       ],
       child: BlocBuilder<ThemeCubit, bool>(
         builder: (context, isDarkMode) {
@@ -49,8 +52,9 @@ class ParkEasy extends StatelessWidget {
   }
 }
 
-/// Wherever the user is, when the session ends (sign out, session expired)
-/// go back to the login screen and show the reason.
+/// Wherever the user is, when the session ends (sign out, session expired,
+/// account deleted) go back to the login screen, forget the profile, and
+/// show the reason.
 class _SignedOutListener extends StatelessWidget {
   const _SignedOutListener({required this.child});
 
@@ -61,6 +65,8 @@ class _SignedOutListener extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (_, state) => state is AuthSignedOut,
       listener: (context, state) {
+        // So the next user to sign in never sees the previous user's profile.
+        context.read<ProfileBloc>().add(ProfileCleared());
         AppRouter.navigatorKey.currentState?.pushNamedAndRemoveUntil(
           AppRouter.login,
           (_) => false,
