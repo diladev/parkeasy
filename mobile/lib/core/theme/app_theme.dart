@@ -48,12 +48,96 @@ class AppColors {
   static const Color lightBorder = Color(0x14000000);
 }
 
+@immutable
+class AppPalette extends ThemeExtension<AppPalette> {
+  const AppPalette({
+    required this.bg,
+    required this.surface,
+    required this.surface2,
+    required this.textPrimary,
+    required this.textMuted,
+    required this.textHint,
+    required this.border,
+  });
+
+  final Color bg;
+  final Color surface;
+  final Color surface2;
+  final Color textPrimary;
+  final Color textMuted;
+  final Color textHint;
+  final Color border;
+
+  static const dark = AppPalette(
+    bg: AppColors.bg,
+    surface: AppColors.surface,
+    surface2: AppColors.surface2,
+    textPrimary: AppColors.textPrimary,
+    textMuted: AppColors.textMuted,
+    textHint: AppColors.textHint,
+    border: AppColors.border,
+  );
+
+  static const light = AppPalette(
+    bg: AppColors.lightBg,
+    surface: AppColors.lightSurface,
+    surface2: AppColors.lightSurface2,
+    textPrimary: AppColors.lightTextPrimary,
+    textMuted: AppColors.lightTextMuted,
+    textHint: AppColors.lightTextHint,
+    border: AppColors.lightBorder,
+  );
+
+  @override
+  AppPalette copyWith({
+    Color? bg,
+    Color? surface,
+    Color? surface2,
+    Color? textPrimary,
+    Color? textMuted,
+    Color? textHint,
+    Color? border,
+  }) {
+    return AppPalette(
+      bg: bg ?? this.bg,
+      surface: surface ?? this.surface,
+      surface2: surface2 ?? this.surface2,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textMuted: textMuted ?? this.textMuted,
+      textHint: textHint ?? this.textHint,
+      border: border ?? this.border,
+    );
+  }
+
+  /// Lets the colors animate smoothly when the theme switches.
+  @override
+  AppPalette lerp(ThemeExtension<AppPalette>? other, double t) {
+    if (other is! AppPalette) return this;
+    return AppPalette(
+      bg: Color.lerp(bg, other.bg, t)!,
+      surface: Color.lerp(surface, other.surface, t)!,
+      surface2: Color.lerp(surface2, other.surface2, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      textHint: Color.lerp(textHint, other.textHint, t)!,
+      border: Color.lerp(border, other.border, t)!,
+    );
+  }
+}
+
+extension AppPaletteContext on BuildContext {
+  /// The current theme's palette: `context.palette.textPrimary`.
+  AppPalette get palette =>
+      Theme.of(this).extension<AppPalette>() ?? AppPalette.dark;
+}
+
 class AppTheme {
   AppTheme._();
 
   static ThemeData get dark => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    extensions: const <ThemeExtension<dynamic>>[AppPalette.dark],
     scaffoldBackgroundColor: AppColors.bg,
     colorScheme: const ColorScheme.dark(
       primary: AppColors.teal,
@@ -309,6 +393,7 @@ class AppTheme {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    extensions: const <ThemeExtension<dynamic>>[AppPalette.light],
     scaffoldBackgroundColor: AppColors.lightBg,
     colorScheme: const ColorScheme.light(
       primary: AppColors.teal,
