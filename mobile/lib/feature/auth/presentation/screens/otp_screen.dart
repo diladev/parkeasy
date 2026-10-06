@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -25,7 +26,9 @@ class _OtpScreenState extends State<OtpScreen> {
   );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
-  int _secondsLeft = 60;
+  // The API only sends a new code once a minute, so the button waits as long.
+  static const int _resendSeconds = 60;
+  int _secondsLeft = _resendSeconds;
   Timer? _timer;
 
   @override
@@ -35,6 +38,7 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   void _startTimer() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_secondsLeft == 0) {
         t.cancel();
@@ -46,11 +50,19 @@ class _OtpScreenState extends State<OtpScreen> {
 
   void _resend() {
     context.read<AuthBloc>().add(ForgotPasswordRequested(email: widget.email));
-    setState(() => _secondsLeft = 60);
+    for (final controller in _controllers) {
+      controller.clear();
+    }
+    _focusNodes.first.requestFocus();
+    setState(() => _secondsLeft = _resendSeconds);
     _startTimer();
   }
 
   String get _otp => _controllers.map((c) => c.text).join();
+
+  void _verify() {
+    context.read<AuthBloc>().add(OtpVerified(email: widget.email, otp: _otp));
+  }
 
   @override
   void dispose() {
@@ -66,17 +78,19 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return BaseScreenWrapper(
       child: Scaffold(
         body: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
+            if (!context.isCurrentRoute) return;
             if (state is OtpVerificationError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-              );
+              context.showSnack(state.message, isError: true);
+            } else if (state is ForgotPasswordError) {
+              context.showSnack(state.message, isError: true);
+            } else if (state is ForgotPasswordSent) {
+              context.showSnack('We sent a new code to ${widget.email}.');
             } else if (state is OtpVerifiedSuccess) {
               AppRouter.toResetPassword(context, state.token);
             }
@@ -85,7 +99,7 @@ class _OtpScreenState extends State<OtpScreen> {
             return SafeArea(
               child: Column(
                 children: [
-                  AppTopBar(title: 'Enter code'),
+                  const AppTopBar(title: 'Enter code'),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(22),
@@ -110,27 +124,27 @@ class _OtpScreenState extends State<OtpScreen> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Text(
+                          Text(
                             'Check your email',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textPrimary,
+                              color: palette.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 10),
                           Text.rich(
                             TextSpan(
                               text: 'We sent a 6-digit code to\n',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.textHint,
+                                color: palette.textHint,
                               ),
                               children: [
                                 TextSpan(
                                   text: widget.email,
-                                  style: const TextStyle(
-                                    color: AppColors.textPrimary,
+                                  style: TextStyle(
+                                    color: palette.textPrimary,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -140,93 +154,89 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                           const SizedBox(height: 36),
 
-                          // OTP boxes
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: List.generate(6, (i) {
-                              return SizedBox(
-                                width: 46,
-                                height: 56,
-                                child: TextFormField(
-                                  controller: _controllers[i],
-                                  focusNode: _focusNodes[i],
-                                  textAlign: TextAlign.center,
-                                  keyboardType: TextInputType.number,
-                                  maxLength: 1,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textPrimary,
+                          // OTP boxes. Always left-to-right, even in Kurdish.
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: List.generate(6, (i) {
+                                final filled = _controllers[i].text.isNotEmpty;
+                                return SizedBox(
+                                  width: 46,
+                                  height: 56,
+                                  child: TextFormField(
+                                    controller: _controllers[i],
+                                    focusNode: _focusNodes[i],
+                                    textAlign: TextAlign.center,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    maxLength: 1,
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w500,
+                                      color: palette.textPrimary,
+                                    ),
+                                    decoration: InputDecoration(
+                                      counterText: '',
+                                      filled: true,
+                                      fillColor: filled
+                                          ? AppColors.tealBg
+                                          : palette.surface,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: filled
+                                              ? AppColors.teal
+                                              : palette.border,
+                                          width: filled ? 1 : 0.5,
+                                        ),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: filled
+                                              ? AppColors.teal
+                                              : palette.border,
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: const BorderSide(
+                                          color: AppColors.teal,
+                                          width: 1,
+                                        ),
+                                      ),
+                                    ),
+                                    onChanged: (v) {
+                                      setState(() {});
+                                      if (v.isNotEmpty && i < 5) {
+                                        _focusNodes[i + 1].requestFocus();
+                                      }
+                                      if (v.isEmpty && i > 0) {
+                                        _focusNodes[i - 1].requestFocus();
+                                      }
+                                    },
                                   ),
-                                  decoration: InputDecoration(
-                                    counterText: '',
-                                    filled: true,
-                                    fillColor: _controllers[i].text.isNotEmpty
-                                        ? AppColors.tealBg
-                                        : AppColors.surface,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: _controllers[i].text.isNotEmpty
-                                            ? AppColors.teal
-                                            : AppColors.border,
-                                        width: _controllers[i].text.isNotEmpty
-                                            ? 1
-                                            : 0.5,
-                                      ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: _controllers[i].text.isNotEmpty
-                                            ? AppColors.teal
-                                            : AppColors.border,
-                                        width: 0.5,
-                                      ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                        color: AppColors.teal,
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  onChanged: (v) {
-                                    setState(() {});
-                                    if (v.isNotEmpty && i < 5) {
-                                      _focusNodes[i + 1].requestFocus();
-                                    }
-                                    if (v.isEmpty && i > 0) {
-                                      _focusNodes[i - 1].requestFocus();
-                                    }
-                                  },
-                                ),
-                              );
-                            }),
+                                );
+                              }),
+                            ),
                           ),
                           const SizedBox(height: 32),
 
                           AppButton(
                             label: 'Verify code',
                             isLoading: state is AuthLoading,
-                            onTap: _otp.length == 6
-                                ? () {
-                                    context.read<AuthBloc>().add(
-                                      OtpVerified(
-                                        email: widget.email,
-                                        otp: _otp,
-                                      ),
-                                    );
-                                  }
-                                : null,
+                            onTap: _otp.length == 6 ? _verify : null,
                           ),
                           const SizedBox(height: 24),
-                          const Text(
+                          Text(
                             "Didn't receive the code?",
                             style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textHint,
+                              color: palette.textHint,
                             ),
                           ),
                           const SizedBox(height: 6),

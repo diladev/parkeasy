@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/utils/validators.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_event.dart';
@@ -21,8 +22,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
-  bool _showPassword = false;
-  bool _showConfirm = false;
 
   @override
   void dispose() {
@@ -31,19 +30,25 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.dispose();
   }
 
+  void _reset() {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+    context.read<AuthBloc>().add(
+      PasswordReset(token: widget.token, newPassword: _passwordController.text),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return BaseScreenWrapper(
       child: Scaffold(
         body: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
+            if (!context.isCurrentRoute) return;
             if (state is PasswordResetError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-              );
+              context.showSnack(state.message, isError: true);
             } else if (state is PasswordResetSuccess) {
               Navigator.pushNamedAndRemoveUntil(
                 context,
@@ -53,127 +58,87 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             }
           },
           builder: (context, state) {
-            return Column(
-              children: [
-                AppTopBar(title: 'New password'),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(22),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 30),
-                          Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              color: AppColors.tealBg,
-                              borderRadius: BorderRadius.circular(22),
-                              border: Border.all(
-                                color: AppColors.teal,
-                                width: 1.5,
+            return SafeArea(
+              child: Column(
+                children: [
+                  const AppTopBar(title: 'New password'),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(22),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 30),
+                            Container(
+                              width: 76,
+                              height: 76,
+                              decoration: BoxDecoration(
+                                color: AppColors.tealBg,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: AppColors.teal,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.lock_open_rounded,
+                                size: 36,
+                                color: AppColors.tealLight,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.lock_open_rounded,
-                              size: 36,
-                              color: AppColors.tealLight,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Set a new password',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Must be at least 8 characters.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textHint,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          AppInputField(
-                            label: 'New password',
-                            hint: '••••••••',
-                            controller: _passwordController,
-                            obscureText: !_showPassword,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _showPassword
-                                    ? Icons.visibility_off_rounded
-                                    : Icons.visibility_rounded,
-                                color: AppColors.textHint,
-                                size: 20,
-                              ),
-                              onPressed: () => setState(
-                                () => _showPassword = !_showPassword,
+                            const SizedBox(height: 20),
+                            Text(
+                              'Set a new password',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: palette.textPrimary,
                               ),
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              if (v.length < 8) return 'Minimum 8 characters';
-                              return null;
-                            },
-                          ),
-                          ValueListenableBuilder(
-                            valueListenable: _passwordController,
-                            builder: (_, v, __) => PasswordStrengthBar(
-                              password: _passwordController.text,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          AppInputField(
-                            label: 'Confirm new password',
-                            hint: '••••••••',
-                            controller: _confirmController,
-                            obscureText: !_showConfirm,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _showConfirm
-                                    ? Icons.visibility_off_rounded
-                                    : Icons.visibility_rounded,
-                                color: AppColors.textHint,
-                                size: 20,
+                            const SizedBox(height: 10),
+                            Text(
+                              'At least 8 characters, with an uppercase and a lowercase letter, a number and a symbol.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: palette.textHint,
                               ),
-                              onPressed: () =>
-                                  setState(() => _showConfirm = !_showConfirm),
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              if (v != _passwordController.text) {
-                                return 'Passwords do not match';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 32),
-                          AppButton(
-                            label: 'Reset password',
-                            isLoading: state is AuthLoading,
-                            onTap: () {
-                              if (_formKey.currentState!.validate()) {
-                                context.read<AuthBloc>().add(
-                                  PasswordReset(
-                                    token: widget.token,
-                                    newPassword: _passwordController.text,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ],
+                            const SizedBox(height: 32),
+                            AppPasswordField(
+                              label: 'New password',
+                              controller: _passwordController,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.newPassword],
+                              validator: Validators.strongPassword,
+                            ),
+                            ValueListenableBuilder<TextEditingValue>(
+                              valueListenable: _passwordController,
+                              builder: (_, value, __) =>
+                                  PasswordStrengthBar(password: value.text),
+                            ),
+                            const SizedBox(height: 16),
+                            AppPasswordField(
+                              label: 'Confirm new password',
+                              controller: _confirmController,
+                              validator: Validators.matches(
+                                () => _passwordController.text,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            AppButton(
+                              label: 'Reset password',
+                              isLoading: state is AuthLoading,
+                              onTap: _reset,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
@@ -188,6 +153,8 @@ class ResetPasswordSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return BaseScreenWrapper(
       child: Scaffold(
         body: SafeArea(
@@ -211,19 +178,19 @@ class ResetPasswordSuccessScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Password reset!',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                    color: palette.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Your password has been updated successfully.',
+                Text(
+                  'Your password has been updated. For your safety you were signed out on every device.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: AppColors.textHint),
+                  style: TextStyle(fontSize: 14, color: palette.textHint),
                 ),
                 const SizedBox(height: 40),
                 AppButton(

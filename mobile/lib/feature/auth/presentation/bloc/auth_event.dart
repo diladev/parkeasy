@@ -65,4 +65,11 @@ class PasswordReset extends AuthEvent {
   List<Object?> get props => [token, newPassword];
 }
 
-class ResetToUnauthorized extends AuthEvent {}
+class ResetToUnauthorized extends AuthEvent {
+  final String? message;
+
+  ResetToUnauthorized({this.message});
+
+  @override
+  List<Object?> get props => [message];
+}

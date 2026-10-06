@@ -98,5 +98,16 @@ Future<void> init() async {
   // Blocs
   sl.registerFactory(() => ThemeCubit());
   sl.registerFactory(() => ConnectivityCubit(sl()));
-  sl.registerFactory(() => AuthBloc(sl(), sl(), sl(), sl(), sl(), sl()));
+  sl.registerFactory(
+    () => AuthBloc(
+      sl(),
+      sl(),
+      sl(),
+      sl(),
+      sl(),
+      sl(),
+      sl(),
+      sessionExpired: sl<ApiClient>().sessionExpired,
+    ),
+  );
 }

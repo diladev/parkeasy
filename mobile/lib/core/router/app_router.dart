@@ -9,6 +9,11 @@ import 'package:mobile/feature/auth/presentation/screens/location_permission_scr
 import 'package:mobile/feature/stub/stub_screen.dart';
 
 class AppRouter {
+  /// Lets code outside the widget tree navigate, e.g. back to the login
+  /// screen when the session expires (see main.dart).
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
   // ─── Route names ────────────────────────────────────────────────────────────
   static const String initial = '/';
   static const String login = '/login';
@@ -51,34 +56,39 @@ class AppRouter {
     switch (settings.name) {
       // Auth
       case initial:
-        return _route(const SplashScreen());
+        return _route(const SplashScreen(), settings);
       case login:
-        return _route(const LoginScreen());
+        return _route(const LoginScreen(), settings);
       case register:
-        return _route(const RegisterScreen());
+        return _route(const RegisterScreen(), settings);
       case forgotPassword:
-        return _route(const ForgotPasswordScreen());
+        return _route(const ForgotPasswordScreen(), settings);
       case otp:
         final email = settings.arguments as String? ?? '';
-        return _route(OtpScreen(email: email));
+        return _route(OtpScreen(email: email), settings);
       case resetPassword:
         final token = settings.arguments as String? ?? '';
-        return _route(ResetPasswordScreen(token: token));
+        return _route(ResetPasswordScreen(token: token), settings);
       case resetPasswordSuccess:
-        return _route(const ResetPasswordSuccessScreen());
+        return _route(const ResetPasswordSuccessScreen(), settings);
       case locationPermission:
-        return _route(const LocationPermissionScreen());
-      case vehicleSetup:
-        return _route(StubScreen(routeName: 'VehicleSetupScreen'));
+        return _route(const LocationPermissionScreen(), settings);
 
-      // All remaining screens are stubs — will be replaced as features are built
+      // Everything else (vehicle setup, home, profile...) is a stub until
+      // its feature is committed.
       default:
-        return _route(StubScreen(routeName: settings.name ?? 'unknown'));
+        return _route(
+          StubScreen(routeName: settings.name ?? 'unknown'),
+          settings,
+        );
     }
   }
 
-  static MaterialPageRoute _route(Widget screen) =>
-      MaterialPageRoute(builder: (_) => screen);
+  // The settings are passed on so ModalRoute.of(context) knows the route name.
+  static MaterialPageRoute<T> _route<T>(
+    Widget screen,
+    RouteSettings settings,
+  ) => MaterialPageRoute<T>(builder: (_) => screen, settings: settings);
 
   // ─── Navigation helpers ─────────────────────────────────────────────────────
   static void toLogin(BuildContext context) =>
@@ -87,8 +97,10 @@ class AppRouter {
   static void toRegister(BuildContext context) =>
       Navigator.pushNamed(context, register);
 
+  /// Clears the stack: after this, Back leaves the app instead of returning
+  /// to the auth screens.
   static void toHome(BuildContext context) =>
-      Navigator.pushReplacementNamed(context, home);
+      Navigator.pushNamedAndRemoveUntil(context, home, (_) => false);
 
   static void toForgotPassword(BuildContext context) =>
       Navigator.pushNamed(context, forgotPassword);
@@ -100,10 +112,16 @@ class AppRouter {
       Navigator.pushNamed(context, resetPassword, arguments: token);
 
   static void toLocationPermission(BuildContext context) =>
-      Navigator.pushReplacementNamed(context, locationPermission);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        locationPermission,
+        (_) => false,
+      );
 
+  /// Right after sign-up. Clears the stack, so Back can't return to the
+  /// sign-up form of an account that already exists.
   static void toVehicleSetup(BuildContext context) =>
-      Navigator.pushNamed(context, vehicleSetup);
+      Navigator.pushNamedAndRemoveUntil(context, vehicleSetup, (_) => false);
 
   static void toMap(BuildContext context) => Navigator.pushNamed(context, map);
 

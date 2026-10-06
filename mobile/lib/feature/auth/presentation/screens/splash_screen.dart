@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Trigger auth check.
+    // Trigger the auth check (the only place that sends AppStarted).
     context.read<AuthBloc>().add(AppStarted());
   }
 
@@ -52,39 +52,40 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
+  void _goTo(void Function(BuildContext) navigate) {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+
+      // Restore system UI before navigating.
+      _restoreSystemUI();
+
+      navigate(context);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
-          Future.delayed(const Duration(seconds: 2), () {
-            if (!mounted) return;
-
-            // Restore system UI before navigating.
-            _restoreSystemUI();
-
-            AppRouter.toLogin(context);
-          });
+          _goTo(AppRouter.toLogin);
         } else if (state is AuthAuthenticated) {
-          Future.delayed(const Duration(seconds: 2), () {
-            if (!mounted) return;
-
-            // Restore system UI before navigating.
-            _restoreSystemUI();
-
-            AppRouter.toHome(context);
-          });
+          _goTo(AppRouter.toHome);
         }
       },
       child: Scaffold(
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.surface, AppColors.tealDim, AppColors.teal],
+              colors: [
+                context.palette.surface,
+                AppColors.tealDim,
+                AppColors.teal,
+              ],
             ),
           ),
           child: FadeTransition(
@@ -97,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(26),
                   ),
                   child: const Icon(
@@ -125,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
                   'Find & book parking in seconds',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.65),
+                    color: Colors.white.withValues(alpha: 0.65),
                     fontFamily: 'Inter',
                   ),
                 ),
@@ -138,9 +139,9 @@ class _SplashScreenState extends State<SplashScreen>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
-                      backgroundColor: Colors.white.withOpacity(0.15),
+                      backgroundColor: Colors.white.withValues(alpha: 0.15),
                       valueColor: AlwaysStoppedAnimation(
-                        Colors.white.withOpacity(0.8),
+                        Colors.white.withValues(alpha: 0.8),
                       ),
                       minHeight: 4,
                     ),

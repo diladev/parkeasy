@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/utils/validators.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_event.dart';
@@ -25,19 +26,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
+  void _sendCode() {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+    context.read<AuthBloc>().add(
+      ForgotPasswordRequested(email: _emailController.text.trim()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return BaseScreenWrapper(
       child: Scaffold(
         body: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
+            // The code screen sends ForgotPasswordRequested again for
+            // "Resend code"; without this check, this screen (still mounted
+            // underneath) would open a second code screen.
+            if (!context.isCurrentRoute) return;
             if (state is ForgotPasswordError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-              );
+              context.showSnack(state.message, isError: true);
             } else if (state is ForgotPasswordSent) {
               AppRouter.toOtp(context, _emailController.text.trim());
             }
@@ -46,7 +56,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             return SafeArea(
               child: Column(
                 children: [
-                  AppTopBar(title: 'Reset password'),
+                  const AppTopBar(title: 'Reset password'),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(22),
@@ -74,21 +84,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            const Text(
+                            Text(
                               'Forgot your password?',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: AppColors.textPrimary,
+                                color: palette.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 10),
-                            const Text(
+                            Text(
                               "Enter the email linked to your account\nand we'll send you a reset code.",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.textHint,
+                                color: palette.textHint,
                               ),
                             ),
                             const SizedBox(height: 32),
@@ -97,34 +107,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               hint: 'you@example.com',
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
-                              validator: (v) {
-                                if (v == null || v.isEmpty) return 'Required';
-                                if (!v.contains('@'))
-                                  return 'Enter a valid email';
-                                return null;
-                              },
+                              autofillHints: const [AutofillHints.email],
+                              validator: Validators.email,
                             ),
                             const SizedBox(height: 24),
                             AppButton(
                               label: 'Send reset code',
                               isLoading: state is AuthLoading,
-                              onTap: () {
-                                if (_formKey.currentState!.validate()) {
-                                  context.read<AuthBloc>().add(
-                                    ForgotPasswordRequested(
-                                      email: _emailController.text.trim(),
-                                    ),
-                                  );
-                                }
-                              },
+                              onTap: _sendCode,
                             ),
                             const SizedBox(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text(
+                                Text(
                                   'Remembered it? ',
-                                  style: TextStyle(color: AppColors.textHint),
+                                  style: TextStyle(color: palette.textHint),
                                 ),
                                 GestureDetector(
                                   onTap: () => Navigator.pop(context),

@@ -36,6 +36,8 @@ class ApiClient {
   final StreamController<void> _sessionExpired =
       StreamController<void>.broadcast();
 
+  Stream<void> get sessionExpired => _sessionExpired.stream;
+
   Future<ApiResponse> get(
     String url, {
     bool auth = true,

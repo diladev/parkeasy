@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/utils/validators.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_event.dart';
@@ -23,8 +24,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _showPassword = false;
-  bool _showConfirmPassword = false;
   bool _agreedToTerms = false;
 
   @override
@@ -38,7 +37,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  Widget _stepDots(int filled) {
+  void _register() {
+    FocusScope.of(context).unfocus();
+    if (!_formKey.currentState!.validate()) return;
+    context.read<AuthBloc>().add(
+      Registered(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        name:
+            '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
+        phone: _phoneController.text.trim(),
+      ),
+    );
+  }
+
+  Widget _stepDots(int filled, Color empty) {
     return Row(
       children: List.generate(
         3,
@@ -47,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           height: 7,
           margin: const EdgeInsets.only(right: 6),
           decoration: BoxDecoration(
-            color: i < filled ? AppColors.teal : AppColors.surface2,
+            color: i < filled ? AppColors.teal : empty,
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -57,18 +70,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return BaseScreenWrapper(
       child: Scaffold(
         body: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
+            // The login screen underneath shares this bloc; this check keeps
+            // the two screens from both reacting to the same state.
+            if (!context.isCurrentRoute) return;
             if (state is RegistrationError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-              );
+              context.showSnack(state.message, isError: true);
             } else if (state is AuthAuthenticated) {
+              // Step 3: add a vehicle. The stack is cleared, so Back can't
+              // return to the sign-up form of an account that now exists.
               AppRouter.toVehicleSetup(context);
             }
           },
@@ -90,20 +105,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _stepDots(2),
+                            _stepDots(2, palette.surface2),
                             const SizedBox(height: 20),
 
                             // Name row
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
                                   child: AppInputField(
                                     label: 'First name',
                                     hint: 'Dilan',
                                     controller: _firstNameController,
-                                    validator: (v) => v == null || v.isEmpty
-                                        ? 'Required'
-                                        : null,
+                                    textCapitalization:
+                                        TextCapitalization.words,
+                                    textInputAction: TextInputAction.next,
+                                    validator: Validators.text(max: 30),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -112,9 +129,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     label: 'Last name',
                                     hint: 'Karimi',
                                     controller: _lastNameController,
-                                    validator: (v) => v == null || v.isEmpty
-                                        ? 'Required'
-                                        : null,
+                                    textCapitalization:
+                                        TextCapitalization.words,
+                                    textInputAction: TextInputAction.next,
+                                    validator: Validators.text(max: 29),
                                   ),
                                 ),
                               ],
@@ -125,12 +143,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               hint: 'you@example.com',
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
-                              validator: (v) {
-                                if (v == null || v.isEmpty) return 'Required';
-                                if (!v.contains('@'))
-                                  return 'Enter a valid email';
-                                return null;
-                              },
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.email],
+                              validator: Validators.email,
                             ),
                             const SizedBox(height: 16),
                             AppInputField(
@@ -138,68 +153,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               hint: '+964  07XX XXX XXXX',
                               controller: _phoneController,
                               keyboardType: TextInputType.phone,
-                              validator: (v) =>
-                                  v == null || v.isEmpty ? 'Required' : null,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [
+                                AutofillHints.telephoneNumber,
+                              ],
+                              validator: Validators.phone,
                             ),
                             const SizedBox(height: 16),
-                            AppInputField(
+                            AppPasswordField(
                               label: 'Password',
-                              hint: '••••••••',
                               controller: _passwordController,
-                              obscureText: !_showPassword,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _showPassword
-                                      ? Icons.visibility_off_rounded
-                                      : Icons.visibility_rounded,
-                                  color: AppColors.textHint,
-                                  size: 20,
-                                ),
-                                onPressed: () => setState(
-                                  () => _showPassword = !_showPassword,
-                                ),
-                              ),
-                              validator: (v) {
-                                if (v == null || v.isEmpty) return 'Required';
-                                if (v.length < 8) {
-                                  return 'Minimum 8 characters';
-                                }
-                                return null;
-                              },
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.newPassword],
+                              validator: Validators.strongPassword,
                             ),
                             // Password strength
-                            ValueListenableBuilder(
+                            ValueListenableBuilder<TextEditingValue>(
                               valueListenable: _passwordController,
-                              builder: (_, v, __) => PasswordStrengthBar(
-                                password: _passwordController.text,
-                              ),
+                              builder: (_, value, __) =>
+                                  PasswordStrengthBar(password: value.text),
                             ),
                             const SizedBox(height: 16),
-                            AppInputField(
+                            AppPasswordField(
                               label: 'Confirm password',
-                              hint: '••••••••',
                               controller: _confirmPasswordController,
-                              obscureText: !_showConfirmPassword,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _showConfirmPassword
-                                      ? Icons.visibility_off_rounded
-                                      : Icons.visibility_rounded,
-                                  color: AppColors.textHint,
-                                  size: 20,
-                                ),
-                                onPressed: () => setState(
-                                  () => _showConfirmPassword =
-                                      !_showConfirmPassword,
-                                ),
+                              validator: Validators.matches(
+                                () => _passwordController.text,
                               ),
-                              validator: (v) {
-                                if (v == null || v.isEmpty) return 'Required';
-                                if (v != _passwordController.text) {
-                                  return 'Passwords do not match';
-                                }
-                                return null;
-                              },
                             ),
                             const SizedBox(height: 16),
 
@@ -223,7 +203,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       border: Border.all(
                                         color: _agreedToTerms
                                             ? AppColors.teal
-                                            : AppColors.textHint,
+                                            : palette.textHint,
                                       ),
                                     ),
                                     child: _agreedToTerms
@@ -239,9 +219,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     child: Text.rich(
                                       TextSpan(
                                         text: 'I agree to the ',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
-                                          color: AppColors.textHint,
+                                          color: palette.textHint,
                                         ),
                                         children: const [
                                           TextSpan(
@@ -269,21 +249,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             AppButton(
                               label: 'Continue',
                               isLoading: state is AuthLoading,
-                              onTap: _agreedToTerms
-                                  ? () {
-                                      if (_formKey.currentState!.validate()) {
-                                        context.read<AuthBloc>().add(
-                                          Registered(
-                                            email: _emailController.text.trim(),
-                                            password: _passwordController.text,
-                                            name:
-                                                '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
-                                            phone: _phoneController.text.trim(),
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  : null,
+                              onTap: _agreedToTerms ? _register : null,
                             ),
                             const SizedBox(height: 24),
                             const AppDividerWithLabel(label: 'or'),
@@ -299,9 +265,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text(
+                                Text(
                                   'Already have an account? ',
-                                  style: TextStyle(color: AppColors.textHint),
+                                  style: TextStyle(color: palette.textHint),
                                 ),
                                 GestureDetector(
                                   onTap: () => Navigator.pop(context),

@@ -13,6 +13,15 @@ class AuthAuthenticated extends AuthState {}
 
 class AuthUnauthenticated extends AuthState {}
 
+class AuthSignedOut extends AuthUnauthenticated {
+  final String? message;
+
+  AuthSignedOut({this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class ForgotPasswordSent extends AuthState {}
 
 class PasswordResetSuccess extends AuthState {}

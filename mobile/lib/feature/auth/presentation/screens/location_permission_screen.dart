@@ -9,6 +9,8 @@ class LocationPermissionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return BaseScreenWrapper(
       child: Scaffold(
         body: SafeArea(
@@ -33,21 +35,21 @@ class LocationPermissionScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Allow location access',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                    color: palette.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'ParkEasy needs your location to show nearby parking spots and guide you to your booked slot.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textHint,
+                    color: palette.textHint,
                     height: 1.6,
                   ),
                 ),
@@ -57,12 +59,12 @@ class LocationPermissionScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: palette.surface,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.border, width: 0.5),
+                    border: Border.all(color: palette.border, width: 0.5),
                   ),
-                  child: Column(
-                    children: const [
+                  child: const Column(
+                    children: [
                       _ReasonRow(
                         icon: Icons.search_rounded,
                         title: 'Find nearby spots',
@@ -95,9 +97,9 @@ class LocationPermissionScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => AppRouter.toHome(context),
-                  child: const Text(
+                  child: Text(
                     'Not now',
-                    style: TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: palette.textMuted),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -123,6 +125,7 @@ class _ReasonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Row(
       children: [
         Container(
@@ -141,16 +144,16 @@ class _ReasonRow extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+                  color: palette.textPrimary,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 11, color: AppColors.textHint),
+                style: TextStyle(fontSize: 11, color: palette.textHint),
               ),
             ],
           ),
