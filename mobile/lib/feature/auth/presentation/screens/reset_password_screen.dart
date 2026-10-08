@@ -115,7 +115,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ),
                             ValueListenableBuilder<TextEditingValue>(
                               valueListenable: _passwordController,
-                              builder: (_, value, __) =>
+                              builder: (_, value, _) =>
                                   PasswordStrengthBar(password: value.text),
                             ),
                             const SizedBox(height: 16),

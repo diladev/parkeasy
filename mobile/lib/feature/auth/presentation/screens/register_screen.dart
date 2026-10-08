@@ -170,7 +170,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             // Password strength
                             ValueListenableBuilder<TextEditingValue>(
                               valueListenable: _passwordController,
-                              builder: (_, value, __) =>
+                              builder: (_, value, _) =>
                                   PasswordStrengthBar(password: value.text),
                             ),
                             const SizedBox(height: 16),

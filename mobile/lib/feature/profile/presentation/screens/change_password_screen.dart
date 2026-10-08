@@ -113,7 +113,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                             ),
                             ValueListenableBuilder<TextEditingValue>(
                               valueListenable: _newController,
-                              builder: (_, value, __) =>
+                              builder: (_, value, _) =>
                                   PasswordStrengthBar(password: value.text),
                             ),
                             const SizedBox(height: 16),

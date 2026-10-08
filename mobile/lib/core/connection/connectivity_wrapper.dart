@@ -16,7 +16,9 @@ class ConnectivityWrapper extends StatelessWidget {
             child,
             if (!isConnected)
               Material(
-                color: Theme.of(context).colorScheme.scrim.withOpacity(0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.scrim.withValues(alpha: 0.5),
                 child: Center(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -26,7 +28,7 @@ class ConnectivityWrapper extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 6),
                         ),
