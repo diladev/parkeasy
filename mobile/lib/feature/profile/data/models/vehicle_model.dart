@@ -20,7 +20,7 @@ class VehicleModel extends Vehicle {
       model: map['model'] as String,
       year: (map['year'] as num).toInt(),
       color: map['color'] as String,
-      plateNumber: map['plate_number'] as String,
+      plateNumber: map['license_plate'] as String,
       type: VehicleType.fromApi(map['type'] as String?),
       isDefault: map['is_default'] == true || map['is_default'] == 1,
     );
@@ -33,7 +33,7 @@ class VehicleModel extends Vehicle {
       'model': model,
       'year': year,
       'color': color,
-      'plate_number': plateNumber,
+      'license_plate': plateNumber,
       'type': type.apiValue,
       'is_default': isDefault,
     };

@@ -72,11 +72,13 @@ class ApiClient {
     String? token;
     if (auth) {
       token = await _tokenProvider().getAccessToken();
-      if (token == null) _sessionExpired.add(null);
-      throw const APIException(
-        message: 'Your session has expired. Please sign in again.',
-        statusCode: 401,
-      );
+      if (token == null) {
+        _sessionExpired.add(null);
+        throw const APIException(
+          message: 'Your session has expired. Please sign in again.',
+          statusCode: 401,
+        );
+      }
     }
 
     var response = await _request(method, url, body, token, headers);

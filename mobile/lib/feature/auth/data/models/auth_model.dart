@@ -12,10 +12,10 @@ class AuthModel extends Auth {
 
   factory AuthModel.fromResponse(DataMap body, {required String refreshToken}) {
     return AuthModel(
-      accessToken: body['access_token'] as String,
-      accessTokenExpiresIn: (body['expires_in'] as num).toInt(),
+      accessToken: body['accessToken'] as String,
+      accessTokenExpiresIn: (body['accessTokenExpiresIn'] as num).toInt(),
       refreshToken: refreshToken,
-      refreshTokenExpiresIn: (body['refresh_token_expires_in'] as num).toInt(),
+      refreshTokenExpiresIn: (body['refreshTokenExpiresIn'] as num).toInt(),
     );
   }
 

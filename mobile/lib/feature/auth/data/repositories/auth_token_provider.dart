@@ -41,7 +41,7 @@ class AuthTokenProvider implements TokenProvider {
   }
 
   Future<String?> _refresh() async {
-    final auth = await _authCache.getAuth();
+    final auth = _authCache.getAuth();
     if (auth == null || _isExpired(auth.refreshTokenExpiresIn)) {
       await clearSession();
       return null;

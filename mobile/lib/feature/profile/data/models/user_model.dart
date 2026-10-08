@@ -23,10 +23,8 @@ class UserModel extends User {
       name: map['name'] as String,
       username: map['username'] as String,
       email: map['email'] as String,
-      phone: map['phone'] as String,
-      dateOfBirth: map['date_of_birth'] == null
-          ? null
-          : DateTime.tryParse(map['date_of_birth'] as String),
+      phone: (map['phone'] ?? '') as String,
+      dateOfBirth: _parseDate(map['date_of_birth']),
     );
   }
 
