@@ -4,25 +4,32 @@ import 'package:mobile/core/theme/app_theme.dart';
 class StubScreen extends StatelessWidget {
   final String routeName;
 
-  const StubScreen({super.key, required this.routeName});
+  /// False inside the bottom-navigation tabs, where there's nothing to go back to.
+  final bool showBack;
+
+  const StubScreen({super.key, required this.routeName, this.showBack = true});
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: palette.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.bg,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textMuted,
-            size: 18,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+        backgroundColor: palette.bg,
+        automaticallyImplyLeading: false,
+        leading: showBack
+            ? IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: palette.textMuted,
+                  size: 18,
+                ),
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
         title: Text(
           routeName,
-          style: const TextStyle(fontSize: 13, color: AppColors.textHint),
+          style: TextStyle(fontSize: 13, color: palette.textHint),
         ),
       ),
       body: Center(
@@ -44,18 +51,18 @@ class StubScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Coming soon',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: palette.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               routeName,
-              style: const TextStyle(fontSize: 12, color: AppColors.textHint),
+              style: TextStyle(fontSize: 12, color: palette.textHint),
             ),
           ],
         ),

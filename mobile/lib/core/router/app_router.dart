@@ -13,6 +13,7 @@ import 'package:mobile/feature/profile/presentation/screens/edit_profile_screen.
 import 'package:mobile/feature/profile/presentation/screens/my_vehicles_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/profile_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/vehicle_form_screen.dart';
+import 'package:mobile/feature/shell/main_shell.dart';
 import 'package:mobile/feature/stub/stub_screen.dart';
 
 class AppRouter {
@@ -85,9 +86,9 @@ class AppRouter {
         // Step 3 of sign-up: the same form as "Add vehicle", with a Skip button.
         return _route(const VehicleFormScreen(isOnboarding: true), settings);
 
-      // Main app: a stub until the shell (bottom tabs) is added.
+      // Main app: the bottom-navigation shell.
       case home:
-        return _route(StubScreen(routeName: settings.name ?? 'home'), settings);
+        return _route(const MainShell(), settings);
 
       // Profile
       case profile:
