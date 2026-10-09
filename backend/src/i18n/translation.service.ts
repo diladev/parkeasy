@@ -1,25 +1,31 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
-import { I18nService, TranslateOptions } from 'nestjs-i18n';
-import type { Request } from 'express'
-import { REQUEST } from '@nestjs/core'
+import { Injectable } from '@nestjs/common';
+import { I18nContext, I18nService, TranslateOptions } from 'nestjs-i18n';
+import { defaultLanguage, isSupportedLanguage, SupportedLanguage } from 'src/config/languages';
 
-@Injectable({ scope: Scope.REQUEST })
+/**
+ * Thin wrapper around nestjs-i18n.
+ *
+ * The language is resolved once per request by I18nModule (see AppModule:
+ * x-lang header -> Accept-Language header -> default), so callers never pass `lang`.
+ * This is a regular singleton: it reads the current request's language from
+ * I18nContext instead of being request-scoped, which would have made every
+ * service that injects it request-scoped too.
+ */
+@Injectable()
 export class TranslationService {
-    private lang: string;
+    constructor(private readonly i18n: I18nService) { }
 
-    constructor(
-        private readonly i18nService: I18nService,
-        @Inject(REQUEST) private request: Request,
-    ) {
-        this.lang = (this.request?.query?.lang as string) ??
-            (this.request?.headers?.['x-lang'] as string) ??
-            'en';
+    /** Language of the request being handled ('ckb-IQ' becomes 'ckb', unknown values the default). */
+    get lang(): SupportedLanguage {
+        const requested = I18nContext.current()?.lang;
+        const resolved = requested ? this.i18n.resolveLanguage(requested) : undefined;
+        return isSupportedLanguage(resolved) ? resolved : defaultLanguage();
     }
 
     translate(key: string, options?: TranslateOptions): string {
-        if (options?.lang) {
-            return this.i18nService.translate(key, options);
-        }
-        return this.i18nService.translate(key, { lang: this.lang, args: options?.args });
+        return this.i18n.translate(key, {
+            ...options,
+            lang: options?.lang ?? this.lang,
+        }) as string;
     }
 }
