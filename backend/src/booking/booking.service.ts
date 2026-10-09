@@ -22,7 +22,7 @@ export class BookingService {
     private readonly walletService: WalletService,
     private readonly translationService: TranslationService
   ) {
-    this.pagination = new ModelPagination<Booking>(Booking);
+    this.pagination = new ModelPagination<Booking>(Booking, '/booking');
   }
 
   async createBooking(userId: number, dto: CreateBookingDto, lang: string) {

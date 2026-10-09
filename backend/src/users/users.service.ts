@@ -18,7 +18,7 @@ export class UsersService {
         @InjectModel(Vehicle) private vehicleModel: typeof Vehicle,
         private readonly translationService: TranslationService,
     ) {
-        this.userPagination = new ModelPagination<User>(User);
+        this.userPagination = new ModelPagination<User>(User, '/users');
     }
 
 

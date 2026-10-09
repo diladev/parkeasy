@@ -18,7 +18,7 @@ export class ParkingService {
     @InjectModel(ParkingSlot) private parkingSlotModel: typeof ParkingSlot,
     private readonly translationService: TranslationService
   ) {
-    this.pagination = new ModelPagination<ParkingLot>(ParkingLot);
+    this.pagination = new ModelPagination<ParkingLot>(ParkingLot, '/parking');
   }
 
   async findNearby(

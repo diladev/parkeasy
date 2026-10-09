@@ -14,7 +14,7 @@ export class NotificationsService {
     @InjectModel(Notification) private readonly notificationModel: typeof Notification,
     private readonly translationService: TranslationService,
   ) {
-    this.pagination = new ModelPagination<Notification>(Notification);
+    this.pagination = new ModelPagination<Notification>(Notification, '/notifications');
   }
 
   async create(userId: number, title: string, body: string, type: string): Promise<Notification> {

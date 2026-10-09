@@ -1,38 +1,43 @@
 import { Model, ModelCtor } from 'sequelize';
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
-import { Pagination } from 'src/common/pagination/pagination';
+import { LinkFilters, Pagination } from 'src/common/pagination/pagination';
 import { OptionalPaginationOptions } from 'src/common/pagination/types/pagination-options';
 
-export class ModelPagination<T extends Model> extends Pagination<T> {
-    private model: ModelCtor<T>;
+/** Upper bound for `pageSize`, so one request can't ask for the whole table. */
+export const MAX_PAGE_SIZE = 100;
 
-    constructor(model: ModelCtor<T>) {
+export class ModelPagination<T extends Model> extends Pagination<T> {
+    /**
+     * @param basePath the route the `links` point to, e.g. '/booking'.
+     */
+    constructor(
+        private readonly model: ModelCtor<T>,
+        private readonly basePath: string,
+    ) {
         super();
-        this.model = model;
     }
 
-    async findAll(page: number = 1, pageSize: number = 10, options: OptionalPaginationOptions = {}): Promise<PaginationResult<T>> {
+    async findAll(
+        page: number = 1,
+        pageSize: number = 10,
+        options: OptionalPaginationOptions = {},
+        filters: LinkFilters = {},
+    ): Promise<PaginationResult<T>> {
+        const safePage = Math.max(1, page);
+        const safePageSize = Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE);
+
         const { rows, count } = await this.model.findAndCountAll({
-            limit: pageSize,
-            offset: (page - 1) * pageSize,
+            limit: safePageSize,
+            offset: (safePage - 1) * safePageSize,
             distinct: true,
             ...options,
         });
-        return this.buildPaginationResult(rows, count, page, pageSize);
-    }
 
-    private buildPaginationResult(rows: T[], count: number, page: number, pageSize: number): PaginationResult<T> {
-        const meta = this.buildMeta(count, page, pageSize);
-        const links = this.buildLinks(
-            `/${this.model.name.toLowerCase()}s`,
-            page,
-            pageSize,
-            count
-        );
         return {
             data: rows,
-            meta,
-            links,
+            // buildMeta's parameter order is (totalItems, itemsPerPage, currentPage).
+            meta: this.buildMeta(count, safePageSize, safePage),
+            links: this.buildLinks(this.basePath, safePage, safePageSize, count, filters),
         };
     }
 }
