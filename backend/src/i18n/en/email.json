@@ -1,0 +1,8 @@
+{
+    "RESET_SUBJECT": "Your ParkEasy password reset code",
+    "RESET_TITLE": "Reset your password",
+    "GREETING": "Hi {name},",
+    "RESET_INTRO": "Use this code to reset your ParkEasy password:",
+    "RESET_EXPIRY": "The code expires in {minutes} minutes. Don't share it with anyone.",
+    "RESET_IGNORE": "If you didn't ask to reset your password, you can ignore this email."
+}
