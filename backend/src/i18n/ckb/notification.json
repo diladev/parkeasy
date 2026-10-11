@@ -1,0 +1,22 @@
+{
+    "BOOKING_CONFIRMED": {
+        "TITLE": "حیجز پشتڕاستکرایەوە",
+        "BODY": "شوێنی {slot} لە {lot} بۆ ماوەی {hours} کاتژمێر بۆ تۆیە."
+    },
+    "BOOKING_EXTENDED": {
+        "TITLE": "حیجز درێژکرایەوە",
+        "BODY": "حیجزەکەت لە {lot} {hours} کاتژمێر درێژکرایەوە."
+    },
+    "BOOKING_CANCELLED": {
+        "TITLE": "حیجز هەڵوەشێنرایەوە",
+        "BODY": "حیجزەکەت لە {lot} هەڵوەشێنرایەوە. بڕی گەڕاوە بۆ جزدانەکەت: {refund}."
+    },
+    "BOOKING_COMPLETED": {
+        "TITLE": "حیجز کۆتایی هات",
+        "BODY": "کاتی وەستانەکەت لە {lot} کۆتایی هات. سوپاس بۆ بەکارهێنانی ParkEasy!"
+    },
+    "WALLET_TOPPED_UP": {
+        "TITLE": "جزدان پڕکرایەوە",
+        "BODY": "{amount} خرایە سەر جزدانەکەت."
+    }
+}

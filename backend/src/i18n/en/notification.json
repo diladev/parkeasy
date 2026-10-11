@@ -1,0 +1,22 @@
+{
+    "BOOKING_CONFIRMED": {
+        "TITLE": "Booking confirmed",
+        "BODY": "Slot {slot} at {lot} is yours for {hours} hour(s)."
+    },
+    "BOOKING_EXTENDED": {
+        "TITLE": "Booking extended",
+        "BODY": "Your booking at {lot} was extended by {hours} hour(s)."
+    },
+    "BOOKING_CANCELLED": {
+        "TITLE": "Booking cancelled",
+        "BODY": "Your booking at {lot} was cancelled. Refunded to your wallet: {refund}."
+    },
+    "BOOKING_COMPLETED": {
+        "TITLE": "Booking finished",
+        "BODY": "Your parking time at {lot} has ended. Thanks for using ParkEasy!"
+    },
+    "WALLET_TOPPED_UP": {
+        "TITLE": "Wallet topped up",
+        "BODY": "{amount} was added to your wallet."
+    }
+}

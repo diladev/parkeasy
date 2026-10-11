@@ -1,56 +1,116 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { title } from 'process';
-import { TranslationService } from 'src/i18n/translation.service';
+import { Transaction } from 'sequelize';
+
+import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
-import { Notification } from './entities/notification.entity';
+import { TranslationService } from 'src/i18n/translation.service';
+import { NotificationQueryDto } from './dto/notification-query.dto';
+import {
+  Notification,
+  NotificationData,
+  NotificationEvent,
+  NOTIFICATION_EVENTS,
+} from './entities/notification.entity';
+
+/** A notification as the app receives it: with the title and body in the request language. */
+export interface NotificationView {
+  id: number;
+  type: string;
+  event: string;
+  title: string;
+  body: string;
+  data: NotificationData;
+  is_read: boolean;
+  createdAt: Date;
+}
 
 @Injectable()
 export class NotificationsService {
-  private readonly logger = new Logger(NotificationsService.name);
-  private readonly pagination: ModelPagination<Notification>;
+  private readonly pagination = new ModelPagination(Notification, '/notifications');
 
   constructor(
     @InjectModel(Notification) private readonly notificationModel: typeof Notification,
     private readonly translationService: TranslationService,
-  ) {
-    this.pagination = new ModelPagination<Notification>(Notification, '/notifications');
+  ) { }
+
+  private t(key: string): string {
+    return this.translationService.translate(`message.${key}`);
   }
 
-  async create(userId: number, title: string, body: string, type: string): Promise<Notification> {
-    const notification = await this.notificationModel.create({
-      userId,
-      title,
-      body,
-      type,
-    });
-    return notification;
-  }
-
-  async getUserNotifications(userId: number, type?: string, page: number = 1, pageSize: number = 10) {
-    const options = {
-      where: { userId, type },
-      order: [['createdAt', 'DESC']],
-    };
-    return this.pagination.findAll(page, pageSize, options as any);
-  }
-
-  async markAsRead(notificationId: number, lang: string) {
-    const notification = await this.notificationModel.findByPk(notificationId);
-    if (!notification) {
-      throw new Error(this.translationService.translate('message.NOTIFICATION_NOT_FOUND', { lang: lang }));
-    }
-    notification.is_read = true;
-    await notification.save();
-    return { message: this.translationService.translate('message.NOTIFICATION_MARKED_AS_READ', { lang: lang }) }
-  }
-
-  async markAllAsRead(userId: number, lang: string) {
-    const [updatedCount] = await this.notificationModel.update(
-      { is_read: true },
-      { where: { userId, is_read: false } }
+  /**
+   * Records an event for a user. Pass the caller's transaction so the
+   * notification is only saved if the booking/payment it describes is.
+   */
+  async notify(
+    userId: number,
+    event: NotificationEvent,
+    data: NotificationData = {},
+    transaction?: Transaction,
+  ): Promise<void> {
+    await this.notificationModel.create(
+      { user_id: userId, type: NOTIFICATION_EVENTS[event], event, data },
+      { transaction },
     );
-    return { message: this.translationService.translate('message.NOTIFICATIONS_MARKED_AS_READ', { lang: lang, args: { updatedCount } }) };
   }
 
+  async getUserNotifications(
+    userId: number,
+    query: NotificationQueryDto,
+  ): Promise<PaginationResult<NotificationView>> {
+    const result = await this.pagination.findAll(query.page, query.pageSize, {
+      // Only add the filter when it's set: `type: undefined` makes Sequelize throw.
+      where: { user_id: userId, ...(query.type && { type: query.type }) },
+      order: [
+        ['createdAt', 'DESC'],
+        ['id', 'DESC'],
+      ],
+    });
+    return { ...result, data: result.data.map((notification) => this.present(notification)) };
+  }
+
+  async countUnread(userId: number): Promise<{ count: number }> {
+    const count = await this.notificationModel.count({ where: { user_id: userId, is_read: false } });
+    return { count };
+  }
+
+  async markAsRead(userId: number, notificationId: number): Promise<{ message: string }> {
+    // user_id in the query: users can only touch their own notifications.
+    const notification = await this.notificationModel.findOne({
+      where: { id: notificationId, user_id: userId },
+    });
+    if (!notification) {
+      throw new NotFoundException(this.t('NOTIFICATION_NOT_FOUND'));
+    }
+
+    if (!notification.is_read) {
+      await notification.update({ is_read: true });
+    }
+    return { message: this.t('NOTIFICATION_MARKED_AS_READ') };
+  }
+
+  async markAllAsRead(userId: number): Promise<{ message: string }> {
+    await this.notificationModel.update(
+      { is_read: true },
+      { where: { user_id: userId, is_read: false } },
+    );
+    return { message: this.t('NOTIFICATIONS_MARKED_AS_READ') };
+  }
+
+  private present(notification: Notification): NotificationView {
+    const args = notification.data ?? {};
+    const translate = (part: 'TITLE' | 'BODY') =>
+      this.translationService.translate(`notification.${notification.event}.${part}`, { args });
+
+    return {
+      id: notification.id,
+      type: notification.type,
+      event: notification.event,
+      title: translate('TITLE'),
+      body: translate('BODY'),
+      data: args,
+      is_read: notification.is_read,
+      createdAt: notification.createdAt,
+    };
+  }
 }
