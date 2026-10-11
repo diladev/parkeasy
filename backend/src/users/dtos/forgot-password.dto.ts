@@ -1,20 +1,14 @@
 import { IsEmail } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { i18nValidationMessage } from "nestjs-i18n";
-import { IsValidLanguage } from "src/common/validators/decorators/is-valid-language.decorator";
+import { NormalizeEmail } from "src/common/transformers/normalize";
 
 export class ForgotPasswordDto {
     @ApiProperty({
-        description: "The user's preferred language ('en' or 'ckb').",
-        example: 'en',
+        description: "The email address of the account.",
+        example: 'dilan@example.com',
     })
-    @IsValidLanguage({ message: i18nValidationMessage('validation.LANGUAGE_NOT_SUPPORTED') })
-    language!: string;
-
-    @ApiProperty({
-        description: "The user's email address.",
-        example: 'john.doe@example.com',
-    })
-    @IsEmail({}, { message: i18nValidationMessage('$property.EMAIL_PATTERN') })
+    @NormalizeEmail()
+    @IsEmail({}, { message: i18nValidationMessage('validation.IS_EMAIL') })
     email!: string;
 }

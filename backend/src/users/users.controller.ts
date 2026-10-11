@@ -1,54 +1,94 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { UsersService } from 'src/users/users.service';
-import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
-import { EditUserDto, ChangePasswordDto, CreateVehicleDto } from 'src/users/dtos';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Patch,
+    Post,
+    UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import { CurrentUser } from 'src/auth/decorators/user.decorator';
+import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
+import type { AuthenticatedUser } from 'src/auth/types/auth.types';
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
+import { UsersService } from 'src/users/users.service';
+import {
+    ChangePasswordDto,
+    CreateVehicleDto,
+    DeleteAccountDto,
+    EditUserDto,
+    UpdateVehicleDto,
+} from 'src/users/dtos';
+
+/** Everything here belongs to the signed-in user: their profile and their vehicles. */
 @ApiTags('Users')
-@UsePipes(ValidationPipe)
+@ApiBearerAuth()
+@UseGuards(UserAccessTokenAuthGuard)
 @Controller('users')
 export class UsersController {
-    constructor(private readonly userService: UsersService) { }
+    constructor(private readonly usersService: UsersService) { }
 
-    @UseGuards(UserAccessTokenAuthGuard)
+    // ---------------------------------------------------------------- profile
+
     @Get('profile')
-    async getProfile(@Req() req: any) {
-        return this.userService.findOne({ where: { id: req.user.id } }, req.user.lang);
+    getProfile(@CurrentUser() user: AuthenticatedUser) {
+        return this.usersService.findById(user.id);
     }
 
-    @UseGuards(UserAccessTokenAuthGuard)
     @Patch('profile')
-    async updateProfile(@Req() req: any, @Body() dto: EditUserDto) {
-        return this.userService.updateUserProfile(req.user.id, dto, req.user.lang);
+    updateProfile(@CurrentUser() user: AuthenticatedUser, @Body() dto: EditUserDto) {
+        return this.usersService.updateProfile(user.id, dto);
     }
 
-    @UseGuards(UserAccessTokenAuthGuard)
+    @Delete('profile')
+    @HttpCode(200)
+    deleteAccount(@CurrentUser() user: AuthenticatedUser, @Body() dto: DeleteAccountDto) {
+        return this.usersService.deleteAccount(user.id, dto.password);
+    }
+
     @Patch('change-password')
-    async changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
-        return this.userService.updateUserPassword(req.user.id, dto, req.user.lang);
-    }
-    
-    @UseGuards(UserAccessTokenAuthGuard)
-    @Post('vehicles')
-    async addVehicle(@Req() req: any, @Body() dto: CreateVehicleDto) {
-        return this.userService.addVehicleToUser(req.user.id, dto, req.user.lang);
+    changePassword(@CurrentUser() user: AuthenticatedUser, @Body() dto: ChangePasswordDto) {
+        return this.usersService.changePassword(user.id, dto);
     }
 
-    @UseGuards(UserAccessTokenAuthGuard)
+    // --------------------------------------------------------------- vehicles
+
     @Get('vehicles')
-    async getVehicles(@Req() req: any) {
-        return this.userService.getUserVehicles(req.user.id, req.user.lang);
+    getVehicles(@CurrentUser() user: AuthenticatedUser) {
+        return this.usersService.getVehicles(user.id);
     }
 
-    @UseGuards(UserAccessTokenAuthGuard)
+    @Post('vehicles')
+    addVehicle(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateVehicleDto) {
+        return this.usersService.addVehicle(user.id, dto);
+    }
+
+    @Patch('vehicles/:vehicleId')
+    updateVehicle(
+        @CurrentUser() user: AuthenticatedUser,
+        @Param('vehicleId', ParseIdPipe) vehicleId: number,
+        @Body() dto: UpdateVehicleDto,
+    ) {
+        return this.usersService.updateVehicle(user.id, vehicleId, dto);
+    }
+
     @Delete('vehicles/:vehicleId')
-    async removeVehicle(@Req() req: any, @Param('vehicleId', ParseIntPipe) vehicleId: number) {
-        return this.userService.deleteVehicle(req.user.id, vehicleId, req.user.lang);
+    removeVehicle(
+        @CurrentUser() user: AuthenticatedUser,
+        @Param('vehicleId', ParseIdPipe) vehicleId: number,
+    ) {
+        return this.usersService.deleteVehicle(user.id, vehicleId);
     }
 
-    @UseGuards(UserAccessTokenAuthGuard)
     @Patch('vehicles/:vehicleId/default')
-    async updateVehicle(@Req() req: any, @Param('vehicleId', ParseIntPipe) vehicleId: number) {
-        return this.userService.setDefaultVehicle(req.user.id, vehicleId, req.user.lang);
+    setDefaultVehicle(
+        @CurrentUser() user: AuthenticatedUser,
+        @Param('vehicleId', ParseIdPipe) vehicleId: number,
+    ) {
+        return this.usersService.setDefaultVehicle(user.id, vehicleId);
     }
 }

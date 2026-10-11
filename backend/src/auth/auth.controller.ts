@@ -1,100 +1,129 @@
-import { Controller, HttpCode, Post, Res, Body, UsePipes, ValidationPipe, UseGuards, Req, UseInterceptors, Patch } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
-import { UsersService } from 'src/users/users.service';
-import { AuthService } from './auth.service';
-import { RegisterUserDto, UserLocalLoginDto, ForgotPasswordDto, VerifyOtpDto, ResetPasswordDto, EditUserDto } from 'src/users/dtos';
-import type { Response } from 'express';
-import tokenExpiration from 'src/config/token-expiration';
-import { UserAccessTokenAuthGuard } from './guards/user-access-token.guard';
-import { RefreshInterceptor } from './interceptors/refresh-token.interceptor';
-import { RefreshDecorator } from 'src/auth/decorators/user.decorator';
+import { Body, Controller, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { CookieOptions, Response } from 'express';
 
+import {
+    ForgotPasswordDto,
+    RegisterUserDto,
+    ResetPasswordDto,
+    UserLocalLoginDto,
+    VerifyOtpDto,
+} from 'src/users/dtos';
+import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/user.decorator';
+import { UserAccessTokenAuthGuard } from './guards/user-access-token.guard';
+import { UserRefreshTokenAuthGuard } from './guards/user-refresh-token.guard';
+import { REFRESH_COOKIE } from './strategies/refresh-token.strategy';
+import type {
+    AuthenticatedUser,
+    AuthResponse,
+    AuthSession,
+    RefreshTokenUser,
+} from './types/auth.types';
+
+/** The refresh cookie is only sent to these routes (/refresh and /logout), nowhere else. */
+const REFRESH_COOKIE_PATH = '/user/local';
 
 @ApiTags('User Authentication')
-@UsePipes(ValidationPipe)
 @Controller('user/local')
 export class AuthController {
+    private readonly secureCookies: boolean;
+
     constructor(
         private readonly authService: AuthService,
-        private readonly userService: UsersService
-    ) { }
-
-    @Post('login')
-    @HttpCode(200)
-    async login(@Body() dto: UserLocalLoginDto, @Res({ passthrough: true }) res: Response) {
-        const { access_token_expiration, refresh_token_expiration } = tokenExpiration();
-        const result = await this.authService.signInLocalUser(dto);
-
-        res.cookie('refreshToken', result.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: refresh_token_expiration,
-        });
-
-        return {
-            accessToken: result.accessToken,
-            accessTokenExpiresIn: access_token_expiration,
-            user: result.user
-        };
+        config: ConfigService,
+    ) {
+        this.secureCookies = config.get<string>('NODE_ENV') === 'production';
     }
 
     @Post('register')
-    async register(@Body() dto: RegisterUserDto, @Res({ passthrough: true }) res: Response) {
-        await this.userService.registerUser(dto);
-
-        return this.login({ email: dto.email, password: dto.password, language: dto.language }, res);
+    @ApiOperation({ summary: 'Create an account and sign in.' })
+    async register(
+        @Body() dto: RegisterUserDto,
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<AuthResponse> {
+        return this.sendSession(res, await this.authService.register(dto));
     }
 
-    @UseGuards(UserAccessTokenAuthGuard)
-    @Post('logout')
-    @HttpCode(200)
-    async logout(@Req() req: any){
-        return this.authService.logout(req.user.id, req.user.lang);
+    @Post('login')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Sign in with email and password.' })
+    async login(
+        @Body() dto: UserLocalLoginDto,
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<AuthResponse> {
+        return this.sendSession(res, await this.authService.login(dto));
     }
 
-    @UseInterceptors(RefreshInterceptor)
-    @UseGuards(UserAccessTokenAuthGuard)
     @Post('refresh')
-    @HttpCode(200)
-    async refresh(@RefreshDecorator('refreshToken') refreshToken: string, @Res({ passthrough: true }) res: Response) {
-        const { access_token_expiration, refresh_token_expiration } = tokenExpiration();
-        const result = await this.authService.updateRefreshToken(refreshToken);
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(UserRefreshTokenAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Get a new token pair.',
+        description:
+            'Send the refresh token in the `refreshToken` cookie or as `Authorization: Bearer <refresh token>`. ' +
+            'Each refresh token works once: the response sets a new one.',
+    })
+    async refresh(
+        @CurrentUser() user: RefreshTokenUser,
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<AuthResponse> {
+        return this.sendSession(res, await this.authService.refresh(user.id, user.refreshToken));
+    }
 
-        res.cookie('refreshToken', result.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: refresh_token_expiration,
-        });
-
-        return {
-            accessToken: result.accessToken,
-            accessTokenExpiresIn: access_token_expiration,
-        };
+    @Post('logout')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(UserAccessTokenAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Sign out: the refresh token stops working.' })
+    async logout(
+        @CurrentUser() user: AuthenticatedUser,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        res.clearCookie(REFRESH_COOKIE, this.cookieOptions());
+        return this.authService.logout(user.id);
     }
 
     @Post('forgot-password')
-    @HttpCode(200)
-    async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Step 1 of 3: email a 6-digit reset code.' })
+    forgotPassword(@Body() dto: ForgotPasswordDto) {
         return this.authService.forgotPassword(dto);
     }
 
     @Post('verify-otp')
-    @HttpCode(200)
-    async verifyOtp(@Body() dto: VerifyOtpDto) {
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Step 2 of 3: check the code, get a reset token.' })
+    verifyOtp(@Body() dto: VerifyOtpDto) {
         return this.authService.verifyOtp(dto);
     }
 
     @Post('reset-password')
-    @HttpCode(200)
-    async resetPassword(@Body() dto: ResetPasswordDto) {
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Step 3 of 3: set the new password.' })
+    resetPassword(@Body() dto: ResetPasswordDto) {
         return this.authService.resetPassword(dto);
     }
 
-    @UseGuards(UserAccessTokenAuthGuard)
-    @Patch('profile')
-    async updateProfile(@Req() req: any, @Body() dto: EditUserDto) {
-        return this.userService.updateUserProfile(req.user.id, dto, req.user.lang);
+    /** Moves the refresh token into an httpOnly cookie and returns the rest as the body. */
+    private sendSession(res: Response, session: AuthSession): AuthResponse {
+        const { refreshToken, ...body } = session;
+        res.cookie(REFRESH_COOKIE, refreshToken, {
+            ...this.cookieOptions(),
+            // Express expects milliseconds here; the token lifetime is in seconds.
+            maxAge: session.refreshTokenExpiresIn * 1000,
+        });
+        return body;
+    }
+
+    private cookieOptions(): CookieOptions {
+        return {
+            httpOnly: true,
+            secure: this.secureCookies,
+            sameSite: 'strict',
+            path: REFRESH_COOKIE_PATH,
+        };
     }
 }

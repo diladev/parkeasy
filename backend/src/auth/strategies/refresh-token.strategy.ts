@@ -1,28 +1,39 @@
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { Request } from 'express';
-import * as dotenv from 'dotenv';
+import type { Request } from 'express';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 
-dotenv.config();
+import type { RefreshTokenPayload, RefreshTokenUser } from '../types/auth.types';
+
+export const REFRESH_COOKIE = 'refreshToken';
+
+/**
+ * The refresh token comes from the `refreshToken` cookie (web, and the mobile app,
+ * which sends the cookie header itself) or, as a fallback, `Authorization: Bearer`.
+ */
+const fromCookie = (req: Request): string | null => req?.cookies?.[REFRESH_COOKIE] ?? null;
+const fromBearer = ExtractJwt.fromAuthHeaderAsBearerToken();
+const extractRefreshToken = (req: Request): string | null => fromCookie(req) ?? fromBearer(req);
 
 @Injectable()
 export class UserRefreshTokenStrategy extends PassportStrategy(Strategy, 'user-refresh-token') {
-    constructor() {
+    constructor(config: ConfigService) {
         super({
-            jwtFromRequest: ExtractJwt.fromExtractors([(request: Request) =>
-                request?.cookies?.['refreshToken'] ?? null,
-            ExtractJwt.fromAuthHeaderAsBearerToken()]),
+            jwtFromRequest: extractRefreshToken,
             ignoreExpiration: false,
-            secretOrKey: process.env.JWT_REFRESH_SECRET,
+            secretOrKey: config.getOrThrow<string>('JWT_REFRESH_SECRET'),
             passReqToCallback: true,
         });
     }
 
-    async validate(request: Request, payload: any) {
-        const refreshToken = request?.cookies?.['refreshToken'] ??
-        request?.headers?.authorization?.split(' ')[1];
-
-        return { payload, refreshToken };
+    /**
+     * Passport has verified the signature and expiry. AuthService then checks that
+     * this is the user's CURRENT refresh token, which is why the raw token is kept.
+     */
+    validate(req: Request, payload: RefreshTokenPayload): RefreshTokenUser | false {
+        const refreshToken = extractRefreshToken(req);
+        if (payload.type !== 'refresh' || !refreshToken) return false;
+        return { id: payload.sub, refreshToken };
     }
 }

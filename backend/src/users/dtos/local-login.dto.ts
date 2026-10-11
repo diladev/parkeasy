@@ -1,28 +1,26 @@
-import { IsEmail } from "class-validator";
-import { IsStrongPassword } from "src/common/validators/decorators/is-strong-password.decorator";
+import { IsEmail, IsNotEmpty, IsString, MaxLength } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { i18nValidationMessage } from "nestjs-i18n";
-import { IsValidLanguage } from "src/common/validators/decorators/is-valid-language.decorator";
+import { NormalizeEmail } from "src/common/transformers/normalize";
 
 export class UserLocalLoginDto {
     @ApiProperty({
-        description: "The user's preferred language ('en' or 'ckb').",
-        example: 'en',
-    })
-    @IsValidLanguage({ message: i18nValidationMessage('validation.LANGUAGE_NOT_SUPPORTED') })
-    language!: string;
-
-    @ApiProperty({
         description: "The user's email address.",
-        example: 'john.doe@example.com',
+        example: 'dilan@example.com',
     })
-    @IsEmail({}, { message: i18nValidationMessage('$property.EMAIL_PATTERN') })
+    @NormalizeEmail()
+    @IsEmail({}, { message: i18nValidationMessage('validation.IS_EMAIL') })
     email!: string;
 
+    // No strength rule here: login only checks the password against the hash.
+    // Enforcing the policy at login would lock out accounts created before a
+    // policy change and reveal the rules to anyone probing the endpoint.
     @ApiProperty({
         description: "The user's account password.",
         example: 'SecurePass123!',
     })
-    @IsStrongPassword({ message: i18nValidationMessage('validation.PASSWORD_PATTERN') })
+    @IsString({ message: i18nValidationMessage('validation.IS_STRING') })
+    @IsNotEmpty({ message: i18nValidationMessage('validation.IS_NOT_EMPTY') })
+    @MaxLength(128, { message: i18nValidationMessage('validation.MAX_LENGTH') })
     password!: string;
 }

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
+import { SequelizeModule } from '@nestjs/sequelize';
+
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { TranslationService } from 'src/i18n/translation.service';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { User } from 'src/users/entities/user.entity';
-import { Vehicle } from 'src/users/entities/vehicle.entity';
+import { User } from './entities/user.entity';
+import { Vehicle } from './entities/vehicle.entity';
 
 @Module({
   imports: [SequelizeModule.forFeature([User, Vehicle])],

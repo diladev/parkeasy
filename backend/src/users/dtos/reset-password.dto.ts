@@ -1,29 +1,20 @@
-import { Matches, IsString } from "class-validator";
-import { IsStrongPassword } from "src/common/validators/decorators/is-strong-password.decorator";
+import { IsJWT } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { i18nValidationMessage } from "nestjs-i18n";
-import { IsValidLanguage } from "src/common/validators/decorators/is-valid-language.decorator";
+import { IsStrongPassword } from "src/common/validators/decorators/is-strong-password.decorator";
 
 export class ResetPasswordDto {
     @ApiProperty({
-        description: "The user's preferred language ('en' or 'ckb').",
-        example: 'en',
+        description: 'The reset token returned by /user/local/verify-otp.',
+        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     })
-    @IsValidLanguage({ message: i18nValidationMessage('validation.LANGUAGE_NOT_SUPPORTED') })
-    language!: string;
-
-    @ApiProperty({
-        description: 'The password reset token.',
-        example: 'example-token',
-    })
-    @IsString()
+    @IsJWT({ message: i18nValidationMessage('validation.IS_JWT') })
     token!: string;
 
     @ApiProperty({
-        description: "The user's new password.",
+        description: "The new password.",
         example: 'NewSecurePass123!',
     })
-    @IsStrongPassword({ message: i18nValidationMessage('validation.PASSWORD_PATTERN') })
+    @IsStrongPassword()
     new_password!: string;
-
 }

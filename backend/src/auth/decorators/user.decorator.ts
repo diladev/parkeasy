@@ -1,27 +1,11 @@
-import { ExecutionContext, UnauthorizedException, createParamDecorator } from "@nestjs/common";
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import type { Request } from 'express';
 
-type UserDecoratorData = 'currentUser' | 'refreshToken' | undefined;
-
-export const CurrentUser =createParamDecorator(
-    (data: UserDecoratorData, ctx: ExecutionContext) => {
-        const request = ctx.switchToHttp().getRequest();
-        if (data === 'currentUser') return request.currentUser;
-        if (request.user) return request.user;
-        throw new UnauthorizedException('Invalid Credentails.')
-    },
+/**
+ * The value the route's guard put on `request.user`:
+ * - behind UserAccessTokenAuthGuard:  AuthenticatedUser  ({ id, username })
+ * - behind UserRefreshTokenAuthGuard: RefreshTokenUser   ({ id, refreshToken })
+ */
+export const CurrentUser = createParamDecorator(
+    (_data: unknown, ctx: ExecutionContext) => ctx.switchToHttp().getRequest<Request>().user,
 );
-
-export const RefreshDecorator = createParamDecorator(
-    (data: UserDecoratorData, ctx: ExecutionContext) => {
-        const request = ctx.switchToHttp().getRequest();
-
-        if (data === 'currentUser') return request.currentUser;
-        if (data === 'refreshToken') {
-            const refreshToken = request.user?.refreshToken;
-            if (refreshToken) return refreshToken;
-            throw new UnauthorizedException('Invalid refresh token.') 
-        }
-
-        return request.user;
-    },
-)

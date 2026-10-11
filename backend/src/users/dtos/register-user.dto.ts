@@ -1,44 +1,42 @@
-import { MaxLength, MinLength, IsEmail, IsNumber } from "class-validator";
-import { IsStrongPassword } from "src/common/validators/decorators/is-strong-password.decorator";
-import { IsValidLanguage } from "src/common/validators/decorators/is-valid-language.decorator";
+import { IsEmail, IsString, Matches, MaxLength, MinLength } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { i18nValidationMessage } from "nestjs-i18n";
+import { NormalizeEmail, Trim } from "src/common/transformers/normalize";
+import { IsStrongPassword } from "src/common/validators/decorators/is-strong-password.decorator";
 
 export class RegisterUserDto {
     @ApiProperty({
-        description: "The user's preferred language ('en' or 'ckb').",
-        example: 'en',
-    })
-    @IsValidLanguage({ message: i18nValidationMessage('validation.LANGUAGE_NOT_SUPPORTED') })
-    language!: string;
-
-    @ApiProperty({
         description: "The user's full name.",
-        example: 'John Doe',
+        example: 'Dilan Karimi',
     })
-    @MaxLength(50, { message: i18nValidationMessage('$property.MAX,$constraint1') })
-    @MinLength(3, { message: i18nValidationMessage('$property.MIN,$constraint1') })
+    @Trim()
+    @IsString({ message: i18nValidationMessage('validation.IS_STRING') })
+    @MinLength(2, { message: i18nValidationMessage('validation.MIN_LENGTH') })
+    @MaxLength(60, { message: i18nValidationMessage('validation.MAX_LENGTH') })
     name!: string;
 
     @ApiProperty({
-        description: "The user's email address.",
-        example: 'john.doe@example.com',
+        description: "The user's email address. Used to sign in.",
+        example: 'dilan@example.com',
     })
-    @IsEmail({}, { message: i18nValidationMessage('$property.EMAIL_PATTERN') })
+    @NormalizeEmail()
+    @IsEmail({}, { message: i18nValidationMessage('validation.IS_EMAIL') })
+    @MaxLength(254, { message: i18nValidationMessage('validation.MAX_LENGTH') })
     email!: string;
 
     @ApiProperty({
-        description: "The user's phone number.",
-        example: 1234567890,
+        description: "The user's phone number, digits with an optional leading +. Spaces and dashes are allowed.",
+        example: '+964 750 123 4567',
     })
-    @IsNumber({}, { message: i18nValidationMessage('$property.NUM_PATTERN') })
-    phone!: number;
+    @Trim()
+    @IsString({ message: i18nValidationMessage('validation.IS_STRING') })
+    @Matches(/^\+?[0-9][0-9\s-]{6,19}$/, { message: i18nValidationMessage('validation.IS_PHONE') })
+    phone!: string;
 
     @ApiProperty({
-        description: "The user's account password.",
+        description: "The account password: 8-64 characters with an uppercase letter, a lowercase letter, a number and a symbol.",
         example: 'SecurePass123!',
     })
-    @IsStrongPassword({ message: i18nValidationMessage('validation.PASSWORD_PATTERN') })
+    @IsStrongPassword()
     password!: string;
-
 }

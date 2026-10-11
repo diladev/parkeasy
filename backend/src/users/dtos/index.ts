@@ -1,9 +1,11 @@
 export { CreateUserDto } from './create-user.dto';
 export { CreateVehicleDto } from './create-vehicle.dto';
+export { UpdateVehicleDto } from './update-vehicle.dto';
 export { EditUserDto } from './edit-user.dto';
 export { ChangePasswordDto } from './change-password.dto';
 export { UserLocalLoginDto } from './local-login.dto';
 export { ForgotPasswordDto } from './forgot-password.dto';
 export { ResetPasswordDto } from './reset-password.dto';
-export { VerifyOtpDto } from './verify-opt.dto';
+export { VerifyOtpDto } from './verify-otp.dto';
 export { RegisterUserDto } from './register-user.dto';
+export { DeleteAccountDto } from './delete-account.dto';
