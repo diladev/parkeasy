@@ -23,11 +23,17 @@ class AppColors {
   static const Color amber = Color(0xFFEF9F27);
   static const Color purple = Color(0xFF534AB7);
   static const Color blue = Color(0xFF003DA5);
+  static const Color yellow = Color(0xFFFFD32C);
 
   static const Color red15 = Color(0x26E24B4A);
   static const Color amber15 = Color(0x26EF9F27);
   static const Color purple15 = Color(0x26534AB7);
   static const Color blue15 = Color(0x26003DA5);
+  static const Color yellow15 = Color(0x26FFD32C);
+
+  // 12% tints, used behind red and amber icons
+  static const Color red12 = Color(0x1FE24B4A);
+  static const Color amber12 = Color(0x1FEF9F27);
 
   static const Color red35 = Color(0x59E24B4A);
   static const Color amber35 = Color(0x59EF9F27);
@@ -351,16 +357,16 @@ class AppTheme {
     // BottomNavigationBar
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: AppColors.surface,
-      selectedItemColor: AppColors.teal,
+      selectedItemColor: AppColors.tealLight,
       unselectedItemColor: AppColors.textHint,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
       selectedLabelStyle: TextStyle(
         fontFamily: 'Inter',
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: FontWeight.w500,
       ),
-      unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 10),
+      unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 9),
     ),
 
     // Switch
@@ -606,10 +612,10 @@ class AppTheme {
       elevation: 0,
       selectedLabelStyle: TextStyle(
         fontFamily: 'Inter',
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: FontWeight.w500,
       ),
-      unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 10),
+      unselectedLabelStyle: TextStyle(fontFamily: 'Inter', fontSize: 9),
     ),
 
     switchTheme: SwitchThemeData(

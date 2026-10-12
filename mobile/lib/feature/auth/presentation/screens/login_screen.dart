@@ -136,8 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               const AppDividerWithLabel(label: 'or'),
                               const SizedBox(height: 24),
                               AppOutlinedButton(
-                                label: 'Continue with Google',
-                                icon: Icons.g_mobiledata_rounded,
+                                label: 'G   Continue with Google',
                                 onTap: () {
                                   // TODO: Google sign in
                                 },

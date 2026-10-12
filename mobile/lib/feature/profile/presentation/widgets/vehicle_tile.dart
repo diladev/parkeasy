@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
@@ -24,10 +25,10 @@ class VehicleTile extends StatelessWidget {
   final VoidCallback onMakeDefault;
   final VoidCallback onDelete;
 
+  // Lucide has no SUV icon, so SUVs use the car like sedans.
   IconData get _icon => switch (vehicle.type) {
-    VehicleType.sedan => Icons.directions_car_rounded,
-    VehicleType.suv => Icons.airport_shuttle_rounded,
-    VehicleType.truck => Icons.local_shipping_rounded,
+    VehicleType.sedan || VehicleType.suv => LucideIcons.car300,
+    VehicleType.truck => LucideIcons.truck300,
   };
 
   @override
@@ -40,10 +41,14 @@ class VehicleTile extends StatelessWidget {
       borderWidth: vehicle.isDefault ? 1 : null,
       child: Row(
         children: [
-          AppIconBox(
-            icon: _icon,
-            color: vehicle.isDefault ? AppColors.tealLight : palette.textMuted,
-            background: vehicle.isDefault ? AppColors.tealBg : null,
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: vehicle.isDefault ? AppColors.tealBg : palette.surface2,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(_icon, size: 32, color: palette.textPrimary),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -87,7 +92,7 @@ class VehicleTile extends StatelessWidget {
             )
           else
             PopupMenuButton<_VehicleAction>(
-              icon: Icon(Icons.more_vert_rounded, color: palette.textMuted),
+              icon: Icon(LucideIcons.ellipsisVertical, color: palette.textMuted),
               color: palette.surface2,
               onSelected: (action) {
                 switch (action) {

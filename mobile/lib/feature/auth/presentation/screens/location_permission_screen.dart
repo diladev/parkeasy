@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -21,15 +22,14 @@ class LocationPermissionScreen extends StatelessWidget {
                 const SizedBox(height: 60),
                 // Icon
                 Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
+                  width: 88,
+                  height: 88,
+                  decoration: const BoxDecoration(
                     color: AppColors.tealBg,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.teal, width: 1.5),
                   ),
                   child: const Icon(
-                    Icons.location_on_rounded,
+                    LucideIcons.mapPin200,
                     size: 44,
                     color: AppColors.tealLight,
                   ),
@@ -66,19 +66,19 @@ class LocationPermissionScreen extends StatelessWidget {
                   child: const Column(
                     children: [
                       _ReasonRow(
-                        icon: Icons.search_rounded,
+                        icon: LucideIcons.search,
                         title: 'Find nearby spots',
                         subtitle: 'See available parking around you',
                       ),
                       SizedBox(height: 16),
                       _ReasonRow(
-                        icon: Icons.navigation_rounded,
+                        icon: LucideIcons.compass,
                         title: 'Navigate to your spot',
                         subtitle: 'Turn-by-turn to the parking lot',
                       ),
                       SizedBox(height: 16),
                       _ReasonRow(
-                        icon: Icons.shield_rounded,
+                        icon: LucideIcons.shieldCheck,
                         title: 'Location is never sold',
                         subtitle: 'Used only while using the app',
                       ),
@@ -129,13 +129,13 @@ class _ReasonRow extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 38,
-          height: 38,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             color: AppColors.tealBg,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, size: 20, color: AppColors.tealLight),
+          child: Icon(icon, size: 24, color: AppColors.teal),
         ),
         const SizedBox(width: 14),
         Expanded(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
@@ -159,14 +160,14 @@ class _EditProfileViewState extends State<_EditProfileView> {
                               onTap: _pickDateOfBirth,
                               suffixIcon: _dateOfBirth == null
                                   ? Icon(
-                                      Icons.calendar_today_rounded,
+                                      LucideIcons.calendar,
                                       size: 18,
                                       color: palette.textHint,
                                     )
                                   : IconButton(
                                       tooltip: 'Clear',
                                       icon: Icon(
-                                        Icons.close_rounded,
+                                        LucideIcons.x,
                                         size: 18,
                                         color: palette.textHint,
                                       ),

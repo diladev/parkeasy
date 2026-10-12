@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -67,20 +68,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             const SizedBox(height: 30),
                             // Icon
                             Container(
-                              width: 76,
-                              height: 76,
+                              width: 72,
+                              height: 72,
                               decoration: BoxDecoration(
-                                color: AppColors.purple15,
-                                borderRadius: BorderRadius.circular(22),
-                                border: Border.all(
-                                  color: AppColors.purple,
-                                  width: 1.5,
-                                ),
+                                color: AppColors.yellow15,
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Icon(
-                                Icons.lock_rounded,
-                                size: 36,
-                                color: AppColors.purple,
+                                LucideIcons.lockKeyhole200,
+                                size: 44,
+                                color: AppColors.yellow,
                               ),
                             ),
                             const SizedBox(height: 20),

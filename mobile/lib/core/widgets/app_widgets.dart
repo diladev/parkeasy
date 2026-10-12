@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 // Every neutral color (backgrounds, text, borders) comes from context.palette,
@@ -249,7 +250,7 @@ class _AppPasswordFieldState extends State<AppPasswordField> {
       autofillHints: widget.autofillHints,
       suffixIcon: IconButton(
         icon: Icon(
-          _visible ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+          _visible ? LucideIcons.eyeOff : LucideIcons.eye,
           color: context.palette.textHint,
           size: 20,
         ),
@@ -402,10 +403,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
           if (showBack)
             GestureDetector(
               onTap: onBack ?? () => Navigator.maybePop(context),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 18,
-                color: palette.textMuted,
+              child: Text(
+                '←',
+                style: TextStyle(fontSize: 18, color: palette.textMuted),
               ),
             ),
           if (showBack) const SizedBox(width: 12),
@@ -452,16 +452,19 @@ class AppBottomNav extends StatelessWidget {
         elevation: 0,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_rounded),
+            icon: Icon(LucideIcons.house, size: 24),
             label: 'Home',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.map_rounded), label: 'Map'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark_rounded),
+            icon: Icon(LucideIcons.map, size: 24),
+            label: 'Map',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.listCheck, size: 24),
             label: 'Bookings',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
+            icon: Icon(LucideIcons.userRound, size: 24),
             label: 'Profile',
           ),
         ],
@@ -577,29 +580,37 @@ class PasswordStrengthBar extends StatelessWidget {
 }
 
 // ─── Icon in a rounded square (menu and toggle rows) ─────────────────────────
+/// A 24px Lucide icon in a 36px rounded square, as in the Figma rows.
+/// Pass [glyph] instead of [icon] for a text symbol (the "?" of Help & support).
 class AppIconBox extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? glyph;
   final Color? color;
   final Color? background;
 
   const AppIconBox({
     super.key,
-    required this.icon,
+    this.icon,
+    this.glyph,
     this.color,
     this.background,
-  });
+  }) : assert(icon != null || glyph != null, 'Pass an icon or a glyph');
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final foreground = color ?? palette.textMuted;
     return Container(
       width: 36,
       height: 36,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: background ?? palette.surface2,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Icon(icon, size: 18, color: color ?? palette.textMuted),
+      child: icon != null
+          ? Icon(icon, size: 24, color: foreground)
+          : Text(glyph!, style: TextStyle(fontSize: 24, color: foreground)),
     );
   }
 }
@@ -648,7 +659,10 @@ class AppToggleRow extends StatelessWidget {
 class AppMenuRow extends StatelessWidget {
   final String title;
   final String? subtitle;
-  final IconData icon;
+  final IconData? icon;
+
+  /// A text symbol shown instead of [icon], e.g. '?'.
+  final String? glyph;
   final Color? iconColor;
   final Color? iconBg;
   final VoidCallback? onTap;
@@ -660,7 +674,8 @@ class AppMenuRow extends StatelessWidget {
   const AppMenuRow({
     super.key,
     required this.title,
-    required this.icon,
+    this.icon,
+    this.glyph,
     this.subtitle,
     this.iconColor,
     this.iconBg,
@@ -675,7 +690,7 @@ class AppMenuRow extends StatelessWidget {
     final color = isDestructive
         ? AppColors.red
         : (iconColor ?? palette.textMuted);
-    final bg = isDestructive ? AppColors.red15 : (iconBg ?? palette.surface2);
+    final bg = isDestructive ? AppColors.red12 : (iconBg ?? palette.surface2);
 
     return GestureDetector(
       onTap: onTap,
@@ -690,7 +705,7 @@ class AppMenuRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            AppIconBox(icon: icon, color: color, background: bg),
+            AppIconBox(icon: icon, glyph: glyph, color: color, background: bg),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -716,11 +731,7 @@ class AppMenuRow extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 18,
-              color: palette.textHint,
-            ),
+            Text('›', style: TextStyle(fontSize: 18, color: palette.textHint)),
           ],
         ),
       ),
@@ -744,7 +755,7 @@ class AppErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_rounded, size: 40, color: palette.textHint),
+            Icon(LucideIcons.cloudOff, size: 40, color: palette.textHint),
             const SizedBox(height: 12),
             Text(
               message,

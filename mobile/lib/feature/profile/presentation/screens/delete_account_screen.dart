@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
@@ -96,7 +97,7 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Icon(
-                                    Icons.warning_amber_rounded,
+                                    LucideIcons.triangleAlert,
                                     color: AppColors.red,
                                     size: 22,
                                   ),
@@ -125,7 +126,7 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
                             const SizedBox(height: 32),
                             AppDestructiveButton(
                               label: 'Delete my account',
-                              icon: Icons.delete_forever_rounded,
+                              icon: LucideIcons.trash2,
                               isLoading: state.isSubmitting,
                               onTap: _delete,
                             ),

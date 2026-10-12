@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 class StubScreen extends StatelessWidget {
@@ -19,10 +20,9 @@ class StubScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         leading: showBack
             ? IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: palette.textMuted,
-                  size: 18,
+                icon: Text(
+                  '←',
+                  style: TextStyle(fontSize: 18, color: palette.textMuted),
                 ),
                 onPressed: () => Navigator.maybePop(context),
               )
@@ -45,7 +45,7 @@ class StubScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.teal, width: 0.5),
               ),
               child: const Icon(
-                Icons.build_rounded,
+                LucideIcons.wrench,
                 size: 34,
                 color: AppColors.tealLight,
               ),

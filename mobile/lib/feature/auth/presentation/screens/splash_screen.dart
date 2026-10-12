@@ -95,16 +95,21 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 // Logo box
                 Container(
-                  width: 90,
-                  height: 90,
+                  width: 88,
+                  height: 88,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(26),
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  child: const Icon(
-                    Icons.local_parking_rounded,
-                    size: 52,
-                    color: Colors.white,
+                  child: const Text(
+                    'P',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 50,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
 

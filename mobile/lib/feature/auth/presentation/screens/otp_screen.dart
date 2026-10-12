@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
@@ -107,19 +108,15 @@ class _OtpScreenState extends State<OtpScreen> {
                         children: [
                           const SizedBox(height: 30),
                           Container(
-                            width: 76,
-                            height: 76,
+                            width: 72,
+                            height: 72,
                             decoration: BoxDecoration(
                               color: AppColors.tealBg,
-                              borderRadius: BorderRadius.circular(22),
-                              border: Border.all(
-                                color: AppColors.teal,
-                                width: 1.5,
-                              ),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Icon(
-                              Icons.mail_outline_rounded,
-                              size: 36,
+                              LucideIcons.mail200,
+                              size: 44,
                               color: AppColors.tealLight,
                             ),
                           ),

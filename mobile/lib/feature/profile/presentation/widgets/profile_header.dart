@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -13,7 +14,6 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     final textTheme = Theme.of(context).textTheme;
 
     return AppCard(
@@ -50,10 +50,10 @@ class ProfileHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
-                _InfoLine(icon: Icons.mail_outline_rounded, text: user.email),
+                _InfoLine(icon: LucideIcons.mail, text: user.email),
                 if (user.phone.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  _InfoLine(icon: Icons.phone_outlined, text: user.phone),
+                  _InfoLine(icon: LucideIcons.phone, text: user.phone),
                 ],
               ],
             ),
@@ -61,7 +61,7 @@ class ProfileHeader extends StatelessWidget {
           IconButton(
             onPressed: onEdit,
             tooltip: 'Edit profile',
-            icon: Icon(Icons.edit_outlined, size: 20, color: palette.textMuted),
+            icon: const Icon(LucideIcons.squarePen, size: 24, color: AppColors.amber),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -208,7 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                     child: _agreedToTerms
                                         ? const Icon(
-                                            Icons.check,
+                                            LucideIcons.check,
                                             size: 14,
                                             color: Colors.white,
                                           )
@@ -255,8 +256,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             const AppDividerWithLabel(label: 'or'),
                             const SizedBox(height: 16),
                             AppOutlinedButton(
-                              label: 'Sign up with Google',
-                              icon: Icons.g_mobiledata_rounded,
+                              label: 'G   Sign up with Google',
                               onTap: () {
                                 // TODO: Google sign up
                               },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -71,19 +72,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           children: [
                             const SizedBox(height: 30),
                             Container(
-                              width: 76,
-                              height: 76,
+                              width: 72,
+                              height: 72,
                               decoration: BoxDecoration(
                                 color: AppColors.tealBg,
-                                borderRadius: BorderRadius.circular(22),
-                                border: Border.all(
-                                  color: AppColors.teal,
-                                  width: 1.5,
-                                ),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Icon(
-                                Icons.lock_open_rounded,
-                                size: 36,
+                                LucideIcons.lockKeyholeOpen200,
+                                size: 44,
                                 color: AppColors.tealLight,
                               ),
                             ),
@@ -166,14 +163,13 @@ class ResetPasswordSuccessScreen extends StatelessWidget {
                 Container(
                   width: 80,
                   height: 80,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.tealBg,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.teal, width: 1.5),
                   ),
                   child: const Icon(
-                    Icons.check_rounded,
-                    size: 40,
+                    LucideIcons.check200,
+                    size: 44,
                     color: AppColors.tealLight,
                   ),
                 ),

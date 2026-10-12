@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
@@ -68,7 +69,7 @@ class _MyVehiclesView extends StatelessWidget {
                     title: 'My vehicles',
                     trailing: IconButton(
                       tooltip: 'Add vehicle',
-                      icon: const Icon(Icons.add_rounded, color: AppColors.teal),
+                      icon: const Icon(LucideIcons.plus, color: AppColors.teal),
                       onPressed: () => _openForm(context),
                     ),
                   ),
@@ -113,7 +114,7 @@ class _MyVehiclesView extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8),
               child: AppOutlinedButton(
                 label: 'Add another vehicle',
-                icon: Icons.add_rounded,
+                icon: LucideIcons.plus,
                 onTap: () => _openForm(context),
               ),
             );
@@ -147,16 +148,15 @@ class _EmptyVehicles extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 76,
-              height: 76,
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
                 color: AppColors.tealBg,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: AppColors.teal, width: 1.5),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
-                Icons.directions_car_rounded,
-                size: 36,
+                LucideIcons.car200,
+                size: 44,
                 color: AppColors.tealLight,
               ),
             ),
@@ -169,7 +169,7 @@ class _EmptyVehicles extends StatelessWidget {
               style: TextStyle(fontSize: 13, color: palette.textMuted, height: 1.5),
             ),
             const SizedBox(height: 24),
-            AppButton(label: 'Add a vehicle', icon: Icons.add_rounded, onTap: onAdd),
+            AppButton(label: 'Add a vehicle', icon: LucideIcons.plus, onTap: onAdd),
           ],
         ),
       ),

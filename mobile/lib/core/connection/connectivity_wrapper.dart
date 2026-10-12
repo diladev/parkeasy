@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
 
@@ -38,7 +39,7 @@ class ConnectivityWrapper extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.wifi_off_rounded,
+                          LucideIcons.wifiOff,
                           size: 48,
                           color: Theme.of(context).colorScheme.error,
                         ),

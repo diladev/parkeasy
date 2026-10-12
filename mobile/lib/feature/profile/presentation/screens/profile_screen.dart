@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -75,7 +76,7 @@ class ProfileScreen extends StatelessWidget {
                       AppMenuRow(
                         title: 'Personal details',
                         subtitle: 'Name, email, phone and birthday',
-                        icon: Icons.person_outline_rounded,
+                        icon: LucideIcons.userRound,
                         iconColor: AppColors.tealLight,
                         iconBg: AppColors.tealBg,
                         onTap: () => AppRouter.toEditProfile(context),
@@ -83,16 +84,13 @@ class ProfileScreen extends StatelessWidget {
                       AppMenuRow(
                         title: 'My vehicles',
                         subtitle: 'Add your cars and pick a default',
-                        icon: Icons.directions_car_rounded,
-                        iconColor: AppColors.tealLight,
-                        iconBg: AppColors.tealBg,
+                        icon: LucideIcons.car,
                         onTap: () => AppRouter.toMyVehicles(context),
                       ),
                       AppMenuRow(
                         title: 'Change password',
-                        icon: Icons.lock_outline_rounded,
-                        iconColor: AppColors.purple,
-                        iconBg: AppColors.purple15,
+                        icon: LucideIcons.keyRound,
+                        iconColor: AppColors.amber,
                         showDivider: false,
                         onTap: () => AppRouter.toChangePassword(context),
                       ),
@@ -110,7 +108,7 @@ class ProfileScreen extends StatelessWidget {
                           builder: (context, isDarkMode) => AppToggleRow(
                             title: 'Dark mode',
                             leading: const AppIconBox(
-                              icon: Icons.dark_mode_rounded,
+                              icon: LucideIcons.moon,
                               color: AppColors.purple,
                               background: AppColors.purple15,
                             ),
@@ -122,9 +120,9 @@ class ProfileScreen extends StatelessWidget {
                       Divider(color: context.palette.border),
                       AppMenuRow(
                         title: 'Notifications',
-                        icon: Icons.notifications_none_rounded,
+                        icon: LucideIcons.bell,
                         iconColor: AppColors.amber,
-                        iconBg: AppColors.amber15,
+                        iconBg: AppColors.amber12,
                         showDivider: false,
                         onTap: () => AppRouter.toNotificationsInbox(context),
                       ),
@@ -138,12 +136,15 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       AppMenuRow(
                         title: 'Wallet',
-                        icon: Icons.account_balance_wallet_outlined,
+                        icon: LucideIcons.wallet,
+                        iconColor: AppColors.amber,
+                        iconBg: AppColors.amber12,
                         onTap: () => AppRouter.toWallet(context),
                       ),
                       AppMenuRow(
                         title: 'Help & support',
-                        icon: Icons.help_outline_rounded,
+                        glyph: '?',
+                        iconColor: AppColors.red,
                         showDivider: false,
                         onTap: () => AppRouter.toHelpSupport(context),
                       ),
@@ -155,13 +156,13 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       AppMenuRow(
                         title: 'Sign out',
-                        icon: Icons.logout_rounded,
+                        icon: LucideIcons.squareArrowRightExit,
                         isDestructive: true,
                         onTap: () => _signOut(context),
                       ),
                       AppMenuRow(
                         title: 'Delete account',
-                        icon: Icons.delete_forever_rounded,
+                        icon: LucideIcons.trash2,
                         isDestructive: true,
                         showDivider: false,
                         onTap: () => AppRouter.toDeleteAccount(context),
