@@ -29,7 +29,7 @@ import { Notification } from './notifications/entities/notification.entity';
     ConfigModule.forRoot({
       isGlobal: true,
       // backend/.env first, then the monorepo root .env (used by docker compose).
-      envFilePath: ['.env', '../.env'],
+      envFilePath: ['../.env'],
       load: [passwordPolicy],
       validate: validateEnvironment,
     }),
