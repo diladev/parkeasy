@@ -6,11 +6,12 @@ import {
     IsArray,
     ValidateNested,
 } from "class-validator";
+import { i18nValidationMessage } from "nestjs-i18n";
 import { CreateParkingSlotDto } from "./create-parking-slot.dto";
 
 export class CreateParkingSlotsDto {
     @ApiProperty({
-        description: 'The list of parking slots to be created.',
+        description: 'The parking slots to create (1-100). A slot number can repeat on different levels.',
         type: [CreateParkingSlotDto],
         example: [
             {
@@ -19,7 +20,7 @@ export class CreateParkingSlotsDto {
             },
             {
                 slot_number: 'A02',
-                level: 'F1',
+                level: 'B1',
             },
             {
                 slot_number: 'A01',
@@ -28,9 +29,9 @@ export class CreateParkingSlotsDto {
         ],
         maxItems: 100,
     })
-    @IsArray()
-    @ArrayMinSize(1)
-    @ArrayMaxSize(100)
+    @IsArray({ message: i18nValidationMessage('validation.IS_ARRAY') })
+    @ArrayMinSize(1, { message: i18nValidationMessage('validation.ARRAY_MIN_SIZE') })
+    @ArrayMaxSize(100, { message: i18nValidationMessage('validation.ARRAY_MAX_SIZE') })
     @ValidateNested({ each: true })
     @Type(() => CreateParkingSlotDto)
     slots!: CreateParkingSlotDto[];

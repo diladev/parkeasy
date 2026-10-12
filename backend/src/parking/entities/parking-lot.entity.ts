@@ -6,44 +6,52 @@ export class ParkingLot extends Model {
     @Column({ primaryKey: true, autoIncrement: true })
     declare id: number;
 
-    @Column
+    @Column({ allowNull: false })
     declare name: string;
 
-    @Column
+    @Column({ allowNull: false })
     declare address: string;
 
-    @Column(DataType.DOUBLE)
+    @Column({ type: DataType.DOUBLE, allowNull: false })
     declare latitude: number;
 
-    @Column(DataType.DOUBLE)
+    @Column({ type: DataType.DOUBLE, allowNull: false })
     declare longitude: number;
 
-    @Column({ defaultValue: true })
+    @Column({ allowNull: false, defaultValue: true })
     declare is_open_24h: boolean;
 
-    @Column
+    /** "HH:mm", local time in Iraq (see opening-hours.ts). */
+    @Column({ allowNull: false })
     declare opening_time: string;
 
-    @Column
+    @Column({ allowNull: false })
     declare closing_time: string;
 
-    @Column(DataType.DOUBLE)
+    @Column({ type: DataType.DOUBLE, allowNull: false })
     declare price_per_hour: number;
 
-    @Column({ type: DataType.DOUBLE, defaultValue: 0 })
+    @Column({ type: DataType.DOUBLE, allowNull: false, defaultValue: 0 })
     declare rating: number;
 
-    @Column({ defaultValue: false })
+    @Column({ allowNull: false, defaultValue: false })
     declare has_cctv: boolean;
 
-    @Column({ defaultValue: false })
+    @Column({ allowNull: false, defaultValue: false })
     declare has_ev_charging: boolean;
 
-    @Column({ defaultValue: false })
+    @Column({ allowNull: false, defaultValue: false })
     declare is_covered: boolean;
 
-    @Column({ defaultValue: false })
+    @Column({ allowNull: false, defaultValue: false })
     declare is_accessible: boolean;
+
+    /**
+     * False once the lot is removed from the app. The row stays, because past
+     * bookings point to it.
+     */
+    @Column({ allowNull: false, defaultValue: true })
+    declare is_available: boolean;
 
     @HasMany(() => ParkingSlot)
     declare slots: ParkingSlot[];

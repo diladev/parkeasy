@@ -1,97 +1,104 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsNumber, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
 import { i18nValidationMessage } from "nestjs-i18n";
+import { Trim } from "src/common/transformers/normalize";
+
+/** "HH:mm", 24-hour clock. */
+export const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 export class CreateParkingLotDto {
     @ApiProperty({
         description: 'The name of the parking lot.',
         example: 'City Center Parking',
     })
-    @IsString({ message: i18nValidationMessage('$validation.STRING_PATTERN') })
-    @MaxLength(100, { message: i18nValidationMessage('$validation.MAX,$constraint1') })
-    @MinLength(3, { message: i18nValidationMessage('$validation.MIN,$constraint1') })
+    @Trim()
+    @IsString({ message: i18nValidationMessage('validation.IS_STRING') })
+    @MinLength(3, { message: i18nValidationMessage('validation.MIN_LENGTH') })
+    @MaxLength(100, { message: i18nValidationMessage('validation.MAX_LENGTH') })
     name!: string;
 
     @ApiProperty({
         description: 'The address of the parking lot.',
         example: 'Salim Street, Sulaymaniyah',
     })
-    @IsString({ message: i18nValidationMessage('$validation.STRING_PATTERN') })
-    @MaxLength(255, { message: i18nValidationMessage('$validation.MAX,$constraint1') })
-    @MinLength(3, { message: i18nValidationMessage('$validation.MIN,$constraint1') })
+    @Trim()
+    @IsString({ message: i18nValidationMessage('validation.IS_STRING') })
+    @MinLength(3, { message: i18nValidationMessage('validation.MIN_LENGTH') })
+    @MaxLength(255, { message: i18nValidationMessage('validation.MAX_LENGTH') })
     address!: string;
 
     @ApiProperty({
         description: 'The latitude of the parking lot.',
         example: 35.5571,
     })
-    @IsNumber({}, { message: i18nValidationMessage('$validation.NUM_PATTERN') })
+    @IsNumber({}, { message: i18nValidationMessage('validation.IS_NUMBER') })
+    @Min(-90, { message: i18nValidationMessage('validation.MIN') })
+    @Max(90, { message: i18nValidationMessage('validation.MAX') })
     latitude!: number;
 
     @ApiProperty({
         description: 'The longitude of the parking lot.',
         example: 45.4356,
     })
-    @IsNumber({}, { message: i18nValidationMessage('$validation.NUM_PATTERN') })
+    @IsNumber({}, { message: i18nValidationMessage('validation.IS_NUMBER') })
+    @Min(-180, { message: i18nValidationMessage('validation.MIN') })
+    @Max(180, { message: i18nValidationMessage('validation.MAX') })
     longitude!: number;
 
     @ApiProperty({
         description: 'Whether the parking lot is open 24 hours a day.',
         example: true,
     })
-    @IsBoolean({ message: i18nValidationMessage('$validation.BOOLEAN_PATTERN') })
+    @IsBoolean({ message: i18nValidationMessage('validation.IS_BOOLEAN') })
     is_open_24h!: boolean;
 
     @ApiProperty({
-        description: 'The opening time of the parking lot.',
+        description: 'Opening time, local time (HH:mm). Ignored when is_open_24h is true.',
         example: '08:00',
     })
-    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-        message: i18nValidationMessage('$validation.TIME_PATTERN'),
-    })
+    @Matches(TIME_PATTERN, { message: i18nValidationMessage('validation.TIME_PATTERN') })
     opening_time!: string;
 
     @ApiProperty({
-        description: 'The closing time of the parking lot.',
+        description: 'Closing time, local time (HH:mm). Earlier than the opening time means it closes after midnight.',
         example: '22:00',
     })
-    @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-        message: i18nValidationMessage('$validation.TIME_PATTERN'),
-    })
+    @Matches(TIME_PATTERN, { message: i18nValidationMessage('validation.TIME_PATTERN') })
     closing_time!: string;
 
     @ApiProperty({
         description: 'The price per hour for parking.',
         example: 1.5,
     })
-    @IsNumber({}, { message: i18nValidationMessage('$validation.NUM_PATTERN') })
+    @IsNumber({ maxDecimalPlaces: 2 }, { message: i18nValidationMessage('validation.IS_MONEY') })
+    @Min(0, { message: i18nValidationMessage('validation.MIN') })
     price_per_hour!: number;
 
     @ApiProperty({
         description: 'Whether the parking lot has CCTV surveillance.',
         example: true,
     })
-    @IsBoolean({ message: i18nValidationMessage('$validation.BOOLEAN_PATTERN') })
+    @IsBoolean({ message: i18nValidationMessage('validation.IS_BOOLEAN') })
     has_cctv!: boolean;
 
     @ApiProperty({
         description: 'Whether the parking lot has electric vehicle charging facilities.',
         example: false,
     })
-    @IsBoolean({ message: i18nValidationMessage('$validation.BOOLEAN_PATTERN') })
+    @IsBoolean({ message: i18nValidationMessage('validation.IS_BOOLEAN') })
     has_ev_charging!: boolean;
 
     @ApiProperty({
         description: 'Whether the parking lot is covered.',
         example: true,
     })
-    @IsBoolean({ message: i18nValidationMessage('$validation.BOOLEAN_PATTERN') })
+    @IsBoolean({ message: i18nValidationMessage('validation.IS_BOOLEAN') })
     is_covered!: boolean;
 
     @ApiProperty({
-        description: 'Whether the parking lot is accessible.',
+        description: 'Whether the parking lot is wheelchair accessible.',
         example: true,
     })
-    @IsBoolean({ message: i18nValidationMessage('$validation.BOOLEAN_PATTERN') })
+    @IsBoolean({ message: i18nValidationMessage('validation.IS_BOOLEAN') })
     is_accessible!: boolean;
 }

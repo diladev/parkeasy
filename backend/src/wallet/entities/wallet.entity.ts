@@ -15,11 +15,11 @@ export class Wallet extends Model {
     @Column({ primaryKey: true, autoIncrement: true })
     declare id: number;
 
-    @Column({ type: DataType.DOUBLE, defaultValue: 0 })
+    @Column({ type: DataType.DOUBLE, allowNull: false, defaultValue: 0 })
     declare balance: number;
 
     @ForeignKey(() => User)
-    @Column({ unique: true })
+    @Column({ allowNull: false, unique: true })
     declare user_id: number;
 
     @BelongsTo(() => User)

@@ -1,2 +1,3 @@
-export { CreateBookingDto } from 'src/booking/dto/create-booking.dto'
-export { ExtendBookingDto } from 'src/booking/dto/extend-booking.dto'
+export { CreateBookingDto } from 'src/booking/dto/create-booking.dto';
+export { ExtendBookingDto } from 'src/booking/dto/extend-booking.dto';
+export { BookingQueryDto } from 'src/booking/dto/booking-query.dto';
