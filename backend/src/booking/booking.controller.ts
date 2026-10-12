@@ -1,92 +1,56 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
-  Delete,
   Get,
-  Headers,
   Param,
-  ParseIntPipe,
   Patch,
+  Post,
   Query,
-  Req,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { BookingService } from 'src/booking/booking.service';
+import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
-import { ExtendBookingDto } from 'src/booking/dto';
+import type { AuthenticatedUser } from 'src/auth/types/auth.types';
+import { BookingService } from 'src/booking/booking.service';
+import { BookingQueryDto, CreateBookingDto, ExtendBookingDto } from 'src/booking/dto';
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 
 @ApiTags('Booking')
-@UsePipes(ValidationPipe)
+@ApiBearerAuth()
 @UseGuards(UserAccessTokenAuthGuard)
 @Controller('booking')
 export class BookingController {
-  constructor(
-    private readonly bookingService: BookingService,
-  ) { }
+  constructor(private readonly bookingService: BookingService) { }
+
+  @Post()
+  create(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateBookingDto) {
+    return this.bookingService.createBooking(user.id, dto);
+  }
 
   @Get()
-  async getMyBookings(
-    @Req() req: any,
-    @Query('status') status?: string,
-    @Query(
-      'page',
-      new DefaultValuePipe(1),
-      ParseIntPipe,
-    )
-    page?: number,
-    @Query(
-      'pageSize',
-      new DefaultValuePipe(10),
-      ParseIntPipe,
-    )
-    pageSize?: number,
-  ) {
-    return this.bookingService.getUserBookings(
-      req.user.id,
-      status,
-      page,
-      pageSize,
-    );
+  getMyBookings(@CurrentUser() user: AuthenticatedUser, @Query() query: BookingQueryDto) {
+    return this.bookingService.getUserBookings(user.id, query);
   }
 
   @Get(':id')
-  async getOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.bookingService.findById(id, lang);
+  getOne(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+    return this.bookingService.findUserBooking(user.id, id);
   }
 
   @Patch(':id/extend')
-  async extend(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
+  extend(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
     @Body() dto: ExtendBookingDto,
-    @Headers('x-lang') lang: string,
   ) {
-    return this.bookingService.extendBooking(
-      req.user.id,
-      id,
-      dto,
-      lang,
-    );
+    return this.bookingService.extendBooking(user.id, id, dto);
   }
 
-  @Delete(':id')
-  async cancel(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.bookingService.cancelBooking(
-      req.user.id,
-      id,
-      lang,
-    );
+  /** A PATCH, not a DELETE: nothing is deleted, the booking stays in the history. */
+  @Patch(':id/cancel')
+  cancel(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+    return this.bookingService.cancelBooking(user.id, id);
   }
 }

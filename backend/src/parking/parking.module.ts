@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { SequelizeModule } from '@nestjs/sequelize';
+
 import { ParkingService } from './parking.service';
 import { ParkingController } from './parking.controller';
-import { SequelizeModule } from '@nestjs/sequelize';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { ParkingSlot } from './entities/parking-slot.entity';
 

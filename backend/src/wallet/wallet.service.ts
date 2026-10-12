@@ -1,106 +1,135 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
+import { Transaction } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
+
+import { roundMoney } from 'src/common/money';
+import { PaginationQueryDto } from 'src/common/pagination/dto/pagination-query.dto';
+import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { Wallet } from './entities/wallet.entity';
-import { WalletTransaction } from './entities/wallet-transaction.entity';
+import { WalletTransaction, WalletTransactionCategory } from './entities/wallet-transaction.entity';
 
 @Injectable()
 export class WalletService {
-  private readonly logger = new Logger(WalletService.name);
+  private readonly transactionPagination = new ModelPagination(WalletTransaction, '/wallet/transactions');
 
   constructor(
-    @InjectModel(Wallet) private walletModel: typeof Wallet,
-    @InjectModel(WalletTransaction) private walletTransactionModel: typeof WalletTransaction,
+    @InjectModel(Wallet) private readonly walletModel: typeof Wallet,
+    @InjectModel(WalletTransaction) private readonly transactionModel: typeof WalletTransaction,
+    @InjectConnection() private readonly sequelize: Sequelize,
     private readonly translationService: TranslationService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
-  async findOrCreate(userId: number): Promise<Wallet> {
+  private t(key: string, args?: Record<string, unknown>): string {
+    return this.translationService.translate(`message.${key}`, { args });
+  }
+
+  /** The user's wallet. A new user has none yet, so it's created with a 0 balance. */
+  async getWallet(userId: number, transaction?: Transaction): Promise<Wallet> {
     const [wallet] = await this.walletModel.findOrCreate({
-      where: { userId },
-      defaults: { userId, balance: 0 }
+      where: { user_id: userId },
+      defaults: { user_id: userId, balance: 0 },
+      transaction,
     });
     return wallet;
   }
 
-  async getWallet(userId: number, lang: string): Promise<Wallet> {
-    const wallet = await this.walletModel.findOne({
-      where: { userId },
-      include: [WalletTransaction]
+  async topUp(userId: number, amount: number): Promise<{ message: string; balance: number }> {
+    const wallet = await this.sequelize.transaction(async (transaction) => {
+      const wallet = await this.credit(userId, amount, 'TOP_UP', null, transaction);
+      await this.notificationsService.notify(userId, 'WALLET_TOPPED_UP', { amount }, transaction);
+      return wallet;
     });
 
-    if (!wallet) {
-      throw new NotFoundException(
-        this.translationService.translate('message.WALLET_NOT_FOUND', { lang: lang })
-      )
+    return { message: this.t('WALLET_TOPPED_UP'), balance: wallet.balance };
+  }
+
+  /**
+   * Takes money out of the wallet. Must run inside the caller's transaction, so the
+   * payment is undone if anything after it fails (e.g. the booking can't be saved).
+   */
+  async debit(
+    userId: number,
+    amount: number,
+    category: WalletTransactionCategory,
+    bookingId: number | null,
+    transaction: Transaction,
+  ): Promise<Wallet> {
+    const value = roundMoney(amount);
+    const wallet = await this.lockWallet(userId, transaction);
+
+    if (wallet.balance < value) {
+      throw new BadRequestException(this.t('INSUFFICIENT_BALANCE'));
     }
+
+    await wallet.update({ balance: roundMoney(wallet.balance - value) }, { transaction });
+    await this.transactionModel.create(
+      { wallet_id: wallet.id, type: 'debit', amount: value, category, booking_id: bookingId },
+      { transaction },
+    );
     return wallet;
   }
 
-  async topUp(userId: number, amount: number, lang: string) {
-    const wallet = await this.findOrCreate(userId);
-    await wallet.update({ balance: wallet.balance + amount });
-    await this.walletTransactionModel.create({
-      wallet_id: wallet.id,
-      type: 'credit',
-      amount,
-      description: 'Top up'
-    })
+  /** Puts money into the wallet (top-up or refund). Same transaction rules as debit(). */
+  async credit(
+    userId: number,
+    amount: number,
+    category: WalletTransactionCategory,
+    bookingId: number | null,
+    transaction: Transaction,
+  ): Promise<Wallet> {
+    const value = roundMoney(amount);
+    const wallet = await this.lockWallet(userId, transaction);
 
-    return {
-      message: this.translationService.translate('message.WALLET_TOPPED_UP', { lang: lang }),
-      balance: wallet.balance + amount
-    };
+    await wallet.update({ balance: roundMoney(wallet.balance + value) }, { transaction });
+    await this.transactionModel.create(
+      { wallet_id: wallet.id, type: 'credit', amount: value, category, booking_id: bookingId },
+      { transaction },
+    );
+    return wallet;
   }
 
-  async deduct(userId: number, amount: number, lang: string): Promise<void> {
-    const wallet = await this.findOrCreate(userId);
-    if (wallet.balance < amount) {
-      throw new BadRequestException(
-        this.translationService.translate(
-          'message.INSUFFICIENT_BALANCE',
-          { lang: lang }
-        )
-      );
-    }
-
-    await wallet.update({ balance: wallet.balance - amount })
-    await this.walletTransactionModel.create({
-      wallet_id: wallet.id,
-      type: 'debit',
-      amount,
-      description: 'Booking payment'
-    });
+  /** How much of a booking was paid from the wallet (payments minus refunds so far). */
+  async netPaidForBooking(bookingId: number, transaction?: Transaction): Promise<number> {
+    const rows = await this.transactionModel.findAll({ where: { booking_id: bookingId }, transaction });
+    return roundMoney(
+      rows.reduce((sum, row) => sum + (row.type === 'debit' ? row.amount : -row.amount), 0),
+    );
   }
 
-  async credit(userId: number, amount: number): Promise<void> {
-    const wallet = await this.findOrCreate(userId);
-    await wallet.update({ balance: wallet.balance + amount });
-    await this.walletTransactionModel.create({
-      wallet_id: wallet.id,
-      type: 'credit',
-      amount,
-      description: 'Booking refund'
-    });
-  }
-
-  async getTransactions(userId: number, page = 1, pageSize = 10) {
-    const wallet = await this.findOrCreate(userId);
-    const offset = (page - 1) * pageSize;
-    const { rows, count } = await this.walletTransactionModel.findAndCountAll({
-      where: { wallet_Id: wallet.id },
-      limit: pageSize,
-      offset,
-      order: [['createdAt', 'DESC']]
+  async getTransactions(userId: number, query: PaginationQueryDto) {
+    const wallet = await this.getWallet(userId);
+    const result = await this.transactionPagination.findAll(query.page, query.pageSize, {
+      where: { wallet_id: wallet.id },
+      order: [
+        ['createdAt', 'DESC'],
+        ['id', 'DESC'],
+      ],
     });
 
     return {
-      data: rows,
-      meta: {
-        totalItems: count,
-        currentPage: page,
-        itemsPerPage: pageSize,
-        totalPages: Math.ceil(count / pageSize)
-      }
+      ...result,
+      data: result.data.map((row) => ({
+        ...row.toJSON<Record<string, unknown>>(),
+        description: this.translationService.translate(`wallet.${row.category}`),
+      })),
     };
+  }
+
+  /**
+   * Reads the wallet with SELECT ... FOR UPDATE. A second payment for the same
+   * user waits here until this transaction ends, so two payments can never both
+   * read the same balance and spend it twice.
+   */
+  private async lockWallet(userId: number, transaction: Transaction): Promise<Wallet> {
+    const { id } = await this.getWallet(userId, transaction);
+    return this.walletModel.findByPk(id, {
+      transaction,
+      lock: Transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
   }
 }

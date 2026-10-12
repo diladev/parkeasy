@@ -1,166 +1,321 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { CreateBookingDto, ExtendBookingDto } from './dto'
-import { ModelPagination } from 'src/common/pagination/model-pagination';
-import { Booking } from './entities/booking.entity';
-import { InjectModel } from '@nestjs/sequelize';
-import { ParkingService } from 'src/parking/parking.service';
-import { WalletService } from 'src/wallet/wallet.service';
-import { TranslationService } from 'src/i18n/translation.service';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
+import { Includeable, Op, Transaction } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
+
+import { roundMoney } from 'src/common/money';
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
+import { ModelPagination } from 'src/common/pagination/model-pagination';
+import { TranslationService } from 'src/i18n/translation.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
+import { isOpenDuring } from 'src/parking/opening-hours';
+import { ParkingService } from 'src/parking/parking.service';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
+import { UsersService } from 'src/users/users.service';
+import { WalletService } from 'src/wallet/wallet.service';
+import { BookingQueryDto, CreateBookingDto, ExtendBookingDto } from './dto';
+import { MAX_BOOKING_HOURS } from './dto/create-booking.dto';
+import { Booking } from './entities/booking.entity';
+
+const HOUR_MS = 60 * 60 * 1000;
+/** Cancelling within this many minutes of the start refunds everything. */
+const FREE_CANCELLATION_MINUTES = 10;
+/** How often finished bookings are closed and their slots freed. */
+const EXPIRY_SWEEP_INTERVAL_MS = 60 * 1000;
+
+/** Booking details shown in the app. paranoid: false keeps showing a vehicle that was deleted later. */
+const BOOKING_DETAILS: Includeable[] = [
+  { model: ParkingLot, paranoid: false },
+  { model: ParkingSlot, paranoid: false },
+  { model: Vehicle, paranoid: false },
+];
 
 @Injectable()
-export class BookingService {
+export class BookingService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(BookingService.name);
-  private readonly pagination: ModelPagination<Booking>;
+  private readonly pagination = new ModelPagination(Booking, '/booking');
+  private sweepTimer?: NodeJS.Timeout;
 
   constructor(
-    @InjectModel(Booking) private bookingModel: typeof Booking,
+    @InjectModel(Booking) private readonly bookingModel: typeof Booking,
+    @InjectConnection() private readonly sequelize: Sequelize,
     private readonly parkingService: ParkingService,
     private readonly walletService: WalletService,
-    private readonly translationService: TranslationService
-  ) {
-    this.pagination = new ModelPagination<Booking>(Booking, '/booking');
+    private readonly usersService: UsersService,
+    private readonly notificationsService: NotificationsService,
+    private readonly translationService: TranslationService,
+  ) { }
+
+  private t(key: string, args?: Record<string, unknown>): string {
+    return this.translationService.translate(`message.${key}`, { args });
   }
 
-  async createBooking(userId: number, dto: CreateBookingDto, lang: string) {
-    const activeBooking = await this.bookingModel.findOne({
-      where: { user_id: userId, status: 'active' }
-    });
-    if (activeBooking) {
-      throw new BadRequestException(
-        this.translationService.translate('message.BOOKING_ALREADY_ACTIVE', { lang: lang })
-      )
-    }
-    const slot = await this.parkingService.findSlotById(dto.parking_slot_id, lang)
-    if (slot.status !== 'free') {
-      throw new BadRequestException(
-        this.translationService.translate('message.PARKING_SLOT_UNAVAILABLE', { lang: lang })
-      )
-    }
+  // ------------------------------------------------- finishing bookings
 
-    const lot = await this.parkingService.findById(dto.parking_lot_id, lang);
-    const totalCost = lot.price_per_hour * dto.duration_hours;
-    const startTime = new Date();
-    const endTime = new Date(startTime.getTime() + dto.duration_hours * 60 * 60 * 1000);
-
-    if (dto.payment_method === 'wallet') {
-      await this.walletService.deduct(userId, totalCost, lang);
-    }
-
-    await this.parkingService.updateSlotStatus(dto.parking_slot_id, 'reserved', lang);
-
-    const booking = await this.bookingModel.create({
-      user_id: userId,
-      parking_lot_id: dto.parking_lot_id,
-      parking_slot_id: dto.parking_slot_id,
-      vehicle_id: dto.vehicle_id,
-      duration_hours: dto.duration_hours,
-      total_cost: totalCost,
-      payment_method: dto.payment_method,
-      status: 'active',
-      start_time: startTime,
-      end_time: endTime
-    });
-
-    return booking;
-  }
-
-  async getUserBookings(
-    userId: number,
-    status?: string,
-    page = 1,
-    pageSize = 10,
-  ): Promise<PaginationResult<Booking>> {
-    const where: any = { user_id: userId };
-    if (status) where.status = status;
-
-    return this.pagination.findAll(page, pageSize, {
-      where,
-      include: [
-        { model: ParkingLot },
-        { model: ParkingSlot },
-        { model: Vehicle },
-      ],
-    } as any);
-  }
-
-  async findById(id: number, lang: string): Promise<Booking> {
-    const booking = await this.bookingModel.findOne({
-      where: { id },
-      include: [
-        { model: ParkingLot },
-        { model: ParkingSlot },
-        { model: Vehicle },
-      ],
-    });
-    if (!booking) {
-      throw new NotFoundException(
-        this.translationService.translate('message.BOOKING_NOT_FOUND', { lang: lang }),
+  onModuleInit(): void {
+    this.sweepTimer = setInterval(() => {
+      this.completeExpiredBookings().catch((error: unknown) =>
+        this.logger.error('Closing finished bookings failed', error instanceof Error ? error.stack : String(error)),
       );
-    }
-    return booking;
+    }, EXPIRY_SWEEP_INTERVAL_MS);
+    // Don't keep the process alive just for this timer.
+    this.sweepTimer.unref();
   }
 
-  async extendBooking(userId: number, bookingId: number, dto: ExtendBookingDto, lang: string) {
-    const booking = await this.bookingModel.findOne({
-      where: { id: bookingId, user_id: userId, status: 'active' },
-    });
-    if (!booking) {
-      throw new NotFoundException(
-        this.translationService.translate('message.BOOKING_NOT_ACTIVE', { lang: lang }),
-      );
-    }
+  onModuleDestroy(): void {
+    clearInterval(this.sweepTimer);
+  }
 
-    const lot = await this.parkingService.findById(booking.parking_lot_id, lang);
-    const extraCost = lot.price_per_hour * dto.extra_hours;
-    const newEndTime = new Date(
-      booking.end_time.getTime() + dto.extra_hours * 60 * 60 * 1000,
+  /**
+   * Completes active bookings whose end time has passed and frees their slots.
+   * Runs every minute, and for one user right before their bookings are read or
+   * changed, so the answer is correct even between two runs.
+   */
+  async completeExpiredBookings(userId?: number): Promise<void> {
+    const expired = await this.bookingModel.findAll({
+      where: {
+        status: 'active',
+        end_time: { [Op.lte]: new Date() },
+        ...(userId !== undefined && { user_id: userId }),
+      },
+      include: [{ model: ParkingLot, attributes: ['name'], paranoid: false }],
+    });
+
+    for (const booking of expired) {
+      await this.sequelize.transaction(async (transaction) => {
+        // Only if it's still active: another request may have just cancelled it.
+        const [completed] = await this.bookingModel.update(
+          { status: 'completed' },
+          { where: { id: booking.id, status: 'active' }, transaction },
+        );
+        if (completed === 0) return;
+
+        await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
+        await this.notificationsService.notify(
+          booking.user_id,
+          'BOOKING_COMPLETED',
+          { lot: booking.parking_lot?.name ?? '' },
+          transaction,
+        );
+      });
+    }
+  }
+
+  // ------------------------------------------------------------- bookings
+
+  /**
+   * Everything happens in one transaction: if any step fails (slot just taken,
+   * not enough balance...), nothing is saved and no money is taken.
+   */
+  async createBooking(userId: number, dto: CreateBookingDto): Promise<{ message: string; booking: Booking }> {
+    await this.completeExpiredBookings(userId);
+
+    const bookingId = await this.sequelize.transaction(async (transaction) => {
+      await this.usersService.lockForUpdate(userId, transaction);
+
+      const active = await this.bookingModel.findOne({
+        where: { user_id: userId, status: 'active' },
+        transaction,
+      });
+      if (active) {
+        throw new ConflictException(this.t('BOOKING_ALREADY_ACTIVE'));
+      }
+
+      const vehicle = await this.usersService.getVehicle(userId, dto.vehicle_id, transaction);
+      const lot = await this.parkingService.getBookableLot(dto.parking_lot_id, transaction);
+
+      const start = new Date();
+      const end = new Date(start.getTime() + dto.duration_hours * HOUR_MS);
+      if (!isOpenDuring(lot, start, end)) {
+        throw new BadRequestException(
+          this.t('PARKING_CLOSED_DURING_BOOKING', { opening: lot.opening_time, closing: lot.closing_time }),
+        );
+      }
+
+      const slot = await this.parkingService.reserveSlot(lot.id, dto.parking_slot_id, transaction);
+
+      const totalCost = roundMoney(lot.price_per_hour * dto.duration_hours);
+      const booking = await this.bookingModel.create(
+        {
+          user_id: userId,
+          parking_lot_id: lot.id,
+          parking_slot_id: slot.id,
+          vehicle_id: vehicle.id,
+          duration_hours: dto.duration_hours,
+          price_per_hour: lot.price_per_hour,
+          total_cost: totalCost,
+          payment_method: dto.payment_method,
+          status: 'active',
+          start_time: start,
+          end_time: end,
+        },
+        { transaction },
+      );
+
+      if (dto.payment_method === 'wallet') {
+        await this.walletService.debit(userId, totalCost, 'BOOKING_PAYMENT', booking.id, transaction);
+      }
+
+      await this.notificationsService.notify(
+        userId,
+        'BOOKING_CONFIRMED',
+        { lot: lot.name, slot: slot.slot_number, hours: dto.duration_hours },
+        transaction,
+      );
+      return booking.id;
+    });
+
+    return { message: this.t('BOOKING_CREATED'), booking: await this.findUserBooking(userId, bookingId) };
+  }
+
+  async getUserBookings(userId: number, query: BookingQueryDto): Promise<PaginationResult<Booking>> {
+    await this.completeExpiredBookings(userId);
+
+    return this.pagination.findAll(
+      query.page,
+      query.pageSize,
+      {
+        where: { user_id: userId, ...(query.status && { status: query.status }) },
+        include: BOOKING_DETAILS,
+        order: [['start_time', 'DESC']],
+      },
+      { status: query.status },
     );
-
-    if (dto.payment_method === 'wallet') {
-      await this.walletService.deduct(userId, extraCost, lang);
-    }
-
-    const extendedBooking = await booking.update({
-      end_time: newEndTime,
-      duration_hours: booking.duration_hours + dto.extra_hours,
-      total_cost: booking.total_cost + extraCost,
-    });
-
-    return extendedBooking;
   }
 
-  async cancelBooking(userId: number, bookingId: number, lang: string) {
+  /** One of the user's own bookings (another user's booking is a 404, not a leak). */
+  async findUserBooking(userId: number, bookingId: number): Promise<Booking> {
+    await this.completeExpiredBookings(userId);
+
     const booking = await this.bookingModel.findOne({
-      where: { id: bookingId, user_id: userId, status: 'active' },
+      where: { id: bookingId, user_id: userId },
+      include: BOOKING_DETAILS,
     });
     if (!booking) {
-      throw new NotFoundException(
-        this.translationService.translate('message.BOOKING_NOT_ACTIVE', { lang: lang }),
+      throw new NotFoundException(this.t('BOOKING_NOT_FOUND'));
+    }
+    return booking;
+  }
+
+  /** Adds hours at the price the booking was made with. */
+  async extendBooking(
+    userId: number,
+    bookingId: number,
+    dto: ExtendBookingDto,
+  ): Promise<{ message: string; booking: Booking }> {
+    await this.completeExpiredBookings(userId);
+
+    await this.sequelize.transaction(async (transaction) => {
+      await this.usersService.lockForUpdate(userId, transaction);
+      const booking = await this.getActiveBooking(userId, bookingId, transaction);
+
+      const totalHours = booking.duration_hours + dto.extra_hours;
+      if (totalHours > MAX_BOOKING_HOURS) {
+        throw new BadRequestException(this.t('BOOKING_TOO_LONG', { max: MAX_BOOKING_HOURS }));
+      }
+
+      const lot = await this.parkingService.getLot(booking.parking_lot_id, transaction);
+      const newEnd = new Date(booking.end_time.getTime() + dto.extra_hours * HOUR_MS);
+      if (!isOpenDuring(lot, booking.end_time, newEnd)) {
+        throw new BadRequestException(
+          this.t('PARKING_CLOSED_DURING_BOOKING', { opening: lot.opening_time, closing: lot.closing_time }),
+        );
+      }
+
+      const extraCost = roundMoney(booking.price_per_hour * dto.extra_hours);
+      if (dto.payment_method === 'wallet') {
+        await this.walletService.debit(userId, extraCost, 'BOOKING_EXTENSION', booking.id, transaction);
+      }
+
+      await booking.update(
+        {
+          end_time: newEnd,
+          duration_hours: totalHours,
+          total_cost: roundMoney(booking.total_cost + extraCost),
+        },
+        { transaction },
       );
-    }
 
-    await this.parkingService.updateSlotStatus(booking.parking_slot_id, 'free', lang);
+      await this.notificationsService.notify(
+        userId,
+        'BOOKING_EXTENDED',
+        { lot: lot.name, hours: dto.extra_hours },
+        transaction,
+      );
+    });
 
-    if (booking.payment_method === 'wallet') {
-      await this.walletService.credit(userId, booking.total_cost);
-    }
+    return { message: this.t('BOOKING_EXTENDED'), booking: await this.findUserBooking(userId, bookingId) };
+  }
 
-    await booking.update({ status: 'cancelled' });
+  /**
+   * Cancels a booking and frees its slot. Refund rule: everything back within the
+   * first FREE_CANCELLATION_MINUTES, after that only the unused whole hours.
+   * Only money that came from the wallet goes back to the wallet.
+   */
+  async cancelBooking(userId: number, bookingId: number): Promise<{ message: string; refund: number }> {
+    await this.completeExpiredBookings(userId);
+
+    const refund = await this.sequelize.transaction(async (transaction) => {
+      await this.usersService.lockForUpdate(userId, transaction);
+      const booking = await this.getActiveBooking(userId, bookingId, transaction);
+
+      await booking.update({ status: 'cancelled' }, { transaction });
+      await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
+
+      const paidFromWallet = await this.walletService.netPaidForBooking(booking.id, transaction);
+      const refund = roundMoney(Math.min(this.refundableAmount(booking, new Date()), paidFromWallet));
+      if (refund > 0) {
+        await this.walletService.credit(userId, refund, 'BOOKING_REFUND', booking.id, transaction);
+      }
+
+      const lot = await this.parkingService.getLot(booking.parking_lot_id, transaction);
+      await this.notificationsService.notify(
+        userId,
+        'BOOKING_CANCELLED',
+        { lot: lot.name, refund },
+        transaction,
+      );
+      return refund;
+    });
 
     return {
-      message: this.translationService.translate('message.BOOKING_CANCELLED', { lang: lang }),
+      message: refund > 0 ? this.t('BOOKING_CANCELLED_REFUNDED', { amount: refund }) : this.t('BOOKING_CANCELLED'),
+      refund,
     };
   }
 
-  async completeBooking(bookingId: number, lang: string) {
-    const booking = await this.findById(bookingId, lang);
-    if (booking.status !== 'active') return;
+  // ---------------------------------------------------------------- helpers
 
-    await this.parkingService.updateSlotStatus(booking.parking_slot_id, 'free', lang);
-    await booking.update({ status: 'completed' });
+  private async getActiveBooking(userId: number, bookingId: number, transaction: Transaction): Promise<Booking> {
+    const booking = await this.bookingModel.findOne({
+      where: { id: bookingId, user_id: userId },
+      transaction,
+    });
+    if (!booking) {
+      throw new NotFoundException(this.t('BOOKING_NOT_FOUND'));
+    }
+    if (booking.status !== 'active') {
+      throw new ConflictException(this.t('BOOKING_NOT_ACTIVE'));
+    }
+    return booking;
+  }
+
+  private refundableAmount(booking: Booking, now: Date): number {
+    const minutesSinceStart = (now.getTime() - booking.start_time.getTime()) / 60_000;
+    if (minutesSinceStart <= FREE_CANCELLATION_MINUTES) {
+      return booking.total_cost;
+    }
+    const unusedHours = Math.max(0, Math.floor((booking.end_time.getTime() - now.getTime()) / HOUR_MS));
+    return roundMoney(unusedHours * booking.price_per_hour);
   }
 }

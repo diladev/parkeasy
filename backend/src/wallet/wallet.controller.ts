@@ -1,32 +1,32 @@
-import { Controller, Get, Req, UseGuards, UsePipes, ValidationPipe, Headers, Post, Body, Query, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
-import { WalletService } from './wallet.service';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
+import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
-import { ApiTags } from '@nestjs/swagger';
+import type { AuthenticatedUser } from 'src/auth/types/auth.types';
+import { PaginationQueryDto } from 'src/common/pagination/dto/pagination-query.dto';
 import { TopUpDto } from './dto/top-up-dto';
+import { WalletService } from './wallet.service';
 
 @ApiTags('Wallet')
-@UsePipes(ValidationPipe)
+@ApiBearerAuth()
 @UseGuards(UserAccessTokenAuthGuard)
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) { }
 
   @Get()
-  async getWallet(@Req() req: any, @Headers('x-lang') lang: string) {
-    return await this.walletService.getWallet(req.user.id, lang)
+  getWallet(@CurrentUser() user: AuthenticatedUser) {
+    return this.walletService.getWallet(user.id);
   }
 
   @Post('topup')
-  async topUp(@Req() req: any, @Body() dto: TopUpDto, @Headers('x-lang') lang: string) {
-    return await this.walletService.topUp(req.user.id, dto.amount, lang);
+  topUp(@CurrentUser() user: AuthenticatedUser, @Body() dto: TopUpDto) {
+    return this.walletService.topUp(user.id, dto.amount);
   }
 
   @Get('transactions')
-  async getTransactions(
-    @Req() req: any,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number
-  ) {
-    return await this.walletService.getTransactions(req.user.id, page, pageSize);
+  getTransactions(@CurrentUser() user: AuthenticatedUser, @Query() query: PaginationQueryDto) {
+    return this.walletService.getTransactions(user.id, query);
   }
 }

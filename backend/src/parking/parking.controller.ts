@@ -1,159 +1,112 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
-  Headers,
   Param,
-  ParseFloatPipe,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 
-import { ParkingService } from 'src/parking/parking.service';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
-
+import { AdminApiKeyGuard } from 'src/common/guards/admin-api-key.guard';
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
+import { ParkingService } from 'src/parking/parking.service';
 import {
   CreateParkingLotDto,
-  UpdateParkingLotDto,
   CreateParkingSlotDto,
-  CreateParkingSlotsDto
+  CreateParkingSlotsDto,
+  NearbyQueryDto,
+  SearchQueryDto,
+  SlotsQueryDto,
+  UpdateParkingLotDto,
 } from 'src/parking/dtos';
 
+/**
+ * Reading lots needs a signed-in user. Creating, editing and removing lots and
+ * slots needs the `x-admin-key` header (ADMIN_API_KEY in .env) until the
+ * garage-owner portal has its own login.
+ */
 @ApiTags('Parking')
-@UsePipes(ValidationPipe)
-@UseGuards(UserAccessTokenAuthGuard)
 @Controller('parking')
 export class ParkingController {
-  constructor(
-    private readonly parkingService: ParkingService,
-  ) { }
+  constructor(private readonly parkingService: ParkingService) { }
+
+  // ------------------------------------------------------------- for the app
+  // ('nearby' and 'search' must stay above ':id', or ':id' would catch them.)
+
+  @Get('nearby')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  findNearby(@Query() query: NearbyQueryDto) {
+    return this.parkingService.findNearby(query);
+  }
+
+  @Get('search')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  search(@Query() query: SearchQueryDto) {
+    return this.parkingService.search(query);
+  }
+
+  @Get(':id')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  getLot(@Param('id', ParseIdPipe) id: number) {
+    return this.parkingService.getLotDetails(id);
+  }
+
+  @Get(':id/slots')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  getSlots(@Param('id', ParseIdPipe) id: number, @Query() query: SlotsQueryDto) {
+    return this.parkingService.getSlots(id, query);
+  }
+
+  // -------------------------------------------------------------- management
 
   @Post()
-  async createLot(
-    @Body() dto: CreateParkingLotDto,
-  ) {
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('admin-key')
+  createLot(@Body() dto: CreateParkingLotDto) {
     return this.parkingService.createLot(dto);
   }
 
   @Patch(':id')
-  async updateLot(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateParkingLotDto,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.parkingService.updateLot(id, dto, lang);
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('admin-key')
+  updateLot(@Param('id', ParseIdPipe) id: number, @Body() dto: UpdateParkingLotDto) {
+    return this.parkingService.updateLot(id, dto);
   }
 
   @Delete(':id')
-  async deleteLot(
-    @Param('id', ParseIntPipe) id: number,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.parkingService.deleteLot(id, lang);
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('admin-key')
+  deleteLot(@Param('id', ParseIdPipe) id: number) {
+    return this.parkingService.deleteLot(id);
   }
 
   @Post(':id/slots')
-  async createSlots(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: CreateParkingSlotsDto,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.parkingService.createSlots(id, dto, lang);
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('admin-key')
+  createSlots(@Param('id', ParseIdPipe) id: number, @Body() dto: CreateParkingSlotsDto) {
+    return this.parkingService.createSlots(id, dto);
   }
 
   @Post(':id/slots/single')
-  async addSlot(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: CreateParkingSlotDto,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.parkingService.addSlot(id, dto, lang);
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('admin-key')
+  addSlot(@Param('id', ParseIdPipe) id: number, @Body() dto: CreateParkingSlotDto) {
+    return this.parkingService.addSlot(id, dto);
   }
 
   @Delete('slots/:slotId')
-  async deleteSlot(
-    @Param('slotId', ParseIntPipe) slotId: number,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.parkingService.deleteSlot(slotId, lang);
-  }
-
-  @Get('nearby')
-  async getNearby(
-    @Query('lat', ParseFloatPipe) lat: number,
-    @Query('lng', ParseFloatPipe) lng: number,
-    @Query(
-      'radius',
-      new DefaultValuePipe(5),
-      ParseFloatPipe,
-    )
-    radius: number,
-    @Query(
-      'page',
-      new DefaultValuePipe(1),
-      ParseIntPipe,
-    )
-    page: number,
-    @Query(
-      'pageSize',
-      new DefaultValuePipe(10),
-      ParseIntPipe,
-    )
-    pageSize: number,
-  ) {
-    return this.parkingService.findNearby(
-      lat,
-      lng,
-      radius,
-      page,
-      pageSize,
-    );
-  }
-
-  @Get('search')
-  async search(
-    @Query('q') query: string,
-    @Query(
-      'page',
-      new DefaultValuePipe(1),
-      ParseIntPipe,
-    )
-    page: number,
-    @Query(
-      'pageSize',
-      new DefaultValuePipe(10),
-      ParseIntPipe,
-    )
-    pageSize: number,
-  ) {
-    return this.parkingService.search(
-      query,
-      page,
-      pageSize,
-    );
-  }
-
-  @Get(':id')
-  async getOne(
-    @Param('id', ParseIntPipe) id: number,
-    @Headers('x-lang') lang: string,
-  ) {
-    return this.parkingService.findById(id, lang);
-  }
-
-  @Get(':id/slots')
-  async getSlots(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('level') level?: string,
-  ) {
-    return this.parkingService.getSlots(id, level);
+  @UseGuards(AdminApiKeyGuard)
+  @ApiSecurity('admin-key')
+  deleteSlot(@Param('slotId', ParseIdPipe) slotId: number) {
+    return this.parkingService.deleteSlot(slotId);
   }
 }
