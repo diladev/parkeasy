@@ -18,7 +18,11 @@ const kChangePassword = '$kUsers/change-password';
 const kVehicles = '$kUsers/vehicles';
 
 const kParking = '$kbaseUrl/parking';
+const kNearbyParking = '$kParking/nearby';
+
+const kBookings = '$kbaseUrl/booking';
 
 const kWallet = '$kbaseUrl/wallet';
 
-const kNotification = '$kbaseUrl/notification';
+const kNotifications = '$kbaseUrl/notifications';
+const kUnreadNotifications = '$kNotifications/unread-count';

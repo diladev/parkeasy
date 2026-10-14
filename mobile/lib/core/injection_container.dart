@@ -21,6 +21,13 @@ import 'package:mobile/feature/auth/domain/usecases/user_logout.dart';
 import 'package:mobile/feature/auth/domain/usecases/user_register.dart';
 import 'package:mobile/feature/auth/domain/usecases/verify_otp.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
+import 'package:mobile/feature/home/data/repositories/home_remote_data_source.dart';
+import 'package:mobile/feature/home/data/repositories/home_repository_implementation.dart';
+import 'package:mobile/feature/home/domain/repositories/home_repository.dart';
+import 'package:mobile/feature/home/domain/usecases/get_my_bookings.dart';
+import 'package:mobile/feature/home/domain/usecases/get_nearby_lots.dart';
+import 'package:mobile/feature/home/domain/usecases/get_unread_notification_count.dart';
+import 'package:mobile/feature/home/presentation/cubit/home_cubit.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_local_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_remote_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_repository_implementation.dart';
@@ -74,6 +81,9 @@ Future<void> init() async {
   sl.registerLazySingleton<ProfileLocalDataSource>(
     () => ProfileLocalDataSourceImpl(sl()),
   );
+  sl.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(sl()),
+  );
 
   // Session: one instance, used as AuthTokenProvider and as TokenProvider.
   sl.registerLazySingleton(() => AuthTokenProvider(sl(), sl(), sl()));
@@ -86,6 +96,7 @@ Future<void> init() async {
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(sl(), sl()),
   );
+  sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl()));
 
   // Use cases: authentication
   sl.registerLazySingleton(() => UserLogin(sl()));
@@ -106,6 +117,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateVehicle(sl()));
   sl.registerLazySingleton(() => DeleteVehicle(sl()));
   sl.registerLazySingleton(() => SetDefaultVehicle(sl()));
+
+  // Use cases: home
+  sl.registerLazySingleton(() => GetNearbyLots(sl()));
+  sl.registerLazySingleton(() => GetMyBookings(sl()));
+  sl.registerLazySingleton(() => GetUnreadNotificationCount(sl()));
 
   // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
@@ -128,4 +144,5 @@ Future<void> init() async {
   sl.registerFactory(() => DeleteAccountCubit(sl()));
   sl.registerFactory(() => VehiclesCubit(sl(), sl(), sl()));
   sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
+  sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
 }

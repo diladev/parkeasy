@@ -37,6 +37,8 @@ class AppRouter {
   static const String map = '/map';
   static const String searchResults = '/search-results';
   static const String parkingDetails = '/parking-details';
+  static const String scanQr = '/scan-qr';
+  static const String favorites = '/favorites';
 
   static const String payment = '/payment';
   static const String bookingConfirmation = '/booking-confirmation';
@@ -163,6 +165,12 @@ class AppRouter {
 
   static void toParkingDetails(BuildContext context, String parkingId) =>
       Navigator.pushNamed(context, parkingDetails, arguments: parkingId);
+
+  static void toScanQr(BuildContext context) =>
+      Navigator.pushNamed(context, scanQr);
+
+  static void toFavorites(BuildContext context) =>
+      Navigator.pushNamed(context, favorites);
 
   static void toPayment(BuildContext context, Map<String, dynamic> args) =>
       Navigator.pushNamed(context, payment, arguments: args);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
+import 'package:mobile/feature/home/presentation/screens/home_screen.dart';
 import 'package:mobile/feature/profile/presentation/bloc/profile_bloc.dart';
 import 'package:mobile/feature/profile/presentation/bloc/profile_event.dart';
 import 'package:mobile/feature/profile/presentation/screens/profile_screen.dart';
@@ -10,8 +11,8 @@ import 'package:mobile/feature/stub/stub_screen.dart';
 /// The signed-in app: the four tabs of the bottom navigation bar.
 ///
 /// IndexedStack keeps every tab alive, so switching tabs doesn't reload them
-/// or lose their scroll position. Home, Map and Bookings are placeholders
-/// until those features are built.
+/// or lose their scroll position. Map and Bookings are placeholders until
+/// those features are built.
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialIndex = 0});
 
@@ -22,7 +23,12 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
+  static const int _mapTab = 1;
+  static const int _bookingsTab = 2;
+
   late int _index = widget.initialIndex;
+
+  void _selectTab(int index) => setState(() => _index = index);
 
   @override
   void initState() {
@@ -37,16 +43,19 @@ class _MainShellState extends State<MainShell> {
       child: Scaffold(
         body: IndexedStack(
           index: _index,
-          children: const [
-            StubScreen(routeName: 'Home', showBack: false),
-            StubScreen(routeName: 'Map', showBack: false),
-            StubScreen(routeName: 'Bookings', showBack: false),
-            ProfileScreen(),
+          children: [
+            HomeScreen(
+              onOpenMap: () => _selectTab(_mapTab),
+              onOpenBookings: () => _selectTab(_bookingsTab),
+            ),
+            const StubScreen(routeName: 'Map', showBack: false),
+            const StubScreen(routeName: 'Bookings', showBack: false),
+            const ProfileScreen(),
           ],
         ),
         bottomNavigationBar: AppBottomNav(
           currentIndex: _index,
-          onTap: (index) => setState(() => _index = index),
+          onTap: _selectTab,
         ),
       ),
     );
