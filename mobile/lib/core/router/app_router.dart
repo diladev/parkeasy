@@ -6,6 +6,7 @@ import 'package:mobile/feature/auth/presentation/screens/forgot_password_screen.
 import 'package:mobile/feature/auth/presentation/screens/otp_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/reset_password_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/location_permission_screen.dart';
+import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 import 'package:mobile/feature/profile/presentation/screens/change_password_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/delete_account_screen.dart';
@@ -92,6 +93,11 @@ class AppRouter {
       case home:
         return _route(const MainShell(), settings);
 
+      // Parking
+      case parkingDetails:
+        final lotId = settings.arguments as int;
+        return _route(ParkingDetailsScreen(lotId: lotId), settings);
+
       // Profile
       case profile:
         return _route(const ProfileScreen(), settings);
@@ -163,8 +169,8 @@ class AppRouter {
   static void toSearchResults(BuildContext context, String query) =>
       Navigator.pushNamed(context, searchResults, arguments: query);
 
-  static void toParkingDetails(BuildContext context, String parkingId) =>
-      Navigator.pushNamed(context, parkingDetails, arguments: parkingId);
+  static void toParkingDetails(BuildContext context, int lotId) =>
+      Navigator.pushNamed(context, parkingDetails, arguments: lotId);
 
   static void toScanQr(BuildContext context) =>
       Navigator.pushNamed(context, scanQr);

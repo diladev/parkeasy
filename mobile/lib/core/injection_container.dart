@@ -28,6 +28,11 @@ import 'package:mobile/feature/home/domain/usecases/get_my_bookings.dart';
 import 'package:mobile/feature/home/domain/usecases/get_nearby_lots.dart';
 import 'package:mobile/feature/home/domain/usecases/get_unread_notification_count.dart';
 import 'package:mobile/feature/home/presentation/cubit/home_cubit.dart';
+import 'package:mobile/feature/parking/data/repositories/parking_remote_data_source.dart';
+import 'package:mobile/feature/parking/data/repositories/parking_repository_implementation.dart';
+import 'package:mobile/feature/parking/domain/repositories/parking_repository.dart';
+import 'package:mobile/feature/parking/domain/usecases/get_parking_lot_details.dart';
+import 'package:mobile/feature/parking/presentation/cubit/parking_details_cubit.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_local_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_remote_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_repository_implementation.dart';
@@ -84,6 +89,9 @@ Future<void> init() async {
   sl.registerLazySingleton<HomeRemoteDataSource>(
     () => HomeRemoteDataSourceImpl(sl()),
   );
+  sl.registerLazySingleton<ParkingRemoteDataSource>(
+    () => ParkingRemoteDataSourceImpl(sl()),
+  );
 
   // Session: one instance, used as AuthTokenProvider and as TokenProvider.
   sl.registerLazySingleton(() => AuthTokenProvider(sl(), sl(), sl()));
@@ -97,6 +105,9 @@ Future<void> init() async {
     () => ProfileRepositoryImpl(sl(), sl()),
   );
   sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl()));
+  sl.registerLazySingleton<ParkingRepository>(
+    () => ParkingRepositoryImpl(sl()),
+  );
 
   // Use cases: authentication
   sl.registerLazySingleton(() => UserLogin(sl()));
@@ -123,6 +134,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetMyBookings(sl()));
   sl.registerLazySingleton(() => GetUnreadNotificationCount(sl()));
 
+  // Use cases: parking
+  sl.registerLazySingleton(() => GetParkingLotDetails(sl()));
+
   // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
   sl.registerFactory(() => ConnectivityCubit(sl()));
@@ -145,4 +159,5 @@ Future<void> init() async {
   sl.registerFactory(() => VehiclesCubit(sl(), sl(), sl()));
   sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
+  sl.registerFactory(() => ParkingDetailsCubit(sl()));
 }

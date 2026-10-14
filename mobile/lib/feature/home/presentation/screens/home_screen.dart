@@ -142,7 +142,7 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         QuickActionButton(
           icon: LucideIcons.search300,
@@ -227,7 +227,7 @@ class _RegularsCarousel extends StatelessWidget {
           final lot = lots[index];
           return RegularLotCard(
             lot: lot,
-            onTap: () => AppRouter.toParkingDetails(context, '${lot.lotId}'),
+            onTap: () => AppRouter.toParkingDetails(context, lot.lotId),
           );
         },
       ),

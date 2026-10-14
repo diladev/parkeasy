@@ -54,6 +54,18 @@ class Formatters {
 
   static String _half(DateTime time) => time.hour < 12 ? 'AM' : 'PM';
 
+  /// "$2.00"
+  static String money(double amount) => '\$${amount.toStringAsFixed(2)}';
+
+  /// "$2" for whole amounts, otherwise "$1.50".
+  static String shortMoney(double amount) => amount == amount.roundToDouble()
+      ? '\$${amount.toStringAsFixed(0)}'
+      : money(amount);
+
+  /// "0.3 km", "4.8 km", "12 km".
+  static String distance(double km) =>
+      km < 10 ? '${km.toStringAsFixed(1)} km' : '${km.round()} km';
+
   static String initials(String name) {
     return name
         .trim()
