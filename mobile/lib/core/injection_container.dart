@@ -21,6 +21,13 @@ import 'package:mobile/feature/auth/domain/usecases/user_logout.dart';
 import 'package:mobile/feature/auth/domain/usecases/user_register.dart';
 import 'package:mobile/feature/auth/domain/usecases/verify_otp.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
+import 'package:mobile/feature/booking/data/repositories/booking_remote_data_source.dart';
+import 'package:mobile/feature/booking/data/repositories/booking_repository_implementation.dart';
+import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
+import 'package:mobile/feature/booking/domain/repositories/booking_repository.dart';
+import 'package:mobile/feature/booking/domain/usecases/create_booking.dart';
+import 'package:mobile/feature/booking/domain/usecases/get_wallet_balance.dart';
+import 'package:mobile/feature/booking/presentation/cubit/payment_cubit.dart';
 import 'package:mobile/feature/home/data/repositories/home_remote_data_source.dart';
 import 'package:mobile/feature/home/data/repositories/home_repository_implementation.dart';
 import 'package:mobile/feature/home/domain/repositories/home_repository.dart';
@@ -92,6 +99,9 @@ Future<void> init() async {
   sl.registerLazySingleton<ParkingRemoteDataSource>(
     () => ParkingRemoteDataSourceImpl(sl()),
   );
+  sl.registerLazySingleton<BookingRemoteDataSource>(
+    () => BookingRemoteDataSourceImpl(sl()),
+  );
 
   // Session: one instance, used as AuthTokenProvider and as TokenProvider.
   sl.registerLazySingleton(() => AuthTokenProvider(sl(), sl(), sl()));
@@ -107,6 +117,9 @@ Future<void> init() async {
   sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl()));
   sl.registerLazySingleton<ParkingRepository>(
     () => ParkingRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<BookingRepository>(
+    () => BookingRepositoryImpl(sl()),
   );
 
   // Use cases: authentication
@@ -137,6 +150,10 @@ Future<void> init() async {
   // Use cases: parking
   sl.registerLazySingleton(() => GetParkingLotDetails(sl()));
 
+  // Use cases: booking
+  sl.registerLazySingleton(() => GetWalletBalance(sl()));
+  sl.registerLazySingleton(() => CreateBooking(sl()));
+
   // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
   sl.registerFactory(() => ConnectivityCubit(sl()));
@@ -160,4 +177,8 @@ Future<void> init() async {
   sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
   sl.registerFactory(() => ParkingDetailsCubit(sl()));
+  // Needs what the user picked, passed as param1.
+  sl.registerFactoryParam<PaymentCubit, BookingDraft, void>(
+    (draft, _) => PaymentCubit(sl(), sl(), sl(), draft: draft),
+  );
 }

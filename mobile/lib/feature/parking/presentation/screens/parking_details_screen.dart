@@ -7,6 +7,7 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/utils/geo.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
+import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_lot_details.dart';
 import 'package:mobile/feature/parking/presentation/cubit/parking_details_cubit.dart';
 import 'package:mobile/feature/parking/presentation/cubit/parking_details_state.dart';
@@ -116,7 +117,17 @@ class _LotDetails extends StatelessWidget {
   void _book(BuildContext context) {
     final slot = state.selectedSlot;
     if (slot == null) return;
-    AppRouter.toPayment(context, {'lotId': lot.id, 'slotId': slot.id});
+    AppRouter.toPayment(
+      context,
+      BookingDraft(
+        lotId: lot.id,
+        lotName: lot.name,
+        slotId: slot.id,
+        slotNumber: slot.slotNumber,
+        level: slot.level,
+        pricePerHour: lot.pricePerHour,
+      ),
+    );
   }
 
   @override

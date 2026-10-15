@@ -27,6 +27,12 @@ class Formatters {
     return '${_dayLabel(start, now ?? DateTime.now())} · ${_timeRange(start, end)}';
   }
 
+  /// "Today · 10:00 AM", "12 Oct · 9:30 PM".
+  static String dayAndTime(DateTime time, {DateTime? now}) {
+    final day = _dayLabel(time, now ?? DateTime.now());
+    return '$day · ${_clock(time)} ${_half(time)}';
+  }
+
   static String _dayLabel(DateTime date, DateTime now) {
     final day = DateTime(date.year, date.month, date.day);
     final today = DateTime(now.year, now.month, now.day);

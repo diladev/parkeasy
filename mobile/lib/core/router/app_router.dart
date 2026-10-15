@@ -6,6 +6,10 @@ import 'package:mobile/feature/auth/presentation/screens/forgot_password_screen.
 import 'package:mobile/feature/auth/presentation/screens/otp_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/reset_password_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/location_permission_screen.dart';
+import 'package:mobile/feature/booking/domain/entities/booking.dart';
+import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
+import 'package:mobile/feature/booking/presentation/screens/booking_confirmation_screen.dart';
+import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 import 'package:mobile/feature/profile/presentation/screens/change_password_screen.dart';
@@ -98,6 +102,14 @@ class AppRouter {
         final lotId = settings.arguments as int;
         return _route(ParkingDetailsScreen(lotId: lotId), settings);
 
+      // Booking
+      case payment:
+        final draft = settings.arguments as BookingDraft;
+        return _route(PaymentScreen(draft: draft), settings);
+      case bookingConfirmation:
+        final booking = settings.arguments as Booking;
+        return _route(BookingConfirmationScreen(booking: booking), settings);
+
       // Profile
       case profile:
         return _route(const ProfileScreen(), settings);
@@ -178,14 +190,17 @@ class AppRouter {
   static void toFavorites(BuildContext context) =>
       Navigator.pushNamed(context, favorites);
 
-  static void toPayment(BuildContext context, Map<String, dynamic> args) =>
-      Navigator.pushNamed(context, payment, arguments: args);
+  static void toPayment(BuildContext context, BookingDraft draft) =>
+      Navigator.pushNamed(context, payment, arguments: draft);
 
-  static void toBookingConfirmation(BuildContext context, String bookingId) =>
-      Navigator.pushReplacementNamed(
+  /// Replaces the booking screens (details, payment) with the confirmation,
+  /// so back doesn't return to a payment that's already done.
+  static void toBookingConfirmation(BuildContext context, Booking booking) =>
+      Navigator.pushNamedAndRemoveUntil(
         context,
         bookingConfirmation,
-        arguments: bookingId,
+        (route) => route.isFirst,
+        arguments: booking,
       );
 
   static void toMyBookings(BuildContext context) =>

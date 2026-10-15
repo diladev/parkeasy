@@ -1,0 +1,50 @@
+import 'package:dartz/dartz.dart';
+import 'package:mobile/core/errors/exception.dart';
+import 'package:mobile/core/errors/failure.dart';
+import 'package:mobile/core/utils/typedef.dart';
+import 'package:mobile/feature/booking/data/repositories/booking_remote_data_source.dart';
+import 'package:mobile/feature/booking/domain/entities/booking.dart';
+import 'package:mobile/feature/booking/domain/repositories/booking_repository.dart';
+
+class BookingRepositoryImpl implements BookingRepository {
+  BookingRepositoryImpl(this._remoteDataSource);
+
+  final BookingRemoteDataSource _remoteDataSource;
+
+  @override
+  ResultFuture<Booking> createBooking({
+    required int lotId,
+    required int slotId,
+    required int vehicleId,
+    required int durationHours,
+  }) {
+    return _guard(
+      () => _remoteDataSource.createBooking(
+        lotId: lotId,
+        slotId: slotId,
+        vehicleId: vehicleId,
+        durationHours: durationHours,
+      ),
+    );
+  }
+
+  @override
+  ResultFuture<double> getWalletBalance() {
+    return _guard(_remoteDataSource.getWalletBalance);
+  }
+
+  ResultFuture<T> _guard<T>(Future<T> Function() action) async {
+    try {
+      return Right(await action());
+    } on APIException catch (e) {
+      return Left(APIFailure.fromException(e));
+    } catch (_) {
+      return const Left(
+        APIFailure(
+          message: 'Something went wrong. Please try again.',
+          statusCode: 500,
+        ),
+      );
+    }
+  }
+}
