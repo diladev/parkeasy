@@ -8,8 +8,11 @@ import 'package:mobile/feature/auth/presentation/screens/reset_password_screen.d
 import 'package:mobile/feature/auth/presentation/screens/location_permission_screen.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
+import 'package:mobile/feature/booking/domain/entities/cancellation.dart';
 import 'package:mobile/feature/booking/presentation/screens/booking_confirmation_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/booking_detail_screen.dart';
+import 'package:mobile/feature/booking/presentation/screens/cancellation_success_screen.dart';
+import 'package:mobile/feature/booking/presentation/screens/extend_booking_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
@@ -97,7 +100,8 @@ class AppRouter {
 
       // Main app: the bottom-navigation shell.
       case home:
-        return _route(const MainShell(), settings);
+        final tab = settings.arguments as int? ?? 0;
+        return _route(MainShell(initialIndex: tab), settings);
 
       // Parking
       case parkingDetails:
@@ -116,6 +120,15 @@ class AppRouter {
       case bookingDetail:
         final bookingId = int.parse(settings.arguments as String);
         return _route(BookingDetailScreen(bookingId: bookingId), settings);
+      case extendParking:
+        final booking = settings.arguments as Booking;
+        return _route(ExtendBookingScreen(booking: booking), settings);
+      case cancellationSuccess:
+        final cancellation = settings.arguments as Cancellation;
+        return _route(
+          CancellationSuccessScreen(cancellation: cancellation),
+          settings,
+        );
 
       // Profile
       case profile:
@@ -159,8 +172,16 @@ class AppRouter {
 
   /// Clears the stack: after this, Back leaves the app instead of returning
   /// to the auth screens.
-  static void toHome(BuildContext context) =>
-      Navigator.pushNamedAndRemoveUntil(context, home, (_) => false);
+  /// Opens on [tab], e.g. [mapTab].
+  static void toHome(BuildContext context, {int tab = 0}) =>
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        home,
+        (_) => false,
+        arguments: tab,
+      );
+
+  static const int mapTab = MainShell.mapTab;
 
   static void toForgotPassword(BuildContext context) =>
       Navigator.pushNamed(context, forgotPassword);
@@ -217,13 +238,20 @@ class AppRouter {
   static Future<void> toBookingDetail(BuildContext context, String bookingId) =>
       Navigator.pushNamed(context, bookingDetail, arguments: bookingId);
 
-  static Future<void> toExtendParking(BuildContext context, String bookingId) =>
-      Navigator.pushNamed(context, extendParking, arguments: bookingId);
+  static Future<void> toExtendParking(BuildContext context, Booking booking) =>
+      Navigator.pushNamed(context, extendParking, arguments: booking);
 
-  static Future<void> toCancelConfirmation(
+  /// Replaces the booking screens with the cancellation result, so back
+  /// doesn't return to a booking that no longer exists.
+  static void toCancellationSuccess(
     BuildContext context,
-    String bookingId,
-  ) => Navigator.pushNamed(context, cancelConfirmation, arguments: bookingId);
+    Cancellation cancellation,
+  ) => Navigator.pushNamedAndRemoveUntil(
+    context,
+    cancellationSuccess,
+    (route) => route.isFirst,
+    arguments: cancellation,
+  );
 
   static void toDirections(BuildContext context, int lotId) =>
       Navigator.pushNamed(context, directions, arguments: lotId);

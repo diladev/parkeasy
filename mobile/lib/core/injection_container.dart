@@ -25,11 +25,16 @@ import 'package:mobile/feature/booking/data/repositories/booking_remote_data_sou
 import 'package:mobile/feature/booking/data/repositories/booking_repository_implementation.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/booking/domain/repositories/booking_repository.dart';
+import 'package:mobile/feature/booking/domain/entities/booking.dart';
+import 'package:mobile/feature/booking/domain/usecases/cancel_booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/create_booking.dart';
+import 'package:mobile/feature/booking/domain/usecases/extend_booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/get_booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/get_bookings.dart';
 import 'package:mobile/feature/booking/domain/usecases/get_wallet_balance.dart';
 import 'package:mobile/feature/booking/presentation/cubit/booking_detail_cubit.dart';
+import 'package:mobile/feature/booking/presentation/cubit/cancel_booking_cubit.dart';
+import 'package:mobile/feature/booking/presentation/cubit/extend_booking_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/payment_cubit.dart';
 import 'package:mobile/feature/home/data/repositories/home_remote_data_source.dart';
@@ -159,6 +164,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateBooking(sl()));
   sl.registerLazySingleton(() => GetBookings(sl()));
   sl.registerLazySingleton(() => GetBooking(sl()));
+  sl.registerLazySingleton(() => ExtendBooking(sl()));
+  sl.registerLazySingleton(() => CancelBooking(sl()));
 
   // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
@@ -186,6 +193,11 @@ Future<void> init() async {
   // Needs what the user picked, passed as param1.
   sl.registerFactory(() => MyBookingsCubit(sl()));
   sl.registerFactory(() => BookingDetailCubit(sl()));
+  sl.registerFactory(() => CancelBookingCubit(sl()));
+  // Needs the booking being extended, passed as param1.
+  sl.registerFactoryParam<ExtendBookingCubit, Booking, void>(
+    (booking, _) => ExtendBookingCubit(sl(), sl(), booking: booking),
+  );
   sl.registerFactoryParam<PaymentCubit, BookingDraft, void>(
     (draft, _) => PaymentCubit(sl(), sl(), sl(), draft: draft),
   );

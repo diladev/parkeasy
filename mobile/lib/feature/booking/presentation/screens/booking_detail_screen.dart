@@ -11,6 +11,7 @@ import 'package:mobile/feature/booking/presentation/cubit/booking_detail_cubit.d
 import 'package:mobile/feature/booking/presentation/widgets/booking_actions.dart';
 import 'package:mobile/feature/booking/presentation/widgets/booking_info_card.dart';
 import 'package:mobile/feature/booking/presentation/widgets/booking_status_banner.dart';
+import 'package:mobile/feature/booking/presentation/widgets/cancel_booking_sheet.dart';
 
 /// One booking: its status, details, and (while active) the gate code,
 /// Extend, Directions and Cancel.
@@ -82,7 +83,6 @@ class _BookingDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<BookingDetailCubit>();
-    final id = '${booking.id}';
 
     return RefreshIndicator(
       color: AppColors.teal,
@@ -113,17 +113,14 @@ class _BookingDetails extends StatelessWidget {
             BookingActionButtons(
               onExtend: () => _openAndReload(
                 context,
-                () => AppRouter.toExtendParking(context, id),
+                () => AppRouter.toExtendParking(context, booking),
               ),
               onDirections: () =>
                   AppRouter.toDirections(context, booking.lotId),
             ),
             const SizedBox(height: 12),
             CancelBookingButton(
-              onTap: () => _openAndReload(
-                context,
-                () => AppRouter.toCancelConfirmation(context, id),
-              ),
+              onTap: () => showCancelBookingSheet(context, booking),
             ),
           ],
         ],

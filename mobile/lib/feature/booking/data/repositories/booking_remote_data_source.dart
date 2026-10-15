@@ -18,6 +18,13 @@ abstract class BookingRemoteDataSource {
   Future<BookingPage> getBookings({BookingStatus? status, int page = 1});
 
   Future<BookingModel> getBooking(int bookingId);
+
+  Future<BookingModel> extendBooking({
+    required int bookingId,
+    required int extraHours,
+  });
+
+  Future<double> cancelBooking(int bookingId);
 }
 
 class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
@@ -84,5 +91,25 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   Future<BookingModel> getBooking(int bookingId) async {
     final response = await _api.get('$kBookings/$bookingId');
     return BookingModel.fromMap(response.map);
+  }
+
+  @override
+  Future<BookingModel> extendBooking({
+    required int bookingId,
+    required int extraHours,
+  }) async {
+    final response = await _api.patch(
+      '$kBookings/$bookingId/extend',
+      body: {'extra_hours': extraHours, 'payment_method': 'wallet'},
+    );
+    // { message, booking }
+    return BookingModel.fromMap(response.map['booking'] as DataMap);
+  }
+
+  @override
+  Future<double> cancelBooking(int bookingId) async {
+    final response = await _api.patch('$kBookings/$bookingId/cancel');
+    // { message, refund }
+    return (response.map['refund'] as num? ?? 0).toDouble();
   }
 }

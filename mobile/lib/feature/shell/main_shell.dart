@@ -19,14 +19,14 @@ class MainShell extends StatefulWidget {
 
   final int initialIndex;
 
+  static const int mapTab = 1;
+  static const int bookingsTab = 2;
+
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  static const int _mapTab = 1;
-  static const int _bookingsTab = 2;
-
   late int _index = widget.initialIndex;
 
   void _selectTab(int index) => setState(() => _index = index);
@@ -46,8 +46,8 @@ class _MainShellState extends State<MainShell> {
           index: _index,
           children: [
             HomeScreen(
-              onOpenMap: () => _selectTab(_mapTab),
-              onOpenBookings: () => _selectTab(_bookingsTab),
+              onOpenMap: () => _selectTab(MainShell.mapTab),
+              onOpenBookings: () => _selectTab(MainShell.bookingsTab),
             ),
             const StubScreen(routeName: 'Map', showBack: false),
             const MyBookingsScreen(),

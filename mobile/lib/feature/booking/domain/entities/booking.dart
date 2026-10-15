@@ -41,6 +41,21 @@ class Booking extends Equatable {
 
   bool get isActive => status == BookingStatus.active;
 
+  /// What cancelling at [now] would refund, by the server's rule: everything
+  /// in the first [freeCancellationMinutes], then only the unused whole hours.
+  /// The server works out the real amount; this is for showing it beforehand.
+  double refundIfCancelledAt(DateTime now) {
+    final sinceStart = now.difference(startTime);
+    if (sinceStart.inSeconds <= freeCancellationMinutes * 60) {
+      return totalCost;
+    }
+    final unusedHours = endTime.difference(now).inHours;
+    return unusedHours <= 0 ? 0 : unusedHours * pricePerHour;
+  }
+
+  /// Cancelling this soon after the start refunds everything.
+  static const int freeCancellationMinutes = 10;
+
   /// "A04 · Level B1"
   String get slotLabel => '$slotNumber · Level $level';
 

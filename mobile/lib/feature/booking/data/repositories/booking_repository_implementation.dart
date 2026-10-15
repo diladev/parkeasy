@@ -47,6 +47,24 @@ class BookingRepositoryImpl implements BookingRepository {
     return _guard(() => _remoteDataSource.getBooking(bookingId));
   }
 
+  @override
+  ResultFuture<Booking> extendBooking({
+    required int bookingId,
+    required int extraHours,
+  }) {
+    return _guard(
+      () => _remoteDataSource.extendBooking(
+        bookingId: bookingId,
+        extraHours: extraHours,
+      ),
+    );
+  }
+
+  @override
+  ResultFuture<double> cancelBooking(int bookingId) {
+    return _guard(() => _remoteDataSource.cancelBooking(bookingId));
+  }
+
   ResultFuture<T> _guard<T>(Future<T> Function() action) async {
     try {
       return Right(await action());

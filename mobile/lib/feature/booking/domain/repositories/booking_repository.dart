@@ -18,4 +18,13 @@ abstract class BookingRepository {
   ResultFuture<BookingPage> getBookings({BookingStatus? status, int page = 1});
 
   ResultFuture<Booking> getBooking(int bookingId);
+
+  /// Adds [extraHours] to an active booking, paid from the wallet.
+  ResultFuture<Booking> extendBooking({
+    required int bookingId,
+    required int extraHours,
+  });
+
+  /// Cancels an active booking; returns the amount refunded to the wallet.
+  ResultFuture<double> cancelBooking(int bookingId);
 }
