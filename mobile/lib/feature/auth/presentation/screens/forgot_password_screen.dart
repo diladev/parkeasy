@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_event.dart';
@@ -40,7 +41,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final palette = context.palette;
 
     return BaseScreenWrapper(
-      child: Scaffold(
+      child: AppScreen(
         body: BlocConsumer<AuthBloc, AuthState>(
           listener: (context, state) {
             // The code screen sends ForgotPasswordRequested again for
@@ -54,92 +55,90 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             }
           },
           builder: (context, state) {
-            return SafeArea(
-              child: Column(
-                children: [
-                  const AppTopBar(title: 'Reset password'),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(22),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 30),
-                            // Icon
-                            Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                color: AppColors.yellow15,
-                                borderRadius: BorderRadius.circular(20),
+            return Column(
+              children: [
+                const AppTopBar(title: 'Reset password'),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(22),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 30),
+                          // Icon
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: AppColors.yellow15,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              LucideIcons.lockKeyhole200,
+                              size: 44,
+                              color: AppColors.yellow,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Forgot your password?',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: palette.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            "Enter the email linked to your account\nand we'll send you a reset code.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: palette.textHint,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          AppInputField(
+                            label: 'Email address',
+                            hint: 'you@example.com',
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            validator: Validators.email,
+                          ),
+                          const SizedBox(height: 24),
+                          AppButton(
+                            label: 'Send reset code',
+                            isLoading: state is AuthLoading,
+                            onTap: _sendCode,
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Remembered it? ',
+                                style: TextStyle(color: palette.textHint),
                               ),
-                              child: const Icon(
-                                LucideIcons.lockKeyhole200,
-                                size: 44,
-                                color: AppColors.yellow,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              'Forgot your password?',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                                color: palette.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              "Enter the email linked to your account\nand we'll send you a reset code.",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: palette.textHint,
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                            AppInputField(
-                              label: 'Email address',
-                              hint: 'you@example.com',
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              autofillHints: const [AutofillHints.email],
-                              validator: Validators.email,
-                            ),
-                            const SizedBox(height: 24),
-                            AppButton(
-                              label: 'Send reset code',
-                              isLoading: state is AuthLoading,
-                              onTap: _sendCode,
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Remembered it? ',
-                                  style: TextStyle(color: palette.textHint),
-                                ),
-                                GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: const Text(
-                                    'Back to sign in',
-                                    style: TextStyle(
-                                      color: AppColors.teal,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                child: const Text(
+                                  'Back to sign in',
+                                  style: TextStyle(
+                                    color: AppColors.teal,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),
