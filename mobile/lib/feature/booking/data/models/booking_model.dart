@@ -6,7 +6,9 @@ class BookingModel extends Booking {
   const BookingModel({
     required super.id,
     required super.status,
+    required super.lotId,
     required super.lotName,
+    required super.lotAddress,
     required super.slotNumber,
     required super.level,
     required super.vehicleName,
@@ -14,6 +16,7 @@ class BookingModel extends Booking {
     required super.startTime,
     required super.endTime,
     required super.durationHours,
+    required super.pricePerHour,
     required super.totalCost,
   });
 
@@ -30,7 +33,9 @@ class BookingModel extends Booking {
     return BookingModel(
       id: (map['id'] as num).toInt(),
       status: BookingStatus.fromApi(map['status'] as String?),
+      lotId: (map['parking_lot_id'] as num).toInt(),
       lotName: lot?['name'] as String? ?? 'Parking lot',
+      lotAddress: lot?['address'] as String? ?? '',
       slotNumber: slot?['slot_number'] as String? ?? '',
       level: slot?['level'] as String? ?? '',
       vehicleName: vehicleName,
@@ -39,6 +44,7 @@ class BookingModel extends Booking {
       startTime: DateTime.parse(map['start_time'] as String).toLocal(),
       endTime: DateTime.parse(map['end_time'] as String).toLocal(),
       durationHours: (map['duration_hours'] as num? ?? 0).toInt(),
+      pricePerHour: (map['price_per_hour'] as num? ?? 0).toDouble(),
       totalCost: (map['total_cost'] as num? ?? 0).toDouble(),
     );
   }

@@ -26,7 +26,11 @@ import 'package:mobile/feature/booking/data/repositories/booking_repository_impl
 import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/booking/domain/repositories/booking_repository.dart';
 import 'package:mobile/feature/booking/domain/usecases/create_booking.dart';
+import 'package:mobile/feature/booking/domain/usecases/get_booking.dart';
+import 'package:mobile/feature/booking/domain/usecases/get_bookings.dart';
 import 'package:mobile/feature/booking/domain/usecases/get_wallet_balance.dart';
+import 'package:mobile/feature/booking/presentation/cubit/booking_detail_cubit.dart';
+import 'package:mobile/feature/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/payment_cubit.dart';
 import 'package:mobile/feature/home/data/repositories/home_remote_data_source.dart';
 import 'package:mobile/feature/home/data/repositories/home_repository_implementation.dart';
@@ -153,6 +157,8 @@ Future<void> init() async {
   // Use cases: booking
   sl.registerLazySingleton(() => GetWalletBalance(sl()));
   sl.registerLazySingleton(() => CreateBooking(sl()));
+  sl.registerLazySingleton(() => GetBookings(sl()));
+  sl.registerLazySingleton(() => GetBooking(sl()));
 
   // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
@@ -178,6 +184,8 @@ Future<void> init() async {
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
   sl.registerFactory(() => ParkingDetailsCubit(sl()));
   // Needs what the user picked, passed as param1.
+  sl.registerFactory(() => MyBookingsCubit(sl()));
+  sl.registerFactory(() => BookingDetailCubit(sl()));
   sl.registerFactoryParam<PaymentCubit, BookingDraft, void>(
     (draft, _) => PaymentCubit(sl(), sl(), sl(), draft: draft),
   );

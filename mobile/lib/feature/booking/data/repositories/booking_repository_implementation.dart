@@ -4,7 +4,9 @@ import 'package:mobile/core/errors/failure.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/booking/data/repositories/booking_remote_data_source.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
+import 'package:mobile/feature/booking/domain/entities/booking_page.dart';
 import 'package:mobile/feature/booking/domain/repositories/booking_repository.dart';
+import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
 class BookingRepositoryImpl implements BookingRepository {
   BookingRepositoryImpl(this._remoteDataSource);
@@ -31,6 +33,18 @@ class BookingRepositoryImpl implements BookingRepository {
   @override
   ResultFuture<double> getWalletBalance() {
     return _guard(_remoteDataSource.getWalletBalance);
+  }
+
+  @override
+  ResultFuture<BookingPage> getBookings({BookingStatus? status, int page = 1}) {
+    return _guard(
+      () => _remoteDataSource.getBookings(status: status, page: page),
+    );
+  }
+
+  @override
+  ResultFuture<Booking> getBooking(int bookingId) {
+    return _guard(() => _remoteDataSource.getBooking(bookingId));
   }
 
   ResultFuture<T> _guard<T>(Future<T> Function() action) async {

@@ -1,12 +1,14 @@
 import 'package:equatable/equatable.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
-/// A booking with everything the confirmation and detail screens show.
+/// A booking with everything the booking screens show.
 class Booking extends Equatable {
   const Booking({
     required this.id,
     required this.status,
+    required this.lotId,
     required this.lotName,
+    required this.lotAddress,
     required this.slotNumber,
     required this.level,
     required this.vehicleName,
@@ -14,12 +16,15 @@ class Booking extends Equatable {
     required this.startTime,
     required this.endTime,
     required this.durationHours,
+    required this.pricePerHour,
     required this.totalCost,
   });
 
   final int id;
   final BookingStatus status;
+  final int lotId;
   final String lotName;
+  final String lotAddress;
   final String slotNumber;
   final String level;
 
@@ -29,7 +34,12 @@ class Booking extends Equatable {
   final DateTime startTime;
   final DateTime endTime;
   final int durationHours;
+
+  /// The lot's price when the booking was made.
+  final double pricePerHour;
   final double totalCost;
+
+  bool get isActive => status == BookingStatus.active;
 
   /// "A04 · Level B1"
   String get slotLabel => '$slotNumber · Level $level';
@@ -44,7 +54,9 @@ class Booking extends Equatable {
   List<Object?> get props => [
     id,
     status,
+    lotId,
     lotName,
+    lotAddress,
     slotNumber,
     level,
     vehicleName,
@@ -52,6 +64,7 @@ class Booking extends Equatable {
     startTime,
     endTime,
     durationHours,
+    pricePerHour,
     totalCost,
   ];
 }

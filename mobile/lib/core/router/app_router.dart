@@ -9,6 +9,8 @@ import 'package:mobile/feature/auth/presentation/screens/location_permission_scr
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/booking/presentation/screens/booking_confirmation_screen.dart';
+import 'package:mobile/feature/booking/presentation/screens/booking_detail_screen.dart';
+import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
@@ -109,6 +111,11 @@ class AppRouter {
       case bookingConfirmation:
         final booking = settings.arguments as Booking;
         return _route(BookingConfirmationScreen(booking: booking), settings);
+      case myBookings:
+        return _route(const MyBookingsScreen(), settings);
+      case bookingDetail:
+        final bookingId = int.parse(settings.arguments as String);
+        return _route(BookingDetailScreen(bookingId: bookingId), settings);
 
       // Profile
       case profile:
@@ -206,14 +213,20 @@ class AppRouter {
   static void toMyBookings(BuildContext context) =>
       Navigator.pushNamed(context, myBookings);
 
-  static void toBookingDetail(BuildContext context, String bookingId) =>
+  /// Completes when the user comes back, so the caller can reload.
+  static Future<void> toBookingDetail(BuildContext context, String bookingId) =>
       Navigator.pushNamed(context, bookingDetail, arguments: bookingId);
 
-  static void toExtendParking(BuildContext context, String bookingId) =>
+  static Future<void> toExtendParking(BuildContext context, String bookingId) =>
       Navigator.pushNamed(context, extendParking, arguments: bookingId);
 
-  static void toCancelConfirmation(BuildContext context, String bookingId) =>
-      Navigator.pushNamed(context, cancelConfirmation, arguments: bookingId);
+  static Future<void> toCancelConfirmation(
+    BuildContext context,
+    String bookingId,
+  ) => Navigator.pushNamed(context, cancelConfirmation, arguments: bookingId);
+
+  static void toDirections(BuildContext context, int lotId) =>
+      Navigator.pushNamed(context, directions, arguments: lotId);
 
   static void toProfile(BuildContext context) =>
       Navigator.pushNamed(context, profile);

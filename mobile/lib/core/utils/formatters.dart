@@ -33,6 +33,21 @@ class Formatters {
     return '$day · ${_clock(time)} ${_half(time)}';
   }
 
+  /// "Today", "Yesterday", "12 Oct".
+  static String day(DateTime date, {DateTime? now}) =>
+      _dayLabel(date, now ?? DateTime.now());
+
+  /// "9:15 AM"
+  static String time(DateTime time) => '${_clock(time)} ${_half(time)}';
+
+  /// "1h 22m", "45m", "2h".
+  static String duration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    if (hours == 0) return '${minutes}m';
+    return minutes == 0 ? '${hours}h' : '${hours}h ${minutes}m';
+  }
+
   static String _dayLabel(DateTime date, DateTime now) {
     final day = DateTime(date.year, date.month, date.day);
     final today = DateTime(now.year, now.month, now.day);

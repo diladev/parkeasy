@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
+import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/home/presentation/screens/home_screen.dart';
 import 'package:mobile/feature/profile/presentation/bloc/profile_bloc.dart';
 import 'package:mobile/feature/profile/presentation/bloc/profile_event.dart';
@@ -11,8 +12,8 @@ import 'package:mobile/feature/stub/stub_screen.dart';
 /// The signed-in app: the four tabs of the bottom navigation bar.
 ///
 /// IndexedStack keeps every tab alive, so switching tabs doesn't reload them
-/// or lose their scroll position. Map and Bookings are placeholders until
-/// those features are built.
+/// or lose their scroll position. Map is a placeholder until that feature is
+/// built.
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialIndex = 0});
 
@@ -49,7 +50,7 @@ class _MainShellState extends State<MainShell> {
               onOpenBookings: () => _selectTab(_bookingsTab),
             ),
             const StubScreen(routeName: 'Map', showBack: false),
-            const StubScreen(routeName: 'Bookings', showBack: false),
+            const MyBookingsScreen(),
             const ProfileScreen(),
           ],
         ),
