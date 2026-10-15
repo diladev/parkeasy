@@ -5,6 +5,7 @@ import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 import 'package:mobile/feature/profile/presentation/cubit/vehicles_cubit.dart';
@@ -40,7 +41,8 @@ class _MyVehiclesView extends StatelessWidget {
     final confirmed = await showAppConfirmDialog(
       context,
       title: 'Delete ${vehicle.displayName}?',
-      message: 'Plate ${vehicle.plateNumber} will be removed from your account.',
+      message:
+          'Plate ${vehicle.plateNumber} will be removed from your account.',
       confirmLabel: 'Delete',
       isDestructive: true,
     );
@@ -52,35 +54,33 @@ class _MyVehiclesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BaseScreenWrapper(
-      child: Scaffold(
-        body: SafeArea(
-          child: BlocConsumer<VehiclesCubit, VehiclesState>(
-            listenWhen: (previous, current) =>
-                current.lastAction != null &&
-                previous.lastAction != current.lastAction,
-            listener: (context, state) {
-              final action = state.lastAction!;
-              context.showSnack(action.message, isError: action.isError);
-            },
-            builder: (context, state) {
-              return Column(
-                children: [
-                  AppTopBar(
-                    title: 'My vehicles',
-                    trailing: IconButton(
-                      tooltip: 'Add vehicle',
-                      icon: const Icon(LucideIcons.plus, color: AppColors.teal),
-                      onPressed: () => _openForm(context),
-                    ),
+      child: AppScreen(
+        body: BlocConsumer<VehiclesCubit, VehiclesState>(
+          listenWhen: (previous, current) =>
+              current.lastAction != null &&
+              previous.lastAction != current.lastAction,
+          listener: (context, state) {
+            final action = state.lastAction!;
+            context.showSnack(action.message, isError: action.isError);
+          },
+          builder: (context, state) {
+            return Column(
+              children: [
+                AppTopBar(
+                  title: 'My vehicles',
+                  trailing: IconButton(
+                    tooltip: 'Add vehicle',
+                    icon: const Icon(LucideIcons.plus, color: AppColors.teal),
+                    onPressed: () => _openForm(context),
                   ),
-                  if (state.status == VehiclesStatus.loading &&
-                      state.vehicles.isNotEmpty)
-                    const LinearProgressIndicator(minHeight: 2),
-                  Expanded(child: _buildBody(context, state)),
-                ],
-              );
-            },
-          ),
+                ),
+                if (state.status == VehiclesStatus.loading &&
+                    state.vehicles.isNotEmpty)
+                  const LinearProgressIndicator(minHeight: 2),
+                Expanded(child: _buildBody(context, state)),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -91,12 +91,16 @@ class _MyVehiclesView extends StatelessWidget {
 
     if (state.vehicles.isEmpty) {
       return switch (state.status) {
-        VehiclesStatus.loading => const Center(child: CircularProgressIndicator()),
+        VehiclesStatus.loading => const Center(
+          child: CircularProgressIndicator(),
+        ),
         VehiclesStatus.failure => AppErrorView(
           message: state.errorMessage ?? "Couldn't load your vehicles.",
           onRetry: cubit.load,
         ),
-        VehiclesStatus.loaded => _EmptyVehicles(onAdd: () => _openForm(context)),
+        VehiclesStatus.loaded => _EmptyVehicles(
+          onAdd: () => _openForm(context),
+        ),
       };
     }
 
@@ -161,15 +165,26 @@ class _EmptyVehicles extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('No vehicles yet', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              'No vehicles yet',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 8),
             Text(
               'Add your car so you can book a parking spot in one tap.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: palette.textMuted, height: 1.5),
+              style: TextStyle(
+                fontSize: 13,
+                color: palette.textMuted,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
-            AppButton(label: 'Add a vehicle', icon: LucideIcons.plus, onTap: onAdd),
+            AppButton(
+              label: 'Add a vehicle',
+              icon: LucideIcons.plus,
+              onTap: onAdd,
+            ),
           ],
         ),
       ),

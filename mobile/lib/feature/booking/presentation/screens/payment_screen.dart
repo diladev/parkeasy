@@ -5,6 +5,7 @@ import 'package:mobile/core/injection_container.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/booking/presentation/cubit/payment_cubit.dart';
@@ -24,7 +25,7 @@ class PaymentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<PaymentCubit>(param1: draft)..load(),
-      child: SafeArea(child: const _PaymentView()),
+      child: const _PaymentView(),
     );
   }
 }
@@ -34,8 +35,8 @@ class _PaymentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const AppTopBar(title: 'Payment'),
+    return AppScreen(
+      topBar: const AppTopBar(title: 'Payment'),
       body: BlocConsumer<PaymentCubit, PaymentState>(
         listenWhen: (previous, current) =>
             current.status == PaymentStatus.paid ||
@@ -115,7 +116,10 @@ class _PaymentForm extends StatelessWidget {
               'Location',
               SummaryRow.text(context, state.draft.lotName),
             ),
-            SummaryRow('Slot', SummaryRow.text(context, state.draft.slotLabel)),
+            SummaryRow(
+              'Slot',
+              SummaryRow.text(context, state.draft.slotLabel),
+            ),
             SummaryRow(
               'Vehicle',
               VehiclePicker(

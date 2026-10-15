@@ -7,6 +7,7 @@ import 'package:mobile/core/state/submit_state.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/utils/validators.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/profile/domain/entities/user_entity.dart';
 import 'package:mobile/feature/profile/presentation/bloc/profile_bloc.dart';
@@ -62,7 +63,9 @@ class _EditProfileViewState extends State<_EditProfileView> {
 
   void _setDateOfBirth(DateTime? date) {
     _dateOfBirth = date;
-    _birthdayController.text = date == null ? '' : Formatters.readableDate(date);
+    _birthdayController.text = date == null
+        ? ''
+        : Formatters.readableDate(date);
   }
 
   Future<void> _pickDateOfBirth() async {
@@ -95,101 +98,101 @@ class _EditProfileViewState extends State<_EditProfileView> {
     final palette = context.palette;
 
     return BaseScreenWrapper(
-      child: Scaffold(
-        body: SafeArea(
-          child: BlocConsumer<EditProfileCubit, SubmitState<User>>(
-            listener: (context, state) {
-              if (state.status == SubmitStatus.success && state.data != null) {
-                // Every screen showing the user updates at once.
-                context.read<ProfileBloc>().add(ProfileUserChanged(state.data!));
-                context.showSnack('Your profile has been updated.');
-                Navigator.pop(context);
-              } else if (state.status == SubmitStatus.failure) {
-                context.showSnack(
-                  state.message ?? "Couldn't save your changes.",
-                  isError: true,
-                );
-              }
-            },
-            builder: (context, state) {
-              return Column(
-                children: [
-                  const AppTopBar(title: 'Personal details'),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(22),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            AppInputField(
-                              label: 'Full name',
-                              hint: 'Dilan Karimi',
-                              controller: _nameController,
-                              validator: Validators.name,
-                              textCapitalization: TextCapitalization.words,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [AutofillHints.name],
-                            ),
-                            const SizedBox(height: 16),
-                            AppInputField(
-                              label: 'Email address',
-                              hint: 'you@example.com',
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: Validators.email,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [AutofillHints.email],
-                            ),
-                            const SizedBox(height: 16),
-                            AppInputField(
-                              label: 'Phone number',
-                              hint: '+964 750 123 4567',
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              validator: Validators.phone,
-                              autofillHints: const [AutofillHints.telephoneNumber],
-                            ),
-                            const SizedBox(height: 16),
-                            AppInputField(
-                              label: 'Date of birth (optional)',
-                              hint: 'Not set',
-                              controller: _birthdayController,
-                              readOnly: true,
-                              onTap: _pickDateOfBirth,
-                              suffixIcon: _dateOfBirth == null
-                                  ? Icon(
-                                      LucideIcons.calendar,
+      child: AppScreen(
+        body: BlocConsumer<EditProfileCubit, SubmitState<User>>(
+          listener: (context, state) {
+            if (state.status == SubmitStatus.success && state.data != null) {
+              // Every screen showing the user updates at once.
+              context.read<ProfileBloc>().add(ProfileUserChanged(state.data!));
+              context.showSnack('Your profile has been updated.');
+              Navigator.pop(context);
+            } else if (state.status == SubmitStatus.failure) {
+              context.showSnack(
+                state.message ?? "Couldn't save your changes.",
+                isError: true,
+              );
+            }
+          },
+          builder: (context, state) {
+            return Column(
+              children: [
+                const AppTopBar(title: 'Personal details'),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(22),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          AppInputField(
+                            label: 'Full name',
+                            hint: 'Dilan Karimi',
+                            controller: _nameController,
+                            validator: Validators.name,
+                            textCapitalization: TextCapitalization.words,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.name],
+                          ),
+                          const SizedBox(height: 16),
+                          AppInputField(
+                            label: 'Email address',
+                            hint: 'you@example.com',
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: Validators.email,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.email],
+                          ),
+                          const SizedBox(height: 16),
+                          AppInputField(
+                            label: 'Phone number',
+                            hint: '+964 750 123 4567',
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            validator: Validators.phone,
+                            autofillHints: const [
+                              AutofillHints.telephoneNumber,
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          AppInputField(
+                            label: 'Date of birth (optional)',
+                            hint: 'Not set',
+                            controller: _birthdayController,
+                            readOnly: true,
+                            onTap: _pickDateOfBirth,
+                            suffixIcon: _dateOfBirth == null
+                                ? Icon(
+                                    LucideIcons.calendar,
+                                    size: 18,
+                                    color: palette.textHint,
+                                  )
+                                : IconButton(
+                                    tooltip: 'Clear',
+                                    icon: Icon(
+                                      LucideIcons.x,
                                       size: 18,
                                       color: palette.textHint,
-                                    )
-                                  : IconButton(
-                                      tooltip: 'Clear',
-                                      icon: Icon(
-                                        LucideIcons.x,
-                                        size: 18,
-                                        color: palette.textHint,
-                                      ),
-                                      onPressed: () =>
-                                          setState(() => _setDateOfBirth(null)),
                                     ),
-                            ),
-                            const SizedBox(height: 32),
-                            AppButton(
-                              label: 'Save changes',
-                              isLoading: state.isSubmitting,
-                              onTap: _save,
-                            ),
-                          ],
-                        ),
+                                    onPressed: () =>
+                                        setState(() => _setDateOfBirth(null)),
+                                  ),
+                          ),
+                          const SizedBox(height: 32),
+                          AppButton(
+                            label: 'Save changes',
+                            isLoading: state.isSubmitting,
+                            onTap: _save,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

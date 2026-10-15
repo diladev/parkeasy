@@ -5,6 +5,7 @@ import 'package:mobile/core/injection_container.dart';
 import 'package:mobile/core/state/submit_state.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/profile/presentation/cubit/change_password_cubit.dart';
 
@@ -55,90 +56,88 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
     final palette = context.palette;
 
     return BaseScreenWrapper(
-      child: Scaffold(
-        body: SafeArea(
-          child: BlocConsumer<ChangePasswordCubit, SubmitState<void>>(
-            listener: (context, state) {
-              if (state.status == SubmitStatus.success) {
-                context.showSnack('Your password has been changed.');
-                Navigator.pop(context);
-              } else if (state.status == SubmitStatus.failure) {
-                context.showSnack(
-                  state.message ?? "Couldn't change your password.",
-                  isError: true,
-                );
-              }
-            },
-            builder: (context, state) {
-              return Column(
-                children: [
-                  const AppTopBar(title: 'Change password'),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(22),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              'Use at least 8 characters with an uppercase and a lowercase letter, a number and a symbol.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: palette.textMuted,
-                                height: 1.5,
-                              ),
+      child: AppScreen(
+        body: BlocConsumer<ChangePasswordCubit, SubmitState<void>>(
+          listener: (context, state) {
+            if (state.status == SubmitStatus.success) {
+              context.showSnack('Your password has been changed.');
+              Navigator.pop(context);
+            } else if (state.status == SubmitStatus.failure) {
+              context.showSnack(
+                state.message ?? "Couldn't change your password.",
+                isError: true,
+              );
+            }
+          },
+          builder: (context, state) {
+            return Column(
+              children: [
+                const AppTopBar(title: 'Change password'),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(22),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Use at least 8 characters with an uppercase and a lowercase letter, a number and a symbol.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: palette.textMuted,
+                              height: 1.5,
                             ),
-                            const SizedBox(height: 24),
-                            AppPasswordField(
-                              label: 'Current password',
-                              controller: _currentController,
-                              validator: Validators.required,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [AutofillHints.password],
+                          ),
+                          const SizedBox(height: 24),
+                          AppPasswordField(
+                            label: 'Current password',
+                            controller: _currentController,
+                            validator: Validators.required,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.password],
+                          ),
+                          const SizedBox(height: 16),
+                          AppPasswordField(
+                            label: 'New password',
+                            controller: _newController,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.newPassword],
+                            validator: (value) {
+                              final error = Validators.strongPassword(value);
+                              if (error != null) return error;
+                              return value == _currentController.text
+                                  ? 'Choose a different password'
+                                  : null;
+                            },
+                          ),
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _newController,
+                            builder: (_, value, _) =>
+                                PasswordStrengthBar(password: value.text),
+                          ),
+                          const SizedBox(height: 16),
+                          AppPasswordField(
+                            label: 'Confirm new password',
+                            controller: _confirmController,
+                            validator: Validators.matches(
+                              () => _newController.text,
                             ),
-                            const SizedBox(height: 16),
-                            AppPasswordField(
-                              label: 'New password',
-                              controller: _newController,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [AutofillHints.newPassword],
-                              validator: (value) {
-                                final error = Validators.strongPassword(value);
-                                if (error != null) return error;
-                                return value == _currentController.text
-                                    ? 'Choose a different password'
-                                    : null;
-                              },
-                            ),
-                            ValueListenableBuilder<TextEditingValue>(
-                              valueListenable: _newController,
-                              builder: (_, value, _) =>
-                                  PasswordStrengthBar(password: value.text),
-                            ),
-                            const SizedBox(height: 16),
-                            AppPasswordField(
-                              label: 'Confirm new password',
-                              controller: _confirmController,
-                              validator: Validators.matches(
-                                () => _newController.text,
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                            AppButton(
-                              label: 'Update password',
-                              isLoading: state.isSubmitting,
-                              onTap: _submit,
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 32),
+                          AppButton(
+                            label: 'Update password',
+                            isLoading: state.isSubmitting,
+                            onTap: _submit,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              );
-            },
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

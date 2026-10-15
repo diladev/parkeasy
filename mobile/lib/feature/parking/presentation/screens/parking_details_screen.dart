@@ -6,6 +6,7 @@ import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/utils/geo.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_lot_details.dart';
@@ -39,42 +40,40 @@ class _ParkingDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: BlocConsumer<ParkingDetailsCubit, ParkingDetailsState>(
-          // A refresh that failed while the lot is on screen: say so, keep the lot.
-          listenWhen: (previous, current) =>
-              current.lot != null &&
-              current.errorMessage != null &&
-              current.errorMessage != previous.errorMessage,
-          listener: (context, state) =>
-              context.showSnack(state.errorMessage!, isError: true),
-          builder: (context, state) {
-            final lot = state.lot;
-            if (lot != null) return _LotDetails(lot: lot, state: state);
+    return AppScreen(
+      body: BlocConsumer<ParkingDetailsCubit, ParkingDetailsState>(
+        // A refresh that failed while the lot is on screen: say so, keep the lot.
+        listenWhen: (previous, current) =>
+            current.lot != null &&
+            current.errorMessage != null &&
+            current.errorMessage != previous.errorMessage,
+        listener: (context, state) =>
+            context.showSnack(state.errorMessage!, isError: true),
+        builder: (context, state) {
+          final lot = state.lot;
+          if (lot != null) return _LotDetails(lot: lot, state: state);
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-                  child: BackToMapLink(onTap: () => Navigator.pop(context)),
-                ),
-                Expanded(
-                  child: state.status == ParkingDetailsStatus.failure
-                      ? AppErrorView(
-                          message:
-                              state.errorMessage ??
-                              "Couldn't load this parking lot.",
-                          onRetry: () =>
-                              context.read<ParkingDetailsCubit>().load(lotId),
-                        )
-                      : const Center(child: CircularProgressIndicator()),
-                ),
-              ],
-            );
-          },
-        ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+                child: BackToMapLink(onTap: () => Navigator.pop(context)),
+              ),
+              Expanded(
+                child: state.status == ParkingDetailsStatus.failure
+                    ? AppErrorView(
+                        message:
+                            state.errorMessage ??
+                            "Couldn't load this parking lot.",
+                        onRetry: () =>
+                            context.read<ParkingDetailsCubit>().load(lotId),
+                      )
+                    : const Center(child: CircularProgressIndicator()),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -148,7 +147,12 @@ class _LotDetails extends StatelessWidget {
             onBack: () => Navigator.pop(context),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(_sidePadding, 10, _sidePadding, 14),
+            padding: const EdgeInsets.fromLTRB(
+              _sidePadding,
+              10,
+              _sidePadding,
+              14,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -173,7 +177,9 @@ class _LotDetails extends StatelessWidget {
                       child: LotStatTile(value: _rating, label: 'Rating'),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: LotStatTile(value: _hours, label: 'Open')),
+                    Expanded(
+                      child: LotStatTile(value: _hours, label: 'Open'),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 14),

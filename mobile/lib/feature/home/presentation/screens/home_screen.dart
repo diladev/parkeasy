@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/feature/home/presentation/cubit/home_cubit.dart';
 import 'package:mobile/feature/home/presentation/cubit/home_state.dart';
 import 'package:mobile/feature/home/presentation/widgets/find_nearby_banner.dart';
@@ -31,7 +32,9 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<HomeCubit>()..load(),
-      child: _HomeView(onOpenMap: onOpenMap, onOpenBookings: onOpenBookings),
+      child: AppScreen(
+        body: _HomeView(onOpenMap: onOpenMap, onOpenBookings: onOpenBookings),
+      ),
     );
   }
 }
@@ -46,82 +49,78 @@ class _HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: BlocBuilder<HomeCubit, HomeState>(
-        builder: (context, state) {
-          return RefreshIndicator(
-            color: AppColors.teal,
-            onRefresh: context.read<HomeCubit>().load,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 24),
-              children: [
-                HomeHeader(
-                  hasUnread: state.unreadNotifications > 0,
-                  onNotifications: () =>
-                      AppRouter.toNotificationsInbox(context),
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: _sidePadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      HomeSearchBar(
-                        onSearch: () => AppRouter.toSearchResults(context, ''),
-                        onFilters: () => AppRouter.toSearchResults(context, ''),
-                      ),
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, state) {
+        return RefreshIndicator(
+          color: AppColors.teal,
+          onRefresh: context.read<HomeCubit>().load,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 24),
+            children: [
+              HomeHeader(
+                hasUnread: state.unreadNotifications > 0,
+                onNotifications: () => AppRouter.toNotificationsInbox(context),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _sidePadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    HomeSearchBar(
+                      onSearch: () => AppRouter.toSearchResults(context, ''),
+                      onFilters: () => AppRouter.toSearchResults(context, ''),
+                    ),
+                    const SizedBox(height: 18),
+                    _QuickActions(
+                      onFindSpot: onOpenMap,
+                      onScanQr: () => AppRouter.toScanQr(context),
+                      onFavorites: () => AppRouter.toFavorites(context),
+                      onHistory: onOpenBookings,
+                    ),
+                    const SizedBox(height: 18),
+                    FindNearbyBanner(
+                      isLoading: state.status == HomeStatus.loading,
+                      spotsNearby: state.spotsNearby,
+                      onFind: onOpenMap,
+                    ),
+                    if (state.regulars.isNotEmpty) ...[
                       const SizedBox(height: 18),
-                      _QuickActions(
-                        onFindSpot: onOpenMap,
-                        onScanQr: () => AppRouter.toScanQr(context),
-                        onFavorites: () => AppRouter.toFavorites(context),
-                        onHistory: onOpenBookings,
+                      _SectionHeader(
+                        title: 'Your regulars',
+                        action: 'View all',
+                        onAction: onOpenBookings,
                       ),
+                      const SizedBox(height: 8),
+                      _RegularsCarousel(lots: state.regulars),
+                    ],
+                    if (state.recentBookings.isNotEmpty) ...[
                       const SizedBox(height: 18),
-                      FindNearbyBanner(
-                        isLoading: state.status == HomeStatus.loading,
-                        spotsNearby: state.spotsNearby,
-                        onFind: onOpenMap,
+                      _SectionHeader(
+                        title: 'Recent bookings',
+                        action: 'See all',
+                        onAction: onOpenBookings,
                       ),
-                      if (state.regulars.isNotEmpty) ...[
-                        const SizedBox(height: 18),
-                        _SectionHeader(
-                          title: 'Your regulars',
-                          action: 'View all',
-                          onAction: onOpenBookings,
-                        ),
-                        const SizedBox(height: 8),
-                        _RegularsCarousel(lots: state.regulars),
-                      ],
-                      if (state.recentBookings.isNotEmpty) ...[
-                        const SizedBox(height: 18),
-                        _SectionHeader(
-                          title: 'Recent bookings',
-                          action: 'See all',
-                          onAction: onOpenBookings,
-                        ),
-                        const SizedBox(height: 8),
-                        for (final booking in state.recentBookings) ...[
-                          RecentBookingCard(
-                            booking: booking,
-                            onTap: () => AppRouter.toBookingDetail(
-                              context,
-                              '${booking.id}',
-                            ),
+                      const SizedBox(height: 8),
+                      for (final booking in state.recentBookings) ...[
+                        RecentBookingCard(
+                          booking: booking,
+                          onTap: () => AppRouter.toBookingDetail(
+                            context,
+                            '${booking.id}',
                           ),
-                          const SizedBox(height: 8),
-                        ],
+                        ),
+                        const SizedBox(height: 8),
                       ],
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

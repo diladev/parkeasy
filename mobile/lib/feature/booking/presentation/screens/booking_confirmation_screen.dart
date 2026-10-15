@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
+import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/presentation/widgets/booking_summary_card.dart';
@@ -27,75 +28,69 @@ class BookingConfirmationScreen extends StatelessWidget {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) AppRouter.toHome(context);
       },
-      child: Scaffold(
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(22, 70, 22, 24),
-            children: [
-              const Center(child: _SuccessBadge()),
-              const SizedBox(height: 18),
-              Text(
-                'Booking confirmed!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                  color: context.palette.textPrimary,
+      child: AppScreen(
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(22, 70, 22, 24),
+          children: [
+            const Center(child: _SuccessBadge()),
+            const SizedBox(height: 18),
+            Text(
+              'Booking confirmed!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                color: context.palette.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Your spot is reserved. Head there anytime.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: context.palette.textHint),
+            ),
+            const SizedBox(height: 14),
+            BookingSummaryCard(
+              valueColumn: 186,
+              rowHeight: 22,
+              lastRowHeight: 16,
+              topPadding: 12,
+              rows: [
+                SummaryRow(
+                  'Location',
+                  SummaryRow.text(context, booking.lotName),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Your spot is reserved. Head there anytime.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: context.palette.textHint),
-              ),
-              const SizedBox(height: 14),
-              BookingSummaryCard(
-                valueColumn: 186,
-                rowHeight: 22,
-                lastRowHeight: 16,
-                topPadding: 12,
-                rows: [
-                  SummaryRow(
-                    'Location',
-                    SummaryRow.text(context, booking.lotName),
+                SummaryRow('Slot', SummaryRow.text(context, booking.slotLabel)),
+                SummaryRow(
+                  'Vehicle',
+                  SummaryRow.text(context, booking.vehicleLabel),
+                ),
+                SummaryRow(
+                  'Date & time',
+                  SummaryRow.text(
+                    context,
+                    Formatters.dayAndTime(booking.startTime),
                   ),
-                  SummaryRow(
-                    'Slot',
-                    SummaryRow.text(context, booking.slotLabel),
-                  ),
-                  SummaryRow(
-                    'Vehicle',
-                    SummaryRow.text(context, booking.vehicleLabel),
-                  ),
-                  SummaryRow(
-                    'Date & time',
-                    SummaryRow.text(
-                      context,
-                      Formatters.dayAndTime(booking.startTime),
-                    ),
-                  ),
-                  SummaryRow('Duration', SummaryRow.text(context, duration)),
-                ],
-                totalLabel: 'Paid',
-                total: Formatters.money(booking.totalCost),
-              ),
-              const SizedBox(height: 18),
-              const _GateCodeCard(),
-              const SizedBox(height: 18),
-              AppButton(
-                label: 'View my booking',
-                height: 48,
-                onTap: () =>
-                    AppRouter.toBookingDetail(context, '${booking.id}'),
-              ),
-              const SizedBox(height: 18),
-              _SecondaryButton(
-                label: 'Back to home',
-                onTap: () => AppRouter.toHome(context),
-              ),
-            ],
-          ),
+                ),
+                SummaryRow('Duration', SummaryRow.text(context, duration)),
+              ],
+              totalLabel: 'Paid',
+              total: Formatters.money(booking.totalCost),
+            ),
+            const SizedBox(height: 18),
+            const _GateCodeCard(),
+            const SizedBox(height: 18),
+            AppButton(
+              label: 'View my booking',
+              height: 48,
+              onTap: () => AppRouter.toBookingDetail(context, '${booking.id}'),
+            ),
+            const SizedBox(height: 18),
+            _SecondaryButton(
+              label: 'Back to home',
+              onTap: () => AppRouter.toHome(context),
+            ),
+          ],
         ),
       ),
     );
