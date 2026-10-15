@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
 import 'package:mobile/core/router/app_router.dart';
@@ -13,6 +14,10 @@ import 'package:mobile/feature/profile/presentation/bloc/profile_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Draw behind the status bar and navigation bar on every screen; AppScreen
+  // then keeps content clear of them. (The splash screen hides the bars
+  // while it shows and turns this back on when it closes.)
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await di.init();
   runApp(const ParkEasy());
 }
