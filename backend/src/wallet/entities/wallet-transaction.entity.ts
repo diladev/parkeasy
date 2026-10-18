@@ -29,7 +29,8 @@ export class WalletTransaction extends Model {
     @Column({ allowNull: false })
     declare type: 'credit' | 'debit';
 
-    @Column({ type: DataType.DOUBLE, allowNull: false })
+    /** Always positive, in whole Iraqi dinars; `type` says which way it went. */
+    @Column({ type: DataType.INTEGER, allowNull: false })
     declare amount: number;
 
     @Column({ allowNull: false })

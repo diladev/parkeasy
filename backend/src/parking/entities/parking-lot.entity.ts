@@ -28,7 +28,8 @@ export class ParkingLot extends Model {
     @Column({ allowNull: false })
     declare closing_time: string;
 
-    @Column({ type: DataType.DOUBLE, allowNull: false })
+    /** Whole Iraqi dinars (see common/money.ts). */
+    @Column({ type: DataType.INTEGER, allowNull: false })
     declare price_per_hour: number;
 
     @Column({ type: DataType.DOUBLE, allowNull: false, defaultValue: 0 })

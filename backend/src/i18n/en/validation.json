@@ -5,7 +5,7 @@
     "IS_PHONE": "$t(properties.{property}) must be a valid phone number, for example +964 750 123 4567.",
     "IS_INT": "$t(properties.{property}) must be a whole number.",
     "IS_NUMBER": "$t(properties.{property}) must be a number.",
-    "IS_MONEY": "$t(properties.{property}) must be an amount with at most 2 decimals.",
+    "IS_MONEY": "$t(properties.{property}) must be a whole amount in Iraqi dinars.",
     "IS_POSITIVE": "$t(properties.{property}) must be greater than 0.",
     "IS_BOOLEAN": "$t(properties.{property}) must be true or false.",
     "IS_IN": "$t(properties.{property}) must be one of: {constraints.0}.",

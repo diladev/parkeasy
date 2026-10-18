@@ -3,7 +3,7 @@ import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
-import { roundMoney } from 'src/common/money';
+import { formatDinars, toDinars } from 'src/common/money';
 import { PaginationQueryDto } from 'src/common/pagination/dto/pagination-query.dto';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
@@ -40,7 +40,12 @@ export class WalletService {
   async topUp(userId: number, amount: number): Promise<{ message: string; balance: number }> {
     const wallet = await this.sequelize.transaction(async (transaction) => {
       const wallet = await this.credit(userId, amount, 'TOP_UP', null, transaction);
-      await this.notificationsService.notify(userId, 'WALLET_TOPPED_UP', { amount }, transaction);
+      await this.notificationsService.notify(
+        userId,
+        'WALLET_TOPPED_UP',
+        { amount: formatDinars(amount) },
+        transaction,
+      );
       return wallet;
     });
 
@@ -58,14 +63,14 @@ export class WalletService {
     bookingId: number | null,
     transaction: Transaction,
   ): Promise<Wallet> {
-    const value = roundMoney(amount);
+    const value = toDinars(amount);
     const wallet = await this.lockWallet(userId, transaction);
 
     if (wallet.balance < value) {
       throw new BadRequestException(this.t('INSUFFICIENT_BALANCE'));
     }
 
-    await wallet.update({ balance: roundMoney(wallet.balance - value) }, { transaction });
+    await wallet.update({ balance: wallet.balance - value }, { transaction });
     await this.transactionModel.create(
       { wallet_id: wallet.id, type: 'debit', amount: value, category, booking_id: bookingId },
       { transaction },
@@ -81,10 +86,10 @@ export class WalletService {
     bookingId: number | null,
     transaction: Transaction,
   ): Promise<Wallet> {
-    const value = roundMoney(amount);
+    const value = toDinars(amount);
     const wallet = await this.lockWallet(userId, transaction);
 
-    await wallet.update({ balance: roundMoney(wallet.balance + value) }, { transaction });
+    await wallet.update({ balance: wallet.balance + value }, { transaction });
     await this.transactionModel.create(
       { wallet_id: wallet.id, type: 'credit', amount: value, category, booking_id: bookingId },
       { transaction },
@@ -95,9 +100,7 @@ export class WalletService {
   /** How much of a booking was paid from the wallet (payments minus refunds so far). */
   async netPaidForBooking(bookingId: number, transaction?: Transaction): Promise<number> {
     const rows = await this.transactionModel.findAll({ where: { booking_id: bookingId }, transaction });
-    return roundMoney(
-      rows.reduce((sum, row) => sum + (row.type === 'debit' ? row.amount : -row.amount), 0),
-    );
+    return rows.reduce((sum, row) => sum + (row.type === 'debit' ? row.amount : -row.amount), 0);
   }
 
   async getTransactions(userId: number, query: PaginationQueryDto) {

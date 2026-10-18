@@ -17,7 +17,7 @@ import { Sequelize } from 'sequelize-typescript';
 
 import { AppModule } from 'src/app.module';
 import { Booking, PaymentMethod } from 'src/booking/entities/booking.entity';
-import { roundMoney } from 'src/common/money';
+import { formatDinars } from 'src/common/money';
 import { hashPassword } from 'src/common/security/password';
 import {
     Notification,
@@ -76,7 +76,7 @@ const LOTS = {
         address: 'Salim Street, Sulaymaniyah',
         latitude: 35.5571,
         longitude: 45.4356,
-        price_per_hour: 1.5,
+        price_per_hour: 1500,
         rating: 4.6,
         hours: null,
         has_cctv: true,
@@ -91,7 +91,7 @@ const LOTS = {
         address: 'Azadi Park, Sulaymaniyah',
         latitude: 35.5608,
         longitude: 45.4295,
-        price_per_hour: 1,
+        price_per_hour: 1000,
         rating: 4.2,
         hours: ['08:00', '22:00'],
         has_ev_charging: true,
@@ -102,7 +102,7 @@ const LOTS = {
         address: 'Bakhtiari, Sulaymaniyah',
         latitude: 35.5536,
         longitude: 45.4148,
-        price_per_hour: 2,
+        price_per_hour: 2000,
         rating: 4.8,
         hours: ['07:00', '23:00'],
         has_cctv: true,
@@ -116,7 +116,7 @@ const LOTS = {
         address: 'Sarchinar, Sulaymaniyah',
         latitude: 35.5794,
         longitude: 45.3992,
-        price_per_hour: 1.25,
+        price_per_hour: 1250,
         rating: 3.9,
         hours: ['18:00', '02:00'],
         levels: { G: 12 },
@@ -126,7 +126,7 @@ const LOTS = {
         address: 'Mawlawi Street, Sulaymaniyah',
         latitude: 35.5642,
         longitude: 45.4371,
-        price_per_hour: 0.75,
+        price_per_hour: 750,
         rating: 3.5,
         hours: ['06:00', '20:00'],
         is_accessible: true,
@@ -138,7 +138,7 @@ const LOTS = {
         address: 'Tasluja Road, Sulaymaniyah',
         latitude: 35.6021,
         longitude: 45.3567,
-        price_per_hour: 1,
+        price_per_hour: 1000,
         rating: 3.2,
         hours: null,
         levels: { G: 6 },
@@ -149,7 +149,7 @@ const LOTS = {
         address: 'Citadel Square, Erbil',
         latitude: 36.1912,
         longitude: 44.0092,
-        price_per_hour: 1.5,
+        price_per_hour: 1500,
         rating: 4.4,
         hours: null,
         has_cctv: true,
@@ -205,9 +205,9 @@ class DemoData {
         const corolla = await this.createVehicle(aram, 'Toyota', 'Corolla', 2019, 'White', '22 SUL 48213', 'sedan', true);
         const sportage = await this.createVehicle(aram, 'Kia', 'Sportage', 2021, 'Grey', '22 SUL 77120', 'suv');
 
-        await this.topUp(aram, 20, this.dayAt(30, '20:15'), true);
+        await this.topUp(aram, 20_000, this.dayAt(30, '20:15'), true);
         await this.addBooking(aram, corolla, 'tasluja', 'G:A03', this.dayAt(20, '09:30'), 1, 'card', 'completed', { read: true });
-        await this.topUp(aram, 15, this.dayAt(10, '18:05'), true);
+        await this.topUp(aram, 15_000, this.dayAt(10, '18:05'), true);
         await this.addBooking(aram, sportage, 'azadiPark', 'F1:A04', this.dayAt(8, '17:00'), 2, 'card', 'completed', { read: true });
         await this.addBooking(aram, corolla, 'cityCenter', 'B1:A07', this.dayAt(5, '19:00'), 3, 'wallet', 'cancelled', {
             cancelAfterMinutes: 6,
@@ -221,10 +221,10 @@ class DemoData {
             read: false,
         });
 
-        // Shilan: a low balance (1.25), so most wallet payments fail with "balance too low".
+        // Shilan: a low balance (1,250 IQD), so most wallet payments fail with "balance too low".
         const shilan = await this.createUser('Shilan Ahmed', 'shilan@example.com', '+964 770 100 0002', '1998-09-03');
         const elantra = await this.createVehicle(shilan, 'Hyundai', 'Elantra', 2018, 'Silver', '22 SUL 30544', 'sedan', true);
-        await this.topUp(shilan, 5, this.dayAt(6, '09:40'), true);
+        await this.topUp(shilan, 5_000, this.dayAt(6, '09:40'), true);
         await this.addBooking(shilan, elantra, 'oldBazaar', 'G:A06', this.dayAt(6, '10:00'), 5, 'wallet', 'completed', { read: true });
         await this.addBooking(shilan, elantra, 'azadiPark', 'G:A02', this.dayAt(2, '09:00'), 2, 'card', 'completed', { read: false });
 
@@ -232,7 +232,7 @@ class DemoData {
         const lana = await this.createUser('Lana Rashid', 'lana@example.com', '+964 751 100 0003', null);
         const hilux = await this.createVehicle(lana, 'Toyota', 'Hilux', 2020, 'Black', '22 SUL 61902', 'truck', true);
         await this.createVehicle(lana, 'Nissan', 'Patrol', 2017, 'White', '22 SUL 10388', 'suv');
-        await this.topUp(lana, 50, this.dayAt(1, '21:30'), false);
+        await this.topUp(lana, 50_000, this.dayAt(1, '21:30'), false);
         await this.addBooking(lana, hilux, 'cityCenter', 'B2:A01', -15 * MINUTE, 3, 'card', 'active', { read: false });
 
         // Karwan: just signed up. No vehicles, no wallet, no bookings: the empty screens.
@@ -342,7 +342,7 @@ class DemoData {
 
     private async topUp(user: User, amount: number, offset: number, read: boolean): Promise<void> {
         await this.walletEntry(user, 'credit', amount, 'TOP_UP', null, offset);
-        await this.notify(user, 'WALLET_TOPPED_UP', { amount }, offset, read);
+        await this.notify(user, 'WALLET_TOPPED_UP', { amount: formatDinars(amount) }, offset, read);
     }
 
     /**
@@ -368,8 +368,8 @@ class DemoData {
         const extraHours = options.extraHours ?? 0;
         const totalHours = hours + extraHours;
         const price = lot.price_per_hour;
-        const firstPayment = roundMoney(price * hours);
-        const extensionPayment = roundMoney(price * extraHours);
+        const firstPayment = price * hours;
+        const extensionPayment = price * extraHours;
         const start = this.at(startOffset);
         const end = new Date(start.getTime() + totalHours * HOUR);
 
@@ -381,7 +381,7 @@ class DemoData {
                 vehicle_id: vehicle.id,
                 duration_hours: totalHours,
                 price_per_hour: price,
-                total_cost: roundMoney(firstPayment + extensionPayment),
+                total_cost: firstPayment + extensionPayment,
                 payment_method: payment,
                 status: outcome,
                 start_time: start,
@@ -420,11 +420,11 @@ class DemoData {
             const refundable = minutes <= 10
                 ? booking.total_cost
                 : Math.floor((totalHours * 60 - minutes) / 60) * price;
-            const refund = payment === 'wallet' ? roundMoney(refundable) : 0;
+            const refund = payment === 'wallet' ? refundable : 0;
             if (refund > 0) {
                 await this.walletEntry(user, 'credit', refund, 'BOOKING_REFUND', booking.id, cancelledAt);
             }
-            await this.notify(user, 'BOOKING_CANCELLED', { lot: lot.name, refund }, cancelledAt, read);
+            await this.notify(user, 'BOOKING_CANCELLED', { lot: lot.name, refund: formatDinars(refund) }, cancelledAt, read);
         }
     }
 
@@ -445,7 +445,7 @@ class DemoData {
             {
                 wallet_id: wallet.id,
                 type,
-                amount: roundMoney(amount),
+                amount,
                 category,
                 booking_id: bookingId,
                 createdAt: this.at(offset),
@@ -454,7 +454,7 @@ class DemoData {
         );
 
         const balance = this.balances.get(wallet.id) ?? 0;
-        this.balances.set(wallet.id, roundMoney(type === 'credit' ? balance + amount : balance - amount));
+        this.balances.set(wallet.id, type === 'credit' ? balance + amount : balance - amount);
     }
 
     private async notify(

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
+import { IsBoolean, IsInt, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
 import { i18nValidationMessage } from "nestjs-i18n";
 import { Trim } from "src/common/transformers/normalize";
 
@@ -67,10 +67,10 @@ export class CreateParkingLotDto {
     closing_time!: string;
 
     @ApiProperty({
-        description: 'The price per hour for parking.',
-        example: 1.5,
+        description: 'The price per hour for parking, in whole Iraqi dinars.',
+        example: 1500,
     })
-    @IsNumber({ maxDecimalPlaces: 2 }, { message: i18nValidationMessage('validation.IS_MONEY') })
+    @IsInt({ message: i18nValidationMessage('validation.IS_MONEY') })
     @Min(0, { message: i18nValidationMessage('validation.MIN') })
     price_per_hour!: number;
 

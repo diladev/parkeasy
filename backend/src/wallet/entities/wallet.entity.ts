@@ -15,7 +15,8 @@ export class Wallet extends Model {
     @Column({ primaryKey: true, autoIncrement: true })
     declare id: number;
 
-    @Column({ type: DataType.DOUBLE, allowNull: false, defaultValue: 0 })
+    /** Whole Iraqi dinars (see common/money.ts). */
+    @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 })
     declare balance: number;
 
     @ForeignKey(() => User)

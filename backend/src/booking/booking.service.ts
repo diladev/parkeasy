@@ -11,7 +11,7 @@ import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Includeable, Op, Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
-import { roundMoney } from 'src/common/money';
+import { formatDinars } from 'src/common/money';
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
@@ -144,7 +144,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
 
       const slot = await this.parkingService.reserveSlot(lot.id, dto.parking_slot_id, transaction);
 
-      const totalCost = roundMoney(lot.price_per_hour * dto.duration_hours);
+      const totalCost = lot.price_per_hour * dto.duration_hours;
       const booking = await this.bookingModel.create(
         {
           user_id: userId,
@@ -232,7 +232,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         );
       }
 
-      const extraCost = roundMoney(booking.price_per_hour * dto.extra_hours);
+      const extraCost = booking.price_per_hour * dto.extra_hours;
       if (dto.payment_method === 'wallet') {
         await this.walletService.debit(userId, extraCost, 'BOOKING_EXTENSION', booking.id, transaction);
       }
@@ -241,7 +241,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         {
           end_time: newEnd,
           duration_hours: totalHours,
-          total_cost: roundMoney(booking.total_cost + extraCost),
+          total_cost: booking.total_cost + extraCost,
         },
         { transaction },
       );
@@ -273,7 +273,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
 
       const paidFromWallet = await this.walletService.netPaidForBooking(booking.id, transaction);
-      const refund = roundMoney(Math.min(this.refundableAmount(booking, new Date()), paidFromWallet));
+      const refund = Math.min(this.refundableAmount(booking, new Date()), paidFromWallet);
       if (refund > 0) {
         await this.walletService.credit(userId, refund, 'BOOKING_REFUND', booking.id, transaction);
       }
@@ -282,14 +282,14 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       await this.notificationsService.notify(
         userId,
         'BOOKING_CANCELLED',
-        { lot: lot.name, refund },
+        { lot: lot.name, refund: formatDinars(refund) },
         transaction,
       );
       return refund;
     });
 
     return {
-      message: refund > 0 ? this.t('BOOKING_CANCELLED_REFUNDED', { amount: refund }) : this.t('BOOKING_CANCELLED'),
+      message: refund > 0 ? this.t('BOOKING_CANCELLED_REFUNDED', { amount: formatDinars(refund) }) : this.t('BOOKING_CANCELLED'),
       refund,
     };
   }
@@ -316,6 +316,6 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       return booking.total_cost;
     }
     const unusedHours = Math.max(0, Math.floor((booking.end_time.getTime() - now.getTime()) / HOUR_MS));
-    return roundMoney(unusedHours * booking.price_per_hour);
+    return unusedHours * booking.price_per_hour;
   }
 }

@@ -32,11 +32,14 @@ export class Booking extends Model {
     @Column({ type: DataType.INTEGER, allowNull: false })
     declare duration_hours: number;
 
-    /** The lot's price when the booking was made: later price changes don't affect it. */
-    @Column({ type: DataType.DOUBLE, allowNull: false })
+    /**
+     * The lot's price when the booking was made: later price changes don't
+     * affect it. Whole Iraqi dinars, like every amount (see common/money.ts).
+     */
+    @Column({ type: DataType.INTEGER, allowNull: false })
     declare price_per_hour: number;
 
-    @Column({ type: DataType.DOUBLE, allowNull: false })
+    @Column({ type: DataType.INTEGER, allowNull: false })
     declare total_cost: number;
 
     @Column({ allowNull: false, defaultValue: 'card' })

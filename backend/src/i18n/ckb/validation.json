@@ -5,7 +5,7 @@
     "IS_PHONE": "$t(properties.{property}) دەبێت ژمارەیەکی دروست بێت، بۆ نموونە +964 750 123 4567.",
     "IS_INT": "$t(properties.{property}) دەبێت ژمارەیەکی تەواو بێت.",
     "IS_NUMBER": "$t(properties.{property}) دەبێت ژمارە بێت.",
-    "IS_MONEY": "$t(properties.{property}) دەبێت بڕێکی دروست بێت، بە زۆرترین دوو ژمارە دوای خاڵ.",
+    "IS_MONEY": "$t(properties.{property}) دەبێت بڕێکی تەواو بێت بە دیناری عێراقی.",
     "IS_POSITIVE": "$t(properties.{property}) دەبێت لە سفر زیاتر بێت.",
     "IS_BOOLEAN": "$t(properties.{property}) دەبێت true یان false بێت.",
     "IS_IN": "$t(properties.{property}) دەبێت یەکێک بێت لەمانە: {constraints.0}.",
