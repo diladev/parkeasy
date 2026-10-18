@@ -3,10 +3,12 @@ import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
+import { Booking } from 'src/booking/entities/booking.entity';
 import { toDinars } from 'src/common/money';
 import { PaginationQueryDto } from 'src/common/pagination/dto/pagination-query.dto';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
+import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { Wallet } from './entities/wallet.entity';
 import { WalletTransaction, WalletTransactionCategory } from './entities/wallet-transaction.entity';
 
@@ -95,6 +97,16 @@ export class WalletService {
     const wallet = await this.getWallet(userId);
     const result = await this.transactionPagination.findAll(query.page, query.pageSize, {
       where: { wallet_id: wallet.id },
+      // The lot a booking payment or refund was for, so the history can name it.
+      // paranoid: false keeps the name of a lot that was removed since.
+      include: [
+        {
+          model: Booking,
+          attributes: ['id'],
+          paranoid: false,
+          include: [{ model: ParkingLot, attributes: ['name'], paranoid: false }],
+        },
+      ],
       order: [
         ['createdAt', 'DESC'],
         ['id', 'DESC'],
@@ -103,10 +115,15 @@ export class WalletService {
 
     return {
       ...result,
-      data: result.data.map((row) => ({
-        ...row.toJSON<Record<string, unknown>>(),
-        description: this.translationService.translate(`wallet.${row.category}`),
-      })),
+      data: result.data.map((row) => {
+        const transaction = row.toJSON<Record<string, unknown>>();
+        delete transaction.booking; // only its lot name is sent
+        return {
+          ...transaction,
+          description: this.translationService.translate(`wallet.${row.category}`),
+          lot_name: row.booking?.parking_lot?.name ?? null,
+        };
+      }),
     };
   }
 
