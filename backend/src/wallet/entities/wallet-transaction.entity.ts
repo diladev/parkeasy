@@ -7,6 +7,7 @@ import {
     DataType,
 } from 'sequelize-typescript';
 import { Booking } from 'src/booking/entities/booking.entity';
+import { Payment } from 'src/payments/entities/payment.entity';
 import { Wallet } from './wallet.entity';
 
 /**
@@ -50,4 +51,12 @@ export class WalletTransaction extends Model {
 
     @BelongsTo(() => Booking)
     declare booking: Booking | null;
+
+    /** The provider payment a top-up came from (null for booking payments and refunds). */
+    @ForeignKey(() => Payment)
+    @Column({ type: DataType.INTEGER, allowNull: true, unique: true })
+    declare payment_id: number | null;
+
+    @BelongsTo(() => Payment)
+    declare payment: Payment | null;
 }

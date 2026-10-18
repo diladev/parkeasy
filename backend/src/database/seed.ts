@@ -8,6 +8,8 @@
  * Times are relative to the moment the seed runs, so the active bookings are
  * always in progress right after seeding. Run it again to start fresh.
  */
+import { randomUUID } from 'crypto';
+
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -17,7 +19,7 @@ import { Sequelize } from 'sequelize-typescript';
 
 import { AppModule } from 'src/app.module';
 import { Booking, PaymentMethod } from 'src/booking/entities/booking.entity';
-import { formatDinars } from 'src/common/money';
+import { CURRENCY, formatDinars } from 'src/common/money';
 import { hashPassword } from 'src/common/security/password';
 import {
     Notification,
@@ -27,6 +29,7 @@ import {
 } from 'src/notifications/entities/notification.entity';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
+import { Payment } from 'src/payments/entities/payment.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
 import { Wallet } from 'src/wallet/entities/wallet.entity';
@@ -170,6 +173,7 @@ class DemoData {
     private readonly now = Date.now();
     private readonly lots = new Map<LotKey, CreatedLot>();
     private readonly balances = new Map<number, number>();
+    private seededPayments = 1;
 
     constructor(private readonly transaction: Transaction) { }
 
@@ -340,8 +344,28 @@ class DemoData {
         );
     }
 
+    /** A top-up the (mock) provider confirmed: the paid payment and the wallet credit it led to. */
     private async topUp(user: User, amount: number, offset: number, read: boolean): Promise<void> {
-        await this.walletEntry(user, 'credit', amount, 'TOP_UP', null, offset);
+        const paidAt = this.at(offset);
+        const providerPaymentId = randomUUID();
+        const payment = await Payment.create(
+            {
+                user_id: user.id,
+                purpose: 'WALLET_TOP_UP',
+                amount,
+                currency: CURRENCY,
+                status: 'paid',
+                provider: 'mock',
+                provider_payment_id: providerPaymentId,
+                readable_code: `PE-SEED-${String(this.seededPayments++).padStart(4, '0')}`,
+                app_link: `parkeasy-mock-fib://pay/${providerPaymentId}`,
+                valid_until: new Date(paidAt.getTime() + 15 * MINUTE),
+                paid_at: paidAt,
+                createdAt: new Date(paidAt.getTime() - 2 * MINUTE),
+            },
+            { transaction: this.transaction },
+        );
+        await this.walletEntry(user, 'credit', amount, 'TOP_UP', null, offset, payment.id);
         await this.notify(user, 'WALLET_TOPPED_UP', { amount: formatDinars(amount) }, offset, read);
     }
 
@@ -435,6 +459,7 @@ class DemoData {
         category: WalletTransactionCategory,
         bookingId: number | null,
         offset: number,
+        paymentId: number | null = null,
     ): Promise<void> {
         const [wallet] = await Wallet.findOrCreate({
             where: { user_id: user.id },
@@ -448,6 +473,7 @@ class DemoData {
                 amount,
                 category,
                 booking_id: bookingId,
+                payment_id: paymentId,
                 createdAt: this.at(offset),
             },
             { transaction: this.transaction },

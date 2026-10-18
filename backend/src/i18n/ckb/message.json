@@ -49,5 +49,8 @@
     "INSUFFICIENT_BALANCE": "باڵانسی جزدانەکەت بەش ناکات بۆ ئەم پارەدانە.",
     "NOTIFICATION_NOT_FOUND": "ئاگادارکردنەوەکە نەدۆزرایەوە.",
     "NOTIFICATION_MARKED_AS_READ": "ئاگادارکردنەوەکە وەک خوێندراوە دیاریکرا.",
-    "NOTIFICATIONS_MARKED_AS_READ": "هەموو ئاگادارکردنەوەکان وەک خوێندراوە دیاریکران."
+    "NOTIFICATIONS_MARKED_AS_READ": "هەموو ئاگادارکردنەوەکان وەک خوێندراوە دیاریکران.",
+    "PAYMENT_NOT_FOUND": "پارەدانەکە نەدۆزرایەوە.",
+    "PAYMENT_NOT_PENDING": "ئەم پارەدانە پێشتر کۆتایی هاتووە.",
+    "PAYMENT_WEBHOOK_INVALID": "پشتڕاستکردنەوەی وەڵامی پارەدانەکە سەرکەوتوو نەبوو."
 }

@@ -15,6 +15,7 @@ import { ParkingModule } from './parking/parking.module';
 import { WalletModule } from './wallet/wallet.module';
 import { BookingModule } from './booking/booking.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PaymentsModule } from './payments/payments.module';
 import { User } from './users/entities/user.entity';
 import { Vehicle } from './users/entities/vehicle.entity';
 import { ParkingLot } from './parking/entities/parking-lot.entity';
@@ -23,6 +24,7 @@ import { Wallet } from './wallet/entities/wallet.entity';
 import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
 import { Booking } from './booking/entities/booking.entity';
 import { Notification } from './notifications/entities/notification.entity';
+import { Payment } from './payments/entities/payment.entity';
 
 @Module({
   imports: [
@@ -83,6 +85,7 @@ import { Notification } from './notifications/entities/notification.entity';
             WalletTransaction,
             Booking,
             Notification,
+            Payment,
           ],
           autoLoadModels: true,
           synchronize: true,
@@ -97,6 +100,7 @@ import { Notification } from './notifications/entities/notification.entity';
     WalletModule,
     BookingModule,
     NotificationsModule,
+    PaymentsModule,
   ],
 })
 export class AppModule { }

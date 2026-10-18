@@ -13,7 +13,8 @@ import { AppModule } from './app.module';
 import { SUPPORTED_LANGUAGES } from './config/languages';
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    // rawBody: the payment webhook checks its signature against the exact bytes sent.
+    const app = await NestFactory.create(AppModule, { rawBody: true });
     const config = app.get(ConfigService);
     const isProduction = config.get<string>('NODE_ENV') === 'production';
 

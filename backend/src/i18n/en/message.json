@@ -49,5 +49,8 @@
     "INSUFFICIENT_BALANCE": "Your wallet balance is too low for this payment.",
     "NOTIFICATION_NOT_FOUND": "Notification not found.",
     "NOTIFICATION_MARKED_AS_READ": "Notification marked as read.",
-    "NOTIFICATIONS_MARKED_AS_READ": "All notifications marked as read."
+    "NOTIFICATIONS_MARKED_AS_READ": "All notifications marked as read.",
+    "PAYMENT_NOT_FOUND": "Payment not found.",
+    "PAYMENT_NOT_PENDING": "This payment is already finished.",
+    "PAYMENT_WEBHOOK_INVALID": "The payment callback could not be verified."
 }

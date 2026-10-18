@@ -3,11 +3,10 @@ import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
-import { formatDinars, toDinars } from 'src/common/money';
+import { toDinars } from 'src/common/money';
 import { PaginationQueryDto } from 'src/common/pagination/dto/pagination-query.dto';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
-import { NotificationsService } from 'src/notifications/notifications.service';
 import { Wallet } from './entities/wallet.entity';
 import { WalletTransaction, WalletTransactionCategory } from './entities/wallet-transaction.entity';
 
@@ -20,7 +19,6 @@ export class WalletService {
     @InjectModel(WalletTransaction) private readonly transactionModel: typeof WalletTransaction,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly translationService: TranslationService,
-    private readonly notificationsService: NotificationsService,
   ) { }
 
   private t(key: string, args?: Record<string, unknown>): string {
@@ -35,21 +33,6 @@ export class WalletService {
       transaction,
     });
     return wallet;
-  }
-
-  async topUp(userId: number, amount: number): Promise<{ message: string; balance: number }> {
-    const wallet = await this.sequelize.transaction(async (transaction) => {
-      const wallet = await this.credit(userId, amount, 'TOP_UP', null, transaction);
-      await this.notificationsService.notify(
-        userId,
-        'WALLET_TOPPED_UP',
-        { amount: formatDinars(amount) },
-        transaction,
-      );
-      return wallet;
-    });
-
-    return { message: this.t('WALLET_TOPPED_UP'), balance: wallet.balance };
   }
 
   /**
@@ -78,20 +61,25 @@ export class WalletService {
     return wallet;
   }
 
-  /** Puts money into the wallet (top-up or refund). Same transaction rules as debit(). */
+  /**
+   * Puts money into the wallet. Same transaction rules as debit(). A top-up
+   * passes the [paymentId] it came from; only PaymentsService does that, once
+   * the provider has confirmed the payment.
+   */
   async credit(
     userId: number,
     amount: number,
     category: WalletTransactionCategory,
     bookingId: number | null,
     transaction: Transaction,
+    paymentId: number | null = null,
   ): Promise<Wallet> {
     const value = toDinars(amount);
     const wallet = await this.lockWallet(userId, transaction);
 
     await wallet.update({ balance: wallet.balance + value }, { transaction });
     await this.transactionModel.create(
-      { wallet_id: wallet.id, type: 'credit', amount: value, category, booking_id: bookingId },
+      { wallet_id: wallet.id, type: 'credit', amount: value, category, booking_id: bookingId, payment_id: paymentId },
       { transaction },
     );
     return wallet;

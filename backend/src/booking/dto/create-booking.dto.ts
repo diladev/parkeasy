@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsInt, Max, Min } from "class-validator";
 import { i18nValidationMessage } from "nestjs-i18n";
 
-import { PAYMENT_METHODS } from "../entities/booking.entity";
+import { BOOKING_PAYMENT_METHODS } from "../entities/booking.entity";
 
 /** Longest booking, including extensions. */
 export const MAX_BOOKING_HOURS = 24;
@@ -29,7 +29,7 @@ export class CreateBookingDto {
     @Max(MAX_BOOKING_HOURS, { message: i18nValidationMessage('validation.MAX') })
     duration_hours!: number;
 
-    @ApiProperty({ example: 'wallet', enum: PAYMENT_METHODS })
-    @IsIn(PAYMENT_METHODS, { message: i18nValidationMessage('validation.IS_IN') })
+    @ApiProperty({ example: 'wallet', enum: BOOKING_PAYMENT_METHODS })
+    @IsIn(BOOKING_PAYMENT_METHODS, { message: i18nValidationMessage('validation.IS_IN') })
     payment_method!: string;
 }

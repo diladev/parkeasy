@@ -7,9 +7,15 @@ import { Vehicle } from 'src/users/entities/vehicle.entity';
 export const BOOKING_STATUSES = ['active', 'completed', 'cancelled'] as const;
 export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
-/** 'card' isn't charged yet (no payment provider); 'wallet' is paid from the in-app wallet. */
+/** Every method a stored booking can have. 'card' is only on older bookings. */
 export const PAYMENT_METHODS = ['card', 'wallet'] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/**
+ * What a new booking or extension can be paid with. Only the wallet, which
+ * is charged up front; money gets into it through a provider top-up.
+ */
+export const BOOKING_PAYMENT_METHODS = ['wallet'] as const;
 
 @Table({
     tableName: 'bookings',
