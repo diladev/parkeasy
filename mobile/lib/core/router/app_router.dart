@@ -27,6 +27,9 @@ import 'package:mobile/feature/profile/presentation/screens/profile_screen.dart'
 import 'package:mobile/feature/profile/presentation/screens/vehicle_form_screen.dart';
 import 'package:mobile/feature/shell/main_shell.dart';
 import 'package:mobile/feature/stub/stub_screen.dart';
+import 'package:mobile/feature/wallet/domain/entities/top_up.dart';
+import 'package:mobile/feature/wallet/presentation/screens/top_up_payment_screen.dart';
+import 'package:mobile/feature/wallet/presentation/screens/wallet_screen.dart';
 
 class AppRouter {
   /// Lets code outside the widget tree navigate, e.g. back to the login
@@ -66,6 +69,7 @@ class AppRouter {
   static const String editProfile = '/edit-profile';
   static const String paymentMethods = '/payment-methods';
   static const String wallet = '/wallet';
+  static const String topUpPayment = '/top-up-payment';
   static const String myVehicles = '/my-vehicles';
   static const String vehicleForm = '/vehicle-form';
   static const String notificationSettings = '/notification-settings';
@@ -156,6 +160,14 @@ class AppRouter {
         // Navigator casts the route to Route<Vehicle?>, and a
         // MaterialPageRoute<dynamic> would fail that cast at runtime.
         return _route<Vehicle>(VehicleFormScreen(vehicle: vehicle), settings);
+
+      // Wallet
+      case wallet:
+        return _route(const WalletScreen(), settings);
+      case topUpPayment:
+        final topUp = settings.arguments as TopUp;
+        // Typed <bool>: toTopUpPayment awaits whether it was paid.
+        return _route<bool>(TopUpPaymentScreen(topUp: topUp), settings);
 
       // All remaining screens are stubs — will be replaced as features are built
       default:
@@ -274,8 +286,13 @@ class AppRouter {
   static void toPaymentMethods(BuildContext context) =>
       Navigator.pushNamed(context, paymentMethods);
 
-  static void toWallet(BuildContext context) =>
+  /// Completes when the user comes back, so the caller can reload the balance.
+  static Future<void> toWallet(BuildContext context) =>
       Navigator.pushNamed(context, wallet);
+
+  /// Completes with true if the top-up was paid.
+  static Future<bool?> toTopUpPayment(BuildContext context, TopUp topUp) =>
+      Navigator.pushNamed<bool>(context, topUpPayment, arguments: topUp);
 
   static void toMyVehicles(BuildContext context) =>
       Navigator.pushNamed(context, myVehicles);

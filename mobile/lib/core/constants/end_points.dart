@@ -24,6 +24,11 @@ const kSearchParking = '$kParking/search';
 const kBookings = '$kbaseUrl/booking';
 
 const kWallet = '$kbaseUrl/wallet';
+const kWalletTransactions = '$kWallet/transactions';
+const kTopUps = '$kWallet/top-ups';
+
+/// The built-in test bank (only while the API runs PAYMENT_PROVIDER=mock).
+const kMockBank = '$kbaseUrl/payments/mock';
 
 const kNotifications = '$kbaseUrl/notifications';
 const kUnreadNotifications = '$kNotifications/unread-count';

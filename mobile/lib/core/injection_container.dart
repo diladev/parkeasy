@@ -77,6 +77,18 @@ import 'package:mobile/feature/profile/presentation/cubit/delete_account_cubit.d
 import 'package:mobile/feature/profile/presentation/cubit/edit_profile_cubit.dart';
 import 'package:mobile/feature/profile/presentation/cubit/vehicle_form_cubit.dart';
 import 'package:mobile/feature/profile/presentation/cubit/vehicles_cubit.dart';
+import 'package:mobile/feature/wallet/data/repositories/wallet_remote_data_source.dart';
+import 'package:mobile/feature/wallet/data/repositories/wallet_repository_implementation.dart';
+import 'package:mobile/feature/wallet/domain/entities/top_up.dart';
+import 'package:mobile/feature/wallet/domain/repositories/wallet_repository.dart';
+import 'package:mobile/feature/wallet/domain/usecases/cancel_top_up.dart';
+import 'package:mobile/feature/wallet/domain/usecases/decide_test_payment.dart';
+import 'package:mobile/feature/wallet/domain/usecases/get_balance.dart';
+import 'package:mobile/feature/wallet/domain/usecases/get_top_up.dart';
+import 'package:mobile/feature/wallet/domain/usecases/get_wallet_transactions.dart';
+import 'package:mobile/feature/wallet/domain/usecases/start_top_up.dart';
+import 'package:mobile/feature/wallet/presentation/cubit/top_up_cubit.dart';
+import 'package:mobile/feature/wallet/presentation/cubit/wallet_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -123,6 +135,9 @@ Future<void> init() async {
   sl.registerLazySingleton<BookingRemoteDataSource>(
     () => BookingRemoteDataSourceImpl(sl()),
   );
+  sl.registerLazySingleton<WalletRemoteDataSource>(
+    () => WalletRemoteDataSourceImpl(sl()),
+  );
 
   // Session: one instance, used as AuthTokenProvider and as TokenProvider.
   sl.registerLazySingleton(() => AuthTokenProvider(sl(), sl(), sl()));
@@ -144,6 +159,9 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<BookingRepository>(
     () => BookingRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<WalletRepository>(
+    () => WalletRepositoryImpl(sl()),
   );
 
   // Use cases: authentication
@@ -188,6 +206,14 @@ Future<void> init() async {
   sl.registerLazySingleton(() => ExtendBooking(sl()));
   sl.registerLazySingleton(() => CancelBooking(sl()));
 
+  // Use cases: wallet
+  sl.registerLazySingleton(() => GetBalance(sl()));
+  sl.registerLazySingleton(() => GetWalletTransactions(sl()));
+  sl.registerLazySingleton(() => StartTopUp(sl()));
+  sl.registerLazySingleton(() => GetTopUp(sl()));
+  sl.registerLazySingleton(() => CancelTopUp(sl()));
+  sl.registerLazySingleton(() => DecideTestPayment(sl()));
+
   // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
   sl.registerFactory(() => ConnectivityCubit(sl()));
@@ -226,5 +252,10 @@ Future<void> init() async {
   );
   sl.registerFactoryParam<PaymentCubit, BookingDraft, void>(
     (draft, _) => PaymentCubit(sl(), sl(), sl(), draft: draft),
+  );
+  sl.registerFactory(() => WalletCubit(sl(), sl(), sl()));
+  // Needs the top-up being paid, passed as param1.
+  sl.registerFactoryParam<TopUpCubit, TopUp, void>(
+    (topUp, _) => TopUpCubit(sl(), sl(), sl(), topUp: topUp),
   );
 }

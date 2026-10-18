@@ -79,6 +79,13 @@ class _PaymentForm extends StatelessWidget {
     await cubit.load();
   }
 
+  /// Tops up the wallet, then shows the new balance.
+  Future<void> _openWallet(BuildContext context) async {
+    final cubit = context.read<PaymentCubit>();
+    await AppRouter.toWallet(context);
+    await cubit.load();
+  }
+
   void _pay(BuildContext context) {
     if (state.vehicle == null) {
       context.showSnack('Add a vehicle to book a slot.', isError: true);
@@ -86,7 +93,7 @@ class _PaymentForm extends StatelessWidget {
     }
     if (!state.canAfford) {
       context.showSnack(
-        'Not enough balance. Top up your wallet first.',
+        'Not enough balance. Tap ParkEasy Wallet to top up.',
         isError: true,
       );
       return;
@@ -155,10 +162,10 @@ class _PaymentForm extends StatelessWidget {
           title: 'ParkEasy Wallet',
           subtitle: state.canAfford
               ? 'Balance: ${Formatters.money(state.balance)}'
-              : 'Balance: ${Formatters.money(state.balance)} · not enough',
+              : 'Balance: ${Formatters.money(state.balance)} · tap to top up',
           subtitleColor: state.canAfford ? null : AppColors.red,
           isSelected: true,
-          onTap: () {},
+          onTap: () => _openWallet(context),
         ),
         const SizedBox(height: 8),
         PaymentMethodTile(
