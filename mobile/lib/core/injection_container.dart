@@ -44,6 +44,13 @@ import 'package:mobile/feature/home/domain/usecases/get_my_bookings.dart';
 import 'package:mobile/feature/home/domain/usecases/get_nearby_lots.dart';
 import 'package:mobile/feature/home/domain/usecases/get_unread_notification_count.dart';
 import 'package:mobile/feature/home/presentation/cubit/home_cubit.dart';
+import 'package:mobile/feature/notifications/data/repositories/notification_remote_data_source.dart';
+import 'package:mobile/feature/notifications/data/repositories/notification_repository_implementation.dart';
+import 'package:mobile/feature/notifications/domain/repositories/notification_repository.dart';
+import 'package:mobile/feature/notifications/domain/usecases/get_notifications.dart';
+import 'package:mobile/feature/notifications/domain/usecases/mark_all_notifications_read.dart';
+import 'package:mobile/feature/notifications/domain/usecases/mark_notification_read.dart';
+import 'package:mobile/feature/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:mobile/feature/parking/data/repositories/parking_remote_data_source.dart';
 import 'package:mobile/feature/parking/data/repositories/parking_repository_implementation.dart';
 import 'package:mobile/feature/parking/domain/repositories/parking_repository.dart';
@@ -110,6 +117,9 @@ Future<void> init() async {
   sl.registerLazySingleton<ParkingRemoteDataSource>(
     () => ParkingRemoteDataSourceImpl(sl()),
   );
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(sl()),
+  );
   sl.registerLazySingleton<BookingRemoteDataSource>(
     () => BookingRemoteDataSourceImpl(sl()),
   );
@@ -128,6 +138,9 @@ Future<void> init() async {
   sl.registerLazySingleton<HomeRepository>(() => HomeRepositoryImpl(sl()));
   sl.registerLazySingleton<ParkingRepository>(
     () => ParkingRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(sl()),
   );
   sl.registerLazySingleton<BookingRepository>(
     () => BookingRepositoryImpl(sl()),
@@ -162,6 +175,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetParkingLotDetails(sl()));
   sl.registerLazySingleton(() => SearchParkingLots(sl()));
 
+  // Use cases: notifications
+  sl.registerLazySingleton(() => GetNotifications(sl()));
+  sl.registerLazySingleton(() => MarkNotificationRead(sl()));
+  sl.registerLazySingleton(() => MarkAllNotificationsRead(sl()));
+
   // Use cases: booking
   sl.registerLazySingleton(() => GetWalletBalance(sl()));
   sl.registerLazySingleton(() => CreateBooking(sl()));
@@ -193,6 +211,7 @@ Future<void> init() async {
   sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
   sl.registerFactory(() => ParkingDetailsCubit(sl()));
+  sl.registerFactory(() => NotificationsCubit(sl(), sl(), sl()));
   // The text typed on Home, passed as param1.
   sl.registerFactoryParam<SearchCubit, String, void>(
     (query, _) => SearchCubit(sl(), initialQuery: query),

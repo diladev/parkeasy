@@ -15,6 +15,7 @@ import 'package:mobile/feature/booking/presentation/screens/cancellation_success
 import 'package:mobile/feature/booking/presentation/screens/extend_booking_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
+import 'package:mobile/feature/notifications/presentation/screens/notifications_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/search_screen.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
@@ -103,6 +104,10 @@ class AppRouter {
       case home:
         final tab = settings.arguments as int? ?? 0;
         return _route(MainShell(initialIndex: tab), settings);
+
+      // Notifications
+      case notificationsInbox:
+        return _route(const NotificationsScreen(), settings);
 
       // Parking
       case searchResults:
@@ -294,6 +299,7 @@ class AppRouter {
   static void toDeleteAccount(BuildContext context) =>
       Navigator.pushNamed(context, deleteAccount);
 
-  static void toNotificationsInbox(BuildContext context) =>
+  /// Completes when the user comes back, so the bell's dot can be updated.
+  static Future<void> toNotificationsInbox(BuildContext context) =>
       Navigator.pushNamed(context, notificationsInbox);
 }

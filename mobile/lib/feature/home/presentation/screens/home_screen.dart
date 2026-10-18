@@ -60,7 +60,12 @@ class _HomeView extends StatelessWidget {
             children: [
               HomeHeader(
                 hasUnread: state.unreadNotifications > 0,
-                onNotifications: () => AppRouter.toNotificationsInbox(context),
+                onNotifications: () async {
+                  final cubit = context.read<HomeCubit>();
+                  await AppRouter.toNotificationsInbox(context);
+                  // Notifications read in the inbox: update the bell's dot.
+                  await cubit.load();
+                },
               ),
               const SizedBox(height: 8),
               Padding(
