@@ -16,6 +16,7 @@ import 'package:mobile/feature/booking/presentation/screens/extend_booking_scree
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
+import 'package:mobile/feature/parking/presentation/screens/search_screen.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 import 'package:mobile/feature/profile/presentation/screens/change_password_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/delete_account_screen.dart';
@@ -104,6 +105,9 @@ class AppRouter {
         return _route(MainShell(initialIndex: tab), settings);
 
       // Parking
+      case searchResults:
+        final query = settings.arguments as String? ?? '';
+        return _route(SearchScreen(initialQuery: query), settings);
       case parkingDetails:
         final lotId = settings.arguments as int;
         return _route(ParkingDetailsScreen(lotId: lotId), settings);

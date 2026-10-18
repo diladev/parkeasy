@@ -48,7 +48,9 @@ import 'package:mobile/feature/parking/data/repositories/parking_remote_data_sou
 import 'package:mobile/feature/parking/data/repositories/parking_repository_implementation.dart';
 import 'package:mobile/feature/parking/domain/repositories/parking_repository.dart';
 import 'package:mobile/feature/parking/domain/usecases/get_parking_lot_details.dart';
+import 'package:mobile/feature/parking/domain/usecases/search_parking_lots.dart';
 import 'package:mobile/feature/parking/presentation/cubit/parking_details_cubit.dart';
+import 'package:mobile/feature/parking/presentation/cubit/search_cubit.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_local_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_remote_data_source.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_repository_implementation.dart';
@@ -158,6 +160,7 @@ Future<void> init() async {
 
   // Use cases: parking
   sl.registerLazySingleton(() => GetParkingLotDetails(sl()));
+  sl.registerLazySingleton(() => SearchParkingLots(sl()));
 
   // Use cases: booking
   sl.registerLazySingleton(() => GetWalletBalance(sl()));
@@ -190,6 +193,10 @@ Future<void> init() async {
   sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
   sl.registerFactory(() => ParkingDetailsCubit(sl()));
+  // The text typed on Home, passed as param1.
+  sl.registerFactoryParam<SearchCubit, String, void>(
+    (query, _) => SearchCubit(sl(), initialQuery: query),
+  );
   // Needs what the user picked, passed as param1.
   sl.registerFactory(() => MyBookingsCubit(sl()));
   sl.registerFactory(() => BookingDetailCubit(sl()));
