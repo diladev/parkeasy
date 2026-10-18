@@ -168,8 +168,8 @@ class _LotDetails extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: LotStatTile(
-                        value: Formatters.shortMoney(lot.pricePerHour),
-                        label: 'Per hour',
+                        value: Formatters.dinars(lot.pricePerHour),
+                        label: 'IQD / hour',
                       ),
                     ),
                     const SizedBox(width: 8),

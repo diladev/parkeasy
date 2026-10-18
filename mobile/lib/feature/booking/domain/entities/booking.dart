@@ -36,15 +36,15 @@ class Booking extends Equatable {
   final int durationHours;
 
   /// The lot's price when the booking was made.
-  final double pricePerHour;
-  final double totalCost;
+  final int pricePerHour;
+  final int totalCost;
 
   bool get isActive => status == BookingStatus.active;
 
   /// What cancelling at [now] would refund, by the server's rule: everything
   /// in the first [freeCancellationMinutes], then only the unused whole hours.
   /// The server works out the real amount; this is for showing it beforehand.
-  double refundIfCancelledAt(DateTime now) {
+  int refundIfCancelledAt(DateTime now) {
     final sinceStart = now.difference(startTime);
     if (sinceStart.inSeconds <= freeCancellationMinutes * 60) {
       return totalCost;

@@ -31,7 +31,7 @@ class BookingRepositoryImpl implements BookingRepository {
   }
 
   @override
-  ResultFuture<double> getWalletBalance() {
+  ResultFuture<int> getWalletBalance() {
     return _guard(_remoteDataSource.getWalletBalance);
   }
 
@@ -61,7 +61,7 @@ class BookingRepositoryImpl implements BookingRepository {
   }
 
   @override
-  ResultFuture<double> cancelBooking(int bookingId) {
+  ResultFuture<int> cancelBooking(int bookingId) {
     return _guard(() => _remoteDataSource.cancelBooking(bookingId));
   }
 

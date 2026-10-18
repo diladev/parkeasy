@@ -34,7 +34,7 @@ class ParkingLotSummaryModel extends ParkingLotSummary {
       address: map['address'] as String? ?? '',
       latitude: number('latitude'),
       longitude: number('longitude'),
-      pricePerHour: number('price_per_hour'),
+      pricePerHour: number('price_per_hour').round(),
       availableSlots: number('available_slots').toInt(),
       totalSlots: number('total_slots').toInt(),
       hasCctv: flag('has_cctv'),

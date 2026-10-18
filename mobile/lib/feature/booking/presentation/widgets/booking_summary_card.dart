@@ -43,7 +43,7 @@ class BookingSummaryCard extends StatelessWidget {
   final List<SummaryRow> rows;
   final String totalLabel;
 
-  /// "$4.00"
+  /// "4,500 IQD"
   final String total;
 
   /// Where the values start, from the card's left edge.

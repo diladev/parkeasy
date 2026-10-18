@@ -71,7 +71,7 @@ class LotResultCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${Formatters.shortMoney(lot.pricePerHour)}/hr',
+                        '${Formatters.money(lot.pricePerHour)}/hr',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

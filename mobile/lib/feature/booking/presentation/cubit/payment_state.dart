@@ -23,7 +23,7 @@ class PaymentState extends Equatable {
   final int durationHours;
 
   /// The wallet balance.
-  final double balance;
+  final int balance;
   final List<Vehicle> vehicles;
 
   /// The vehicle being booked for.
@@ -38,13 +38,13 @@ class PaymentState extends Equatable {
   /// New for every error, so the screen shows two identical errors in a row.
   final int errorSerial;
 
-  double get total => draft.pricePerHour * durationHours;
-  bool get canAfford => balance + 0.001 >= total;
+  int get total => draft.pricePerHour * durationHours;
+  bool get canAfford => balance >= total;
 
   PaymentState copyWith({
     PaymentStatus? status,
     int? durationHours,
-    double? balance,
+    int? balance,
     List<Vehicle>? vehicles,
     Vehicle? vehicle,
     Booking? booking,

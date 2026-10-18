@@ -40,7 +40,7 @@ class ParkingLotDetailsModel extends ParkingLotDetails {
       address: map['address'] as String? ?? '',
       latitude: number('latitude'),
       longitude: number('longitude'),
-      pricePerHour: number('price_per_hour'),
+      pricePerHour: number('price_per_hour').round(),
       rating: number('rating'),
       isOpen24h: flag('is_open_24h'),
       openingTime: map['opening_time'] as String? ?? '00:00',

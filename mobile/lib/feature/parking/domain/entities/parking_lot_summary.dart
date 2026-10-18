@@ -22,7 +22,7 @@ class ParkingLotSummary extends Equatable {
   final String address;
   final double latitude;
   final double longitude;
-  final double pricePerHour;
+  final int pricePerHour;
   final int availableSlots;
   final int totalSlots;
   final bool hasCctv;

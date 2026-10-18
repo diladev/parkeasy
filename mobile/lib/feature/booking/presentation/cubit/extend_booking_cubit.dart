@@ -19,7 +19,7 @@ class ExtendBookingState extends Equatable {
   final Booking booking;
   final ExtendStatus status;
   final int extraHours;
-  final double balance;
+  final int balance;
   final String? errorMessage;
 
   /// New for every error, so the screen shows two identical errors in a row.
@@ -28,9 +28,9 @@ class ExtendBookingState extends Equatable {
   /// The API's limit for one booking, extensions included.
   static const int maxTotalHours = 24;
 
-  double get extraCost => booking.pricePerHour * extraHours;
+  int get extraCost => booking.pricePerHour * extraHours;
   DateTime get newEndTime => booking.endTime.add(Duration(hours: extraHours));
-  bool get canAfford => balance + 0.001 >= extraCost;
+  bool get canAfford => balance >= extraCost;
 
   /// Whether [hours] more still fits in the longest allowed booking.
   bool allows(int hours) => booking.durationHours + hours <= maxTotalHours;
@@ -39,7 +39,7 @@ class ExtendBookingState extends Equatable {
     Booking? booking,
     ExtendStatus? status,
     int? extraHours,
-    double? balance,
+    int? balance,
     String? errorMessage,
     int? errorSerial,
   }) {

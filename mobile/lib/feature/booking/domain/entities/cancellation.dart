@@ -12,7 +12,7 @@ class Cancellation extends Equatable {
   final Booking booking;
 
   /// What went back to the wallet; 0 when nothing was refundable.
-  final double refund;
+  final int refund;
   final DateTime cancelledAt;
 
   @override

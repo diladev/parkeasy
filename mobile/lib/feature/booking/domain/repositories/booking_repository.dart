@@ -12,7 +12,7 @@ abstract class BookingRepository {
     required int durationHours,
   });
 
-  ResultFuture<double> getWalletBalance();
+  ResultFuture<int> getWalletBalance();
 
   /// The user's bookings, newest first; all of them when [status] is null.
   ResultFuture<BookingPage> getBookings({BookingStatus? status, int page = 1});
@@ -26,5 +26,5 @@ abstract class BookingRepository {
   });
 
   /// Cancels an active booking; returns the amount refunded to the wallet.
-  ResultFuture<double> cancelBooking(int bookingId);
+  ResultFuture<int> cancelBooking(int bookingId);
 }

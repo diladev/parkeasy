@@ -16,7 +16,7 @@ class BookingDraft extends Equatable {
   final int slotId;
   final String slotNumber;
   final String level;
-  final double pricePerHour;
+  final int pricePerHour;
 
   /// "A04 · Level B1"
   String get slotLabel => '$slotNumber · Level $level';

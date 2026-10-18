@@ -13,7 +13,7 @@ class BookingBar extends StatelessWidget {
     required this.onBook,
   });
 
-  final double pricePerHour;
+  final int pricePerHour;
   final ParkingSlot? selectedSlot;
   final VoidCallback onBook;
 

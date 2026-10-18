@@ -13,7 +13,7 @@ abstract class BookingRemoteDataSource {
     required int durationHours,
   });
 
-  Future<double> getWalletBalance();
+  Future<int> getWalletBalance();
 
   Future<BookingPage> getBookings({BookingStatus? status, int page = 1});
 
@@ -24,7 +24,7 @@ abstract class BookingRemoteDataSource {
     required int extraHours,
   });
 
-  Future<double> cancelBooking(int bookingId);
+  Future<int> cancelBooking(int bookingId);
 }
 
 class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
@@ -56,9 +56,9 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   }
 
   @override
-  Future<double> getWalletBalance() async {
+  Future<int> getWalletBalance() async {
     final response = await _api.get(kWallet);
-    return (response.map['balance'] as num? ?? 0).toDouble();
+    return (response.map['balance'] as num? ?? 0).round();
   }
 
   /// Bookings per page: enough to fill the screen a couple of times.
@@ -107,9 +107,9 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   }
 
   @override
-  Future<double> cancelBooking(int bookingId) async {
+  Future<int> cancelBooking(int bookingId) async {
     final response = await _api.patch('$kBookings/$bookingId/cancel');
     // { message, refund }
-    return (response.map['refund'] as num? ?? 0).toDouble();
+    return (response.map['refund'] as num? ?? 0).round();
   }
 }

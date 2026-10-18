@@ -44,8 +44,8 @@ class BookingModel extends Booking {
       startTime: DateTime.parse(map['start_time'] as String).toLocal(),
       endTime: DateTime.parse(map['end_time'] as String).toLocal(),
       durationHours: (map['duration_hours'] as num? ?? 0).toInt(),
-      pricePerHour: (map['price_per_hour'] as num? ?? 0).toDouble(),
-      totalCost: (map['total_cost'] as num? ?? 0).toDouble(),
+      pricePerHour: (map['price_per_hour'] as num? ?? 0).round(),
+      totalCost: (map['total_cost'] as num? ?? 0).round(),
     );
   }
 }

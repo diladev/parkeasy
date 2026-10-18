@@ -28,7 +28,7 @@ class ParkingLotDetails extends Equatable {
   final String address;
   final double latitude;
   final double longitude;
-  final double pricePerHour;
+  final int pricePerHour;
   final double rating;
   final bool isOpen24h;
 

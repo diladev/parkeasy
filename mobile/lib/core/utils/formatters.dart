@@ -75,13 +75,18 @@ class Formatters {
 
   static String _half(DateTime time) => time.hour < 12 ? 'AM' : 'PM';
 
-  /// "$2.00"
-  static String money(double amount) => '\$${amount.toStringAsFixed(2)}';
+  /// "1,500 IQD". Amounts are whole Iraqi dinars, the API's currency.
+  static String money(int amount) => '${dinars(amount)} IQD';
 
-  /// "$2" for whole amounts, otherwise "$1.50".
-  static String shortMoney(double amount) => amount == amount.roundToDouble()
-      ? '\$${amount.toStringAsFixed(0)}'
-      : money(amount);
+  /// "1,500", for places that show the currency next to it.
+  static String dinars(int amount) {
+    final digits = amount.abs().toString();
+    final grouped = digits.replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (_) => ',',
+    );
+    return amount < 0 ? '-$grouped' : grouped;
+  }
 
   /// "0.3 km", "4.8 km", "12 km".
   static String distance(double km) =>

@@ -362,7 +362,7 @@ class _NewEndCard extends StatelessWidget {
 class _WalletCard extends StatelessWidget {
   const _WalletCard({required this.balance, required this.canAfford});
 
-  final double balance;
+  final int balance;
   final bool canAfford;
 
   @override
