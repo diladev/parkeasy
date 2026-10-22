@@ -75,7 +75,11 @@ class _HomeView extends StatelessWidget {
                   children: [
                     HomeSearchBar(
                       onSearch: () => AppRouter.toSearchResults(context, ''),
-                      onFilters: () => AppRouter.toSearchResults(context, ''),
+                      onFilters: () => AppRouter.toSearchResults(
+                        context,
+                        '',
+                        openFilters: true,
+                      ),
                     ),
                     const SizedBox(height: 18),
                     _QuickActions(

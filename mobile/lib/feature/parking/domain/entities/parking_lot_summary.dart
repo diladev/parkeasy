@@ -15,6 +15,8 @@ class ParkingLotSummary extends Equatable {
     required this.hasEvCharging,
     required this.isCovered,
     required this.isAccessible,
+    required this.rating,
+    required this.isOpen24h,
   });
 
   final int id;
@@ -29,6 +31,10 @@ class ParkingLotSummary extends Equatable {
   final bool hasEvCharging;
   final bool isCovered;
   final bool isAccessible;
+
+  /// 0 to 5; 0 for a lot with no ratings yet.
+  final double rating;
+  final bool isOpen24h;
 
   /// The lot's features as short labels, most useful first.
   List<String> get featureLabels => [
@@ -52,5 +58,7 @@ class ParkingLotSummary extends Equatable {
     hasEvCharging,
     isCovered,
     isAccessible,
+    rating,
+    isOpen24h,
   ];
 }

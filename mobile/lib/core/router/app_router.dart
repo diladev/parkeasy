@@ -31,6 +31,9 @@ import 'package:mobile/feature/wallet/domain/entities/top_up.dart';
 import 'package:mobile/feature/wallet/presentation/screens/top_up_payment_screen.dart';
 import 'package:mobile/feature/wallet/presentation/screens/wallet_screen.dart';
 
+/// What the search screen opens with.
+typedef SearchArgs = ({String query, bool openFilters});
+
 class AppRouter {
   /// Lets code outside the widget tree navigate, e.g. back to the login
   /// screen when the session expires (see main.dart).
@@ -115,8 +118,14 @@ class AppRouter {
 
       // Parking
       case searchResults:
-        final query = settings.arguments as String? ?? '';
-        return _route(SearchScreen(initialQuery: query), settings);
+        final args = settings.arguments as SearchArgs?;
+        return _route(
+          SearchScreen(
+            initialQuery: args?.query ?? '',
+            openFilters: args?.openFilters ?? false,
+          ),
+          settings,
+        );
       case parkingDetails:
         final lotId = settings.arguments as int;
         return _route(ParkingDetailsScreen(lotId: lotId), settings);
@@ -227,8 +236,16 @@ class AppRouter {
 
   static void toMap(BuildContext context) => Navigator.pushNamed(context, map);
 
-  static void toSearchResults(BuildContext context, String query) =>
-      Navigator.pushNamed(context, searchResults, arguments: query);
+  /// [openFilters] opens the Filters sheet on arrival.
+  static void toSearchResults(
+    BuildContext context,
+    String query, {
+    bool openFilters = false,
+  }) => Navigator.pushNamed(
+    context,
+    searchResults,
+    arguments: (query: query, openFilters: openFilters),
+  );
 
   static void toParkingDetails(BuildContext context, int lotId) =>
       Navigator.pushNamed(context, parkingDetails, arguments: lotId);

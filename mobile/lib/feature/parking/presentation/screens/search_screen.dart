@@ -8,6 +8,7 @@ import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/parking/presentation/cubit/search_cubit.dart';
 import 'package:mobile/feature/parking/presentation/cubit/search_state.dart';
+import 'package:mobile/feature/parking/presentation/widgets/filters_sheet.dart';
 import 'package:mobile/feature/parking/presentation/widgets/lot_result_card.dart';
 import 'package:mobile/feature/parking/presentation/widgets/search_chip.dart';
 import 'package:mobile/feature/parking/presentation/widgets/search_field.dart';
@@ -15,16 +16,23 @@ import 'package:mobile/feature/parking/presentation/widgets/search_field.dart';
 /// Finds lots by name or address. With nothing typed, it lists every lot
 /// around the user.
 class SearchScreen extends StatelessWidget {
-  const SearchScreen({super.key, this.initialQuery = ''});
+  const SearchScreen({
+    super.key,
+    this.initialQuery = '',
+    this.openFilters = false,
+  });
 
   final String initialQuery;
+
+  /// Opens the Filters sheet right away (the filter button on Home).
+  final bool openFilters;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<SearchCubit>(param1: initialQuery)..search(),
       child: AppScreen(
-        body: const _SearchView(),
+        body: _SearchView(openFilters: openFilters),
         // Search belongs to the home tab, so the tab bar stays visible.
         bottomBar: AppBottomNav(
           currentIndex: 0,
@@ -37,8 +45,32 @@ class SearchScreen extends StatelessWidget {
   }
 }
 
-class _SearchView extends StatelessWidget {
-  const _SearchView();
+class _SearchView extends StatefulWidget {
+  const _SearchView({required this.openFilters});
+
+  final bool openFilters;
+
+  @override
+  State<_SearchView> createState() => _SearchViewState();
+}
+
+class _SearchViewState extends State<_SearchView> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.openFilters) {
+      // After the first frame: a sheet can't open while the screen builds.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _openFilters();
+      });
+    }
+  }
+
+  Future<void> _openFilters() async {
+    final cubit = context.read<SearchCubit>();
+    final filters = await showFiltersSheet(context, cubit);
+    if (filters != null && !cubit.isClosed) cubit.applyFilters(filters);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +92,7 @@ class _SearchView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _FiltersButton(
-                onTap: () =>
-                    context.showSnack('More filters are coming soon.'),
-              ),
+              _FiltersButton(onTap: _openFilters),
             ],
           ),
         ),
@@ -116,11 +145,9 @@ class _Chips extends StatelessWidget {
     final cubit = context.read<SearchCubit>();
 
     return BlocBuilder<SearchCubit, SearchState>(
-      buildWhen: (previous, current) =>
-          previous.sort != current.sort ||
-          previous.evOnly != current.evOnly ||
-          previous.coveredOnly != current.coveredOnly,
+      buildWhen: (previous, current) => previous.filters != current.filters,
       builder: (context, state) {
+        final filters = state.filters;
         return SizedBox(
           height: 24,
           child: ListView(
@@ -129,26 +156,26 @@ class _Chips extends StatelessWidget {
             children: [
               SearchChip(
                 label: 'Nearest',
-                isSelected: state.sort == SearchSort.nearest,
+                isSelected: filters.sort == SearchSort.nearest,
                 onTap: () => cubit.sortBy(SearchSort.nearest),
               ),
               const SizedBox(width: 8),
               SearchChip(
                 label: 'Price',
-                isSelected: state.sort == SearchSort.price,
-                onTap: () => cubit.sortBy(SearchSort.price),
+                isSelected: filters.sort == SearchSort.cheapest,
+                onTap: () => cubit.sortBy(SearchSort.cheapest),
               ),
               const SizedBox(width: 8),
               SearchChip(
                 label: 'EV',
-                isSelected: state.evOnly,
-                onTap: cubit.toggleEv,
+                isSelected: filters.amenities.contains(Amenity.evCharging),
+                onTap: () => cubit.toggleAmenity(Amenity.evCharging),
               ),
               const SizedBox(width: 8),
               SearchChip(
                 label: 'Covered',
-                isSelected: state.coveredOnly,
-                onTap: cubit.toggleCovered,
+                isSelected: filters.amenities.contains(Amenity.covered),
+                onTap: () => cubit.toggleAmenity(Amenity.covered),
               ),
             ],
           ),
@@ -306,14 +333,14 @@ class _ViewToggle extends StatelessWidget {
 class _NoResults extends StatelessWidget {
   const _NoResults({required this.isFiltered});
 
-  /// Lots were found, but the chips hide them all.
+  /// Lots were found, but the filters hide them all.
   final bool isFiltered;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
     final (title, message) = isFiltered
-        ? ('No spots match these filters', 'Turn off EV or Covered to see more.')
+        ? ('No spots match these filters', 'Change or reset the filters.')
         : ('No parking found', 'Try another name or street.');
 
     return ListView(

@@ -15,6 +15,8 @@ class ParkingLotSummaryModel extends ParkingLotSummary {
     required super.hasEvCharging,
     required super.isCovered,
     required super.isAccessible,
+    required super.rating,
+    required super.isOpen24h,
   });
 
   /// One lot of GET /parking/search or /parking/nearby.
@@ -41,6 +43,8 @@ class ParkingLotSummaryModel extends ParkingLotSummary {
       hasEvCharging: flag('has_ev_charging'),
       isCovered: flag('is_covered'),
       isAccessible: flag('is_accessible'),
+      rating: number('rating'),
+      isOpen24h: flag('is_open_24h'),
     );
   }
 }

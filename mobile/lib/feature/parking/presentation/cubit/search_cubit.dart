@@ -6,8 +6,8 @@ import 'package:mobile/core/utils/geo.dart';
 import 'package:mobile/feature/parking/domain/usecases/search_parking_lots.dart';
 import 'search_state.dart';
 
-/// The search screen: searches as the user types, then the chips sort and
-/// filter what was found.
+/// The search screen: searches as the user types, then the chips and the
+/// Filters sheet narrow and sort what was found.
 class SearchCubit extends Cubit<SearchState> {
   SearchCubit(this._searchLots, {String initialQuery = ''})
     : super(SearchState(query: initialQuery.trim()));
@@ -66,12 +66,16 @@ class SearchCubit extends Cubit<SearchState> {
     _debounce = Timer(_typingPause, search);
   }
 
-  void sortBy(SearchSort sort) => emit(state.copyWith(sort: sort));
+  void sortBy(SearchSort sort) =>
+      emit(state.copyWith(filters: state.filters.copyWith(sort: sort)));
 
-  void toggleEv() => emit(state.copyWith(evOnly: !state.evOnly));
+  /// A quick chip under the search box.
+  void toggleAmenity(Amenity amenity) =>
+      emit(state.copyWith(filters: state.filters.toggle(amenity)));
 
-  void toggleCovered() =>
-      emit(state.copyWith(coveredOnly: !state.coveredOnly));
+  /// Everything chosen in the Filters sheet at once.
+  void applyFilters(SearchFilters filters) =>
+      emit(state.copyWith(filters: filters));
 
   @override
   Future<void> close() {
