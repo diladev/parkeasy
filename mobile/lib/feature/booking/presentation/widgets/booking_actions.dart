@@ -84,7 +84,7 @@ class BookingActionButtons extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _ActionButton(
+          child: BookingActionButton(
             icon: LucideIcons.clock9,
             label: 'Extend',
             background: AppColors.teal,
@@ -96,7 +96,7 @@ class BookingActionButtons extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: _ActionButton(
+          child: BookingActionButton(
             icon: LucideIcons.navigation,
             label: 'Directions',
             background: palette.surface,
@@ -110,8 +110,10 @@ class BookingActionButtons extends StatelessWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
+/// A half-width button with a small icon: teal, or outlined with [border].
+class BookingActionButton extends StatelessWidget {
+  const BookingActionButton({
+    super.key,
     required this.icon,
     required this.label,
     required this.background,

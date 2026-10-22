@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -14,7 +15,7 @@ import 'package:mobile/feature/booking/presentation/widgets/booking_status_banne
 import 'package:mobile/feature/booking/presentation/widgets/cancel_booking_sheet.dart';
 
 /// One booking: its status, details, and (while active) the gate code,
-/// Extend, Directions and Cancel.
+/// Extend, Directions and Cancel; once it's over, its receipt.
 class BookingDetailScreen extends StatelessWidget {
   const BookingDetailScreen({super.key, required this.bookingId});
 
@@ -121,6 +122,14 @@ class _BookingDetails extends StatelessWidget {
             const SizedBox(height: 12),
             CancelBookingButton(
               onTap: () => showCancelBookingSheet(context, booking),
+            ),
+          ] else ...[
+            const SizedBox(height: 14),
+            AppOutlinedButton(
+              label: 'View receipt',
+              icon: LucideIcons.receipt,
+              height: 46,
+              onTap: () => AppRouter.toBookingReceipt(context, booking.id),
             ),
           ],
         ],

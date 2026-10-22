@@ -1,6 +1,7 @@
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_page.dart';
+import 'package:mobile/feature/booking/domain/entities/booking_receipt.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
 abstract class BookingRepository {
@@ -27,4 +28,7 @@ abstract class BookingRepository {
 
   /// Cancels an active booking; returns the amount refunded to the wallet.
   ResultFuture<int> cancelBooking(int bookingId);
+
+  /// What the booking cost: charged, refunded and the total.
+  ResultFuture<BookingReceipt> getReceipt(int bookingId);
 }

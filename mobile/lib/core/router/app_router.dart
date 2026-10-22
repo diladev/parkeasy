@@ -11,6 +11,7 @@ import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/booking/domain/entities/cancellation.dart';
 import 'package:mobile/feature/booking/presentation/screens/booking_confirmation_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/booking_detail_screen.dart';
+import 'package:mobile/feature/booking/presentation/screens/booking_receipt_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/cancellation_success_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/extend_booking_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
@@ -142,6 +143,9 @@ class AppRouter {
       case bookingDetail:
         final bookingId = int.parse(settings.arguments as String);
         return _route(BookingDetailScreen(bookingId: bookingId), settings);
+      case bookingReceipt:
+        final bookingId = settings.arguments as int;
+        return _route(BookingReceiptScreen(bookingId: bookingId), settings);
       case extendParking:
         final booking = settings.arguments as Booking;
         return _route(ExtendBookingScreen(booking: booking), settings);
@@ -275,6 +279,9 @@ class AppRouter {
   /// Completes when the user comes back, so the caller can reload.
   static Future<void> toBookingDetail(BuildContext context, String bookingId) =>
       Navigator.pushNamed(context, bookingDetail, arguments: bookingId);
+
+  static void toBookingReceipt(BuildContext context, int bookingId) =>
+      Navigator.pushNamed(context, bookingReceipt, arguments: bookingId);
 
   static Future<void> toExtendParking(BuildContext context, Booking booking) =>
       Navigator.pushNamed(context, extendParking, arguments: booking);

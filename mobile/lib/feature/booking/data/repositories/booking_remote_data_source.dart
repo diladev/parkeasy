@@ -2,6 +2,7 @@ import 'package:mobile/core/constants/end_points.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/booking/data/models/booking_model.dart';
+import 'package:mobile/feature/booking/data/models/booking_receipt_model.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_page.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
@@ -25,6 +26,8 @@ abstract class BookingRemoteDataSource {
   });
 
   Future<int> cancelBooking(int bookingId);
+
+  Future<BookingReceiptModel> getReceipt(int bookingId);
 }
 
 class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
@@ -111,5 +114,11 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final response = await _api.patch('$kBookings/$bookingId/cancel');
     // { message, refund }
     return (response.map['refund'] as num? ?? 0).round();
+  }
+
+  @override
+  Future<BookingReceiptModel> getReceipt(int bookingId) async {
+    final response = await _api.get('$kBookings/$bookingId/receipt');
+    return BookingReceiptModel.fromMap(response.map);
   }
 }
