@@ -12,6 +12,16 @@ import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { Wallet } from './entities/wallet.entity';
 import { WalletTransaction, WalletTransactionCategory } from './entities/wallet-transaction.entity';
 
+/** What a booking cost the wallet, from its recorded transactions. */
+export interface BookingCharges {
+  /** Every payment for it: the booking and any extensions. */
+  charged: number;
+  /** Every refund for it. */
+  refunded: number;
+  /** When it was first paid; null if it never was. */
+  firstChargedAt: Date | null;
+}
+
 @Injectable()
 export class WalletService {
   private readonly transactionPagination = new ModelPagination(WalletTransaction, '/wallet/transactions');
@@ -89,8 +99,28 @@ export class WalletService {
 
   /** How much of a booking was paid from the wallet (payments minus refunds so far). */
   async netPaidForBooking(bookingId: number, transaction?: Transaction): Promise<number> {
-    const rows = await this.transactionModel.findAll({ where: { booking_id: bookingId }, transaction });
-    return rows.reduce((sum, row) => sum + (row.type === 'debit' ? row.amount : -row.amount), 0);
+    const { charged, refunded } = await this.bookingCharges(bookingId, transaction);
+    return charged - refunded;
+  }
+
+  /** Every payment and refund recorded for a booking, added up. */
+  async bookingCharges(bookingId: number, transaction?: Transaction): Promise<BookingCharges> {
+    const rows = await this.transactionModel.findAll({
+      where: { booking_id: bookingId },
+      order: [
+        ['createdAt', 'ASC'],
+        ['id', 'ASC'],
+      ],
+      transaction,
+    });
+    const total = (type: 'credit' | 'debit') =>
+      rows.filter((row) => row.type === type).reduce((sum, row) => sum + row.amount, 0);
+
+    return {
+      charged: total('debit'),
+      refunded: total('credit'),
+      firstChargedAt: (rows.find((row) => row.type === 'debit')?.createdAt as Date | undefined) ?? null,
+    };
   }
 
   async getTransactions(userId: number, query: PaginationQueryDto) {

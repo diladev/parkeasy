@@ -39,6 +39,12 @@ export class BookingController {
     return this.bookingService.findUserBooking(user.id, id);
   }
 
+  /** What the booking cost: what was charged and refunded, from the wallet's records. */
+  @Get(':id/receipt')
+  getReceipt(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+    return this.bookingService.getReceipt(user.id, id);
+  }
+
   @Patch(':id/extend')
   extend(
     @CurrentUser() user: AuthenticatedUser,

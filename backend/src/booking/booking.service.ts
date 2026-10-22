@@ -34,6 +34,23 @@ const FREE_CANCELLATION_MINUTES = 10;
 const EXPIRY_SWEEP_INTERVAL_MS = 60 * 1000;
 
 /** Booking details shown in the app. paranoid: false keeps showing a vehicle that was deleted later. */
+/** "PE-000123": a booking's receipt number. */
+export const receiptNumber = (bookingId: number) => `PE-${String(bookingId).padStart(6, '0')}`;
+
+/** A booking's receipt, in whole Iraqi dinars. */
+export interface BookingReceipt {
+  receipt_number: string;
+  /** When it was paid (or booked, if it was never charged). */
+  issued_at: Date;
+  payment_method: Booking['payment_method'];
+  /** Everything charged: the booking and its extensions. */
+  subtotal: number;
+  refunded: number;
+  /** What it cost in the end: subtotal minus refunds. */
+  total: number;
+  booking: Booking;
+}
+
 const BOOKING_DETAILS: Includeable[] = [
   { model: ParkingLot, paranoid: false },
   { model: ParkingSlot, paranoid: false },
@@ -205,6 +222,28 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       throw new NotFoundException(this.t('BOOKING_NOT_FOUND'));
     }
     return booking;
+  }
+
+  /**
+   * The receipt for one of the user's bookings. It's built from the wallet's
+   * records, not recalculated from the booking, so it always matches the
+   * money that actually moved.
+   */
+  async getReceipt(userId: number, bookingId: number): Promise<BookingReceipt> {
+    const booking = await this.findUserBooking(userId, bookingId);
+    const charges = await this.walletService.bookingCharges(booking.id);
+    // Older demo bookings marked "card" have no wallet records: their price is what was booked.
+    const subtotal = booking.payment_method === 'wallet' ? charges.charged : booking.total_cost;
+
+    return {
+      receipt_number: receiptNumber(booking.id),
+      issued_at: charges.firstChargedAt ?? (booking.createdAt as Date),
+      payment_method: booking.payment_method,
+      subtotal,
+      refunded: charges.refunded,
+      total: subtotal - charges.refunded,
+      booking,
+    };
   }
 
   /** Adds hours at the price the booking was made with. */
