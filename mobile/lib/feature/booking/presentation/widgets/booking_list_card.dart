@@ -7,7 +7,11 @@ import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 /// A booking in My bookings: lot, address, status, slot and price.
 /// Bookings that ended are dimmed.
 class BookingListCard extends StatelessWidget {
-  const BookingListCard({super.key, required this.booking, required this.onTap});
+  const BookingListCard({
+    super.key,
+    required this.booking,
+    required this.onTap,
+  });
 
   final Booking booking;
   final VoidCallback onTap;
@@ -116,20 +120,18 @@ class BookingListCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  SizedBox(
-                    width: 60,
-                    child: Text(
-                      booking.isActive
-                          ? '${Formatters.money(booking.pricePerHour)}/hr'
-                          : Formatters.money(booking.totalCost),
-                      maxLines: 1,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: booking.isActive
-                            ? AppColors.tealLight
-                            : palette.textPrimary,
-                      ),
+                  Text(
+                    booking.isActive
+                        ? '${Formatters.money(booking.pricePerHour)}/hr'
+                        : Formatters.money(booking.totalCost),
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: booking.isActive
+                          ? AppColors.tealLight
+                          : palette.textPrimary,
                     ),
                   ),
                 ],

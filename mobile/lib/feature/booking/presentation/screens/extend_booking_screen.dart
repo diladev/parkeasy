@@ -327,13 +327,15 @@ class _NewEndCard extends StatelessWidget {
     final palette = context.palette;
 
     Widget column(String label, String value, Color color) => Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: TextStyle(fontSize: 10, color: palette.textHint)),
         const SizedBox(height: 6),
         Text(
           value,
+          maxLines: 1,
+          softWrap: false,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -344,14 +346,13 @@ class _NewEndCard extends StatelessWidget {
     );
 
     return _Card(
-      height: 64,
+      // Content-sized, so long amounts and larger text sizes still fit.
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(
         children: [
           Expanded(child: column('New end time', newEnd, AppColors.tealLight)),
-          SizedBox(
-            width: 76,
-            child: column('Extra charge', charge, palette.textPrimary),
-          ),
+          const SizedBox(width: 12),
+          column('Extra charge', charge, palette.textPrimary),
         ],
       ),
     );
