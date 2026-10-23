@@ -32,3 +32,4 @@ const kMockBank = '$kbaseUrl/payments/mock';
 
 const kNotifications = '$kbaseUrl/notifications';
 const kUnreadNotifications = '$kNotifications/unread-count';
+const kNotificationSettings = '$kNotifications/settings';

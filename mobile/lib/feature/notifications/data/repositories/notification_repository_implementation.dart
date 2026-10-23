@@ -5,6 +5,7 @@ import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/notifications/data/repositories/notification_remote_data_source.dart';
 import 'package:mobile/feature/notifications/domain/entities/app_notification.dart';
 import 'package:mobile/feature/notifications/domain/entities/notification_page.dart';
+import 'package:mobile/feature/notifications/domain/entities/notification_settings.dart';
 import 'package:mobile/feature/notifications/domain/repositories/notification_repository.dart';
 
 class NotificationRepositoryImpl implements NotificationRepository {
@@ -30,6 +31,19 @@ class NotificationRepositoryImpl implements NotificationRepository {
   @override
   ResultVoid markAllAsRead() {
     return _guard(_remoteDataSource.markAllAsRead);
+  }
+
+  @override
+  ResultFuture<NotificationSettings> getSettings() {
+    return _guard(_remoteDataSource.getSettings);
+  }
+
+  @override
+  ResultFuture<NotificationSettings> updateSetting(
+    NotificationSetting setting,
+    bool value,
+  ) {
+    return _guard(() => _remoteDataSource.updateSetting(setting, value));
   }
 
   ResultFuture<T> _guard<T>(Future<T> Function() action) async {

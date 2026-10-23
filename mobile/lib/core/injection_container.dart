@@ -49,9 +49,12 @@ import 'package:mobile/feature/home/presentation/cubit/home_cubit.dart';
 import 'package:mobile/feature/notifications/data/repositories/notification_remote_data_source.dart';
 import 'package:mobile/feature/notifications/data/repositories/notification_repository_implementation.dart';
 import 'package:mobile/feature/notifications/domain/repositories/notification_repository.dart';
+import 'package:mobile/feature/notifications/domain/usecases/get_notification_settings.dart';
 import 'package:mobile/feature/notifications/domain/usecases/get_notifications.dart';
+import 'package:mobile/feature/notifications/domain/usecases/update_notification_setting.dart';
 import 'package:mobile/feature/notifications/domain/usecases/mark_all_notifications_read.dart';
 import 'package:mobile/feature/notifications/domain/usecases/mark_notification_read.dart';
+import 'package:mobile/feature/notifications/presentation/cubit/notification_settings_cubit.dart';
 import 'package:mobile/feature/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:mobile/feature/parking/data/repositories/parking_remote_data_source.dart';
 import 'package:mobile/feature/parking/data/repositories/parking_repository_implementation.dart';
@@ -199,6 +202,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetNotifications(sl()));
   sl.registerLazySingleton(() => MarkNotificationRead(sl()));
   sl.registerLazySingleton(() => MarkAllNotificationsRead(sl()));
+  sl.registerLazySingleton(() => GetNotificationSettings(sl()));
+  sl.registerLazySingleton(() => UpdateNotificationSetting(sl()));
 
   // Use cases: booking
   sl.registerLazySingleton(() => GetWalletBalance(sl()));
@@ -241,6 +246,7 @@ Future<void> init() async {
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
   sl.registerFactory(() => ParkingDetailsCubit(sl()));
   sl.registerFactory(() => NotificationsCubit(sl(), sl(), sl()));
+  sl.registerFactory(() => NotificationSettingsCubit(sl(), sl()));
   // The text typed on Home, passed as param1.
   sl.registerFactoryParam<SearchCubit, String, void>(
     (query, _) => SearchCubit(sl(), initialQuery: query),

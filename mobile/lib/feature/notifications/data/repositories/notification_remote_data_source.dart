@@ -2,8 +2,10 @@ import 'package:mobile/core/constants/end_points.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/notifications/data/models/app_notification_model.dart';
+import 'package:mobile/feature/notifications/data/models/notification_settings_model.dart';
 import 'package:mobile/feature/notifications/domain/entities/app_notification.dart';
 import 'package:mobile/feature/notifications/domain/entities/notification_page.dart';
+import 'package:mobile/feature/notifications/domain/entities/notification_settings.dart';
 
 abstract class NotificationRemoteDataSource {
   Future<NotificationPage> getNotifications({
@@ -14,6 +16,13 @@ abstract class NotificationRemoteDataSource {
   Future<void> markAsRead(int notificationId);
 
   Future<void> markAllAsRead();
+
+  Future<NotificationSettingsModel> getSettings();
+
+  Future<NotificationSettingsModel> updateSetting(
+    NotificationSetting setting,
+    bool value,
+  );
 }
 
 class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
@@ -57,5 +66,23 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   @override
   Future<void> markAllAsRead() async {
     await _api.patch('$kNotifications/mark-all-read');
+  }
+
+  @override
+  Future<NotificationSettingsModel> getSettings() async {
+    final response = await _api.get(kNotificationSettings);
+    return NotificationSettingsModel.fromMap(response.map);
+  }
+
+  @override
+  Future<NotificationSettingsModel> updateSetting(
+    NotificationSetting setting,
+    bool value,
+  ) async {
+    final response = await _api.patch(
+      kNotificationSettings,
+      body: {setting.apiKey: value},
+    );
+    return NotificationSettingsModel.fromMap(response.map);
   }
 }

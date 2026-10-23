@@ -16,6 +16,7 @@ import 'package:mobile/feature/booking/presentation/screens/cancellation_success
 import 'package:mobile/feature/booking/presentation/screens/extend_booking_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
+import 'package:mobile/feature/notifications/presentation/screens/notification_settings_screen.dart';
 import 'package:mobile/feature/notifications/presentation/screens/notifications_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/search_screen.dart';
@@ -28,7 +29,6 @@ import 'package:mobile/feature/profile/presentation/screens/profile_screen.dart'
 import 'package:mobile/feature/profile/presentation/screens/vehicle_form_screen.dart';
 import 'package:mobile/feature/shell/main_shell.dart';
 import 'package:mobile/feature/stub/stub_screen.dart';
-import 'package:mobile/feature/support/presentation/screens/help_support_screen.dart';
 import 'package:mobile/feature/wallet/domain/entities/top_up.dart';
 import 'package:mobile/feature/wallet/presentation/screens/top_up_payment_screen.dart';
 import 'package:mobile/feature/wallet/presentation/screens/wallet_screen.dart';
@@ -117,6 +117,8 @@ class AppRouter {
       // Notifications
       case notificationsInbox:
         return _route(const NotificationsScreen(), settings);
+      case notificationSettings:
+        return _route(const NotificationSettingsScreen(), settings);
 
       // Parking
       case searchResults:
@@ -166,8 +168,6 @@ class AppRouter {
         return _route(const ChangePasswordScreen(), settings);
       case deleteAccount:
         return _route(const DeleteAccountScreen(), settings);
-      case helpSupport:
-        return _route(const HelpSupportScreen(), settings);
       case myVehicles:
         return _route(const MyVehiclesScreen(), settings);
       case vehicleForm:

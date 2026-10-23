@@ -146,6 +146,11 @@ class _EventLook {
       AppColors.tealBg,
       AppColors.teal,
     ),
+    'BOOKING_ENDING_SOON' => const _EventLook(
+      LucideIcons.hourglass,
+      AppColors.amber15,
+      AppColors.amber,
+    ),
     'BOOKING_COMPLETED' => const _EventLook(
       LucideIcons.receipt,
       AppColors.tealBg,

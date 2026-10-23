@@ -129,7 +129,7 @@ class ProfileScreen extends StatelessWidget {
                       iconColor: AppColors.amber,
                       iconBg: AppColors.amber12,
                       showDivider: false,
-                      onTap: () => AppRouter.toNotificationsInbox(context),
+                      onTap: () => AppRouter.toNotificationSettings(context),
                     ),
                   ],
                 ),
