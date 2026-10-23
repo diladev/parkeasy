@@ -7,6 +7,10 @@
         "TITLE": "Booking extended",
         "BODY": "Your booking at {lot} was extended by {hours} hour(s)."
     },
+    "BOOKING_ENDING_SOON": {
+        "TITLE": "Parking ends soon",
+        "BODY": "Your parking at {lot} ends in {minutes} min. Extend it from the booking if you need more time."
+    },
     "BOOKING_CANCELLED": {
         "TITLE": "Booking cancelled",
         "BODY": "Your booking at {lot} was cancelled. Refunded to your wallet: {refund}."

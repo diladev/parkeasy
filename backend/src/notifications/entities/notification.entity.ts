@@ -9,6 +9,7 @@ export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export const NOTIFICATION_EVENTS = {
   BOOKING_CONFIRMED: 'booking',
   BOOKING_EXTENDED: 'booking',
+  BOOKING_ENDING_SOON: 'booking',
   BOOKING_CANCELLED: 'booking',
   BOOKING_COMPLETED: 'booking',
   WALLET_TOPPED_UP: 'wallet',

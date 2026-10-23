@@ -12,6 +12,8 @@ import { Includeable, Op, Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
 import { formatDinars } from 'src/common/money';
+import { MailService } from 'src/mail/mail.service';
+import { NotificationSettingsService } from 'src/notifications/notification-settings.service';
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
@@ -20,18 +22,24 @@ import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
 import { isOpenDuring } from 'src/parking/opening-hours';
 import { ParkingService } from 'src/parking/parking.service';
+import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
 import { UsersService } from 'src/users/users.service';
 import { WalletService } from 'src/wallet/wallet.service';
 import { BookingQueryDto, CreateBookingDto, ExtendBookingDto } from './dto';
 import { MAX_BOOKING_HOURS } from './dto/create-booking.dto';
 import { Booking } from './entities/booking.entity';
+import { BookingEndingAlert } from './entities/booking-ending-alert.entity';
 
 const HOUR_MS = 60 * 60 * 1000;
 /** Cancelling within this many minutes of the start refunds everything. */
 const FREE_CANCELLATION_MINUTES = 10;
 /** How often finished bookings are closed and their slots freed. */
 const EXPIRY_SWEEP_INTERVAL_MS = 60 * 1000;
+/** How long before the end the "ends soon" notice is sent. */
+const ENDING_SOON_MINUTES = 15;
+/** Times in receipt emails are local: Iraq has one time zone and no daylight saving. */
+const RECEIPT_TIME_ZONE = 'Asia/Baghdad';
 
 /** Booking details shown in the app. paranoid: false keeps showing a vehicle that was deleted later. */
 /** "PE-000123": a booking's receipt number. */
@@ -65,11 +73,14 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @InjectModel(Booking) private readonly bookingModel: typeof Booking,
+    @InjectModel(BookingEndingAlert) private readonly endingAlertModel: typeof BookingEndingAlert,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly parkingService: ParkingService,
     private readonly walletService: WalletService,
     private readonly usersService: UsersService,
     private readonly notificationsService: NotificationsService,
+    private readonly notificationSettings: NotificationSettingsService,
+    private readonly mailService: MailService,
     private readonly translationService: TranslationService,
   ) { }
 
@@ -83,6 +94,9 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     this.sweepTimer = setInterval(() => {
       this.completeExpiredBookings().catch((error: unknown) =>
         this.logger.error('Closing finished bookings failed', error instanceof Error ? error.stack : String(error)),
+      );
+      this.sendEndingSoonAlerts().catch((error: unknown) =>
+        this.logger.error('Sending "ends soon" notices failed', error instanceof Error ? error.stack : String(error)),
       );
     }, EXPIRY_SWEEP_INTERVAL_MS);
     // Don't keep the process alive just for this timer.
@@ -125,7 +139,91 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
           transaction,
         );
       });
+
+      // After the commit, and not awaited: a slow mail server must not hold
+      // up the request that happened to close the booking.
+      if (await this.bookingWasCompleted(booking.id)) {
+        this.emailReceipt(booking.id).catch((error: unknown) =>
+          this.logger.error('Emailing a receipt failed', error instanceof Error ? error.stack : String(error)),
+        );
+      }
     }
+  }
+
+  private async bookingWasCompleted(bookingId: number): Promise<boolean> {
+    return (await this.bookingModel.count({ where: { id: bookingId, status: 'completed' } })) > 0;
+  }
+
+  /**
+   * "Your parking ends in N min" for active bookings close to their end, once
+   * per end time (an extension gets a new notice), if the user wants them.
+   */
+  async sendEndingSoonAlerts(now: Date = new Date()): Promise<void> {
+    const soon = await this.bookingModel.findAll({
+      where: {
+        status: 'active',
+        end_time: { [Op.gt]: now, [Op.lte]: new Date(now.getTime() + ENDING_SOON_MINUTES * 60_000) },
+      },
+      include: [{ model: ParkingLot, attributes: ['name'], paranoid: false }],
+    });
+
+    for (const booking of soon) {
+      if (!(await this.notificationSettings.isEnabled(booking.user_id, 'expiry_alerts'))) continue;
+
+      await this.sequelize.transaction(async (transaction) => {
+        const alert = await this.endingAlertModel.findOne({
+          where: { booking_id: booking.id },
+          transaction,
+          lock: Transaction.LOCK.UPDATE,
+        });
+        if (alert?.end_time.getTime() === booking.end_time.getTime()) return;
+
+        if (alert) {
+          await alert.update({ end_time: booking.end_time }, { transaction });
+        } else {
+          await this.endingAlertModel.create({ booking_id: booking.id, end_time: booking.end_time }, { transaction });
+        }
+        const minutes = Math.max(1, Math.ceil((booking.end_time.getTime() - now.getTime()) / 60_000));
+        await this.notificationsService.notify(
+          booking.user_id,
+          'BOOKING_ENDING_SOON',
+          { lot: booking.parking_lot?.name ?? '', minutes },
+          transaction,
+        );
+      });
+    }
+  }
+
+  /** Emails a finished booking's receipt, if the user wants receipt emails. */
+  private async emailReceipt(bookingId: number): Promise<void> {
+    const booking = await this.bookingModel.findByPk(bookingId, {
+      include: [...BOOKING_DETAILS, { model: User, attributes: ['name', 'email'] }],
+    });
+    if (!booking?.user) return;
+    if (!(await this.notificationSettings.isEnabled(booking.user_id, 'booking_receipt_emails'))) return;
+
+    const receipt = await this.buildReceipt(booking);
+    const time = (date: Date) =>
+      date.toLocaleString('en-GB', {
+        timeZone: RECEIPT_TIME_ZONE,
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+
+    await this.mailService.sendBookingReceipt(booking.user.email, booking.user.name, {
+      receiptNumber: receipt.receipt_number,
+      lot: booking.parking_lot?.name ?? '',
+      slot: [booking.parking_slot?.slot_number, booking.parking_slot?.level].filter(Boolean).join(' · '),
+      entry: time(booking.start_time),
+      exit: time(booking.end_time),
+      subtotal: formatDinars(receipt.subtotal),
+      refunded: receipt.refunded > 0 ? formatDinars(receipt.refunded) : null,
+      total: formatDinars(receipt.total),
+      paidWith: receipt.payment_method,
+    });
   }
 
   // ------------------------------------------------------------- bookings
@@ -230,7 +328,10 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
    * money that actually moved.
    */
   async getReceipt(userId: number, bookingId: number): Promise<BookingReceipt> {
-    const booking = await this.findUserBooking(userId, bookingId);
+    return this.buildReceipt(await this.findUserBooking(userId, bookingId));
+  }
+
+  private async buildReceipt(booking: Booking): Promise<BookingReceipt> {
     const charges = await this.walletService.bookingCharges(booking.id);
     // Older demo bookings marked "card" have no wallet records: their price is what was booked.
     const subtotal = booking.payment_method === 'wallet' ? charges.charged : booking.total_cost;

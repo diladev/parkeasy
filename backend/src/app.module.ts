@@ -23,7 +23,9 @@ import { ParkingSlot } from './parking/entities/parking-slot.entity';
 import { Wallet } from './wallet/entities/wallet.entity';
 import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
 import { Booking } from './booking/entities/booking.entity';
+import { BookingEndingAlert } from './booking/entities/booking-ending-alert.entity';
 import { Notification } from './notifications/entities/notification.entity';
+import { NotificationSettings } from './notifications/entities/notification-settings.entity';
 import { Payment } from './payments/entities/payment.entity';
 
 @Module({
@@ -85,7 +87,9 @@ import { Payment } from './payments/entities/payment.entity';
             WalletTransaction,
             Booking,
             Notification,
+            NotificationSettings,
             Payment,
+            BookingEndingAlert,
           ],
           autoLoadModels: true,
           synchronize: true,

@@ -1,3 +1,5 @@
+import { escapeHtml } from './escape-html';
+
 export interface PasswordResetEmailContent {
     lang: string;
     direction: 'ltr' | 'rtl';
@@ -9,13 +11,6 @@ export interface PasswordResetEmailContent {
     ignore: string;
 }
 
-const escapeHtml = (value: string) =>
-    value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
 
 /**
  * HTML for the password-reset email. Built in code instead of a .hbs file, so

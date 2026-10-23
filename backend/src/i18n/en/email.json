@@ -4,5 +4,20 @@
     "GREETING": "Hi {name},",
     "RESET_INTRO": "Use this code to reset your ParkEasy password:",
     "RESET_EXPIRY": "The code expires in {minutes} minutes. Don't share it with anyone.",
-    "RESET_IGNORE": "If you didn't ask to reset your password, you can ignore this email."
+    "RESET_IGNORE": "If you didn't ask to reset your password, you can ignore this email.",
+    "RECEIPT_SUBJECT": "Your ParkEasy receipt {number}",
+    "RECEIPT_TITLE": "Your parking receipt",
+    "RECEIPT_INTRO": "Your parking at {lot} has ended. Here's what it cost.",
+    "RECEIPT_NUMBER": "Receipt {number}",
+    "RECEIPT_LOT": "Location",
+    "RECEIPT_SLOT": "Slot",
+    "RECEIPT_ENTRY": "Entry",
+    "RECEIPT_EXIT": "Exit",
+    "RECEIPT_SUBTOTAL": "Subtotal",
+    "RECEIPT_REFUNDED": "Refunded",
+    "RECEIPT_TOTAL": "Total",
+    "RECEIPT_PAID_WITH": "Paid with",
+    "PAID_WITH_WALLET": "ParkEasy Wallet",
+    "PAID_WITH_CARD": "Card",
+    "RECEIPT_FOOTER": "You can turn off receipt emails in the app: Profile > Notifications."
 }

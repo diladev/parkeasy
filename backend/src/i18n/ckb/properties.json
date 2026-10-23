@@ -42,5 +42,11 @@
     "vehicle_id": "ئۆتۆمبێل",
     "duration_hours": "ماوە (کاتژمێر)",
     "payment_method": "شێوازی پارەدان",
-    "extra_hours": "کاتژمێری زیادە"
+    "extra_hours": "کاتژمێری زیادە",
+    "booking_reminders": "بیرخستنەوەی حیجز",
+    "expiry_alerts": "ئاگادارکردنەوەی تەواوبوونی کات",
+    "offers": "داشکاندن و پێشکەشکراوەکان",
+    "loyalty_rewards": "خەڵاتی دڵسۆزی",
+    "booking_receipt_emails": "پسوولەی حیجز",
+    "newsletter": "هەواڵنامە"
 }

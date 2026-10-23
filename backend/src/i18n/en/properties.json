@@ -42,5 +42,11 @@
     "vehicle_id": "Vehicle",
     "duration_hours": "Duration (hours)",
     "payment_method": "Payment method",
-    "extra_hours": "Extra hours"
+    "extra_hours": "Extra hours",
+    "booking_reminders": "Booking reminders",
+    "expiry_alerts": "Expiry alerts",
+    "offers": "Offers & promotions",
+    "loyalty_rewards": "Loyalty rewards",
+    "booking_receipt_emails": "Booking receipts",
+    "newsletter": "Newsletter"
 }

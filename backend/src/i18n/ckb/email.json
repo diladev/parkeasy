@@ -4,5 +4,20 @@
     "GREETING": "سڵاو {name}،",
     "RESET_INTRO": "ئەم کۆدە بەکاربهێنە بۆ گۆڕینی وشەی نهێنیی هەژمارەکەت لە ParkEasy:",
     "RESET_EXPIRY": "کۆدەکە دوای {minutes} خولەک بەسەردەچێت. بە هیچ کەسێکی مەدە.",
-    "RESET_IGNORE": "ئەگەر تۆ داوای گۆڕینی وشەی نهێنیت نەکردووە، دەتوانیت ئەم ئیمەیڵە پشتگوێ بخەیت."
+    "RESET_IGNORE": "ئەگەر تۆ داوای گۆڕینی وشەی نهێنیت نەکردووە، دەتوانیت ئەم ئیمەیڵە پشتگوێ بخەیت.",
+    "RECEIPT_SUBJECT": "پسوولەی ParkEasy {number}",
+    "RECEIPT_TITLE": "پسوولەی وەستانەکەت",
+    "RECEIPT_INTRO": "کاتی وەستانەکەت لە {lot} کۆتایی هات. ئەمە تێچووەکەیەتی.",
+    "RECEIPT_NUMBER": "پسوولەی {number}",
+    "RECEIPT_LOT": "شوێن",
+    "RECEIPT_SLOT": "شوێنی وەستان",
+    "RECEIPT_ENTRY": "هاتنەژوورەوە",
+    "RECEIPT_EXIT": "چوونەدەرەوە",
+    "RECEIPT_SUBTOTAL": "کۆی سەرەتایی",
+    "RECEIPT_REFUNDED": "گەڕێنراوە",
+    "RECEIPT_TOTAL": "کۆی گشتی",
+    "RECEIPT_PAID_WITH": "پارەدان بە",
+    "PAID_WITH_WALLET": "جزدانی ParkEasy",
+    "PAID_WITH_CARD": "کارت",
+    "RECEIPT_FOOTER": "دەتوانیت ئیمەیڵی پسوولە لە ئەپەکەدا بکوژێنیتەوە: پرۆفایل > ئاگادارکردنەوەکان."
 }

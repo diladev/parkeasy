@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -13,6 +14,8 @@ import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guar
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import { NotificationQueryDto } from './dto/notification-query.dto';
+import { UpdateNotificationSettingsDto } from './dto/update-notification-settings.dto';
+import { NotificationSettingsService } from './notification-settings.service';
 import { NotificationsService } from './notifications.service';
 
 @ApiTags('Notifications')
@@ -20,7 +23,10 @@ import { NotificationsService } from './notifications.service';
 @UseGuards(UserAccessTokenAuthGuard)
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) { }
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly settingsService: NotificationSettingsService,
+  ) { }
 
   @Get()
   getAll(@CurrentUser() user: AuthenticatedUser, @Query() query: NotificationQueryDto) {
@@ -31,6 +37,17 @@ export class NotificationsController {
   @Get('unread-count')
   countUnread(@CurrentUser() user: AuthenticatedUser) {
     return this.notificationsService.countUnread(user.id);
+  }
+
+  /** The switches on the app's Notifications screen. */
+  @Get('settings')
+  getSettings(@CurrentUser() user: AuthenticatedUser) {
+    return this.settingsService.get(user.id);
+  }
+
+  @Patch('settings')
+  updateSettings(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateNotificationSettingsDto) {
+    return this.settingsService.update(user.id, dto);
   }
 
   @Patch('mark-all-read')

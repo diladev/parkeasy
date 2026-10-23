@@ -3,7 +3,22 @@ import { ConfigService } from '@nestjs/config';
 import { MailerService } from '@nestjs-modules/mailer';
 
 import { TranslationService } from 'src/i18n/translation.service';
+import { BookingReceiptEmailContent, renderBookingReceiptEmail } from './templates/booking-receipt.email';
 import { renderPasswordResetEmail } from './templates/password-reset.email';
+
+/** The receipt's facts; MailService adds the translated labels. */
+export interface BookingReceiptEmail {
+    receiptNumber: string;
+    lot: string;
+    slot: string;
+    entry: string;
+    exit: string;
+    subtotal: string;
+    /** Only shown when something was refunded. */
+    refunded: string | null;
+    total: string;
+    paidWith: 'wallet' | 'card';
+}
 
 export interface SmtpSettings {
     host: string;
@@ -71,5 +86,56 @@ export class MailService {
                 ignore: t('RESET_IGNORE'),
             }),
         });
+    }
+
+    /**
+     * Sends a finished booking's receipt. It's usually sent by the background
+     * job, outside any request, so in the default language. Never throws:
+     * a receipt that can't be sent is logged, and the booking is unaffected.
+     */
+    async sendBookingReceipt(to: string, name: string, receipt: BookingReceiptEmail): Promise<void> {
+        const t = (key: string, args?: Record<string, unknown>) =>
+            this.translationService.translate(`email.${key}`, { args });
+
+        if (!this.isConfigured) {
+            this.logger.warn(
+                `SMTP not configured. Receipt ${receipt.receiptNumber} for ${to}: total ${receipt.total}`,
+            );
+            return;
+        }
+
+        const lang = this.translationService.lang;
+        const rows: BookingReceiptEmailContent['rows'] = [
+            [t('RECEIPT_LOT'), receipt.lot],
+            [t('RECEIPT_SLOT'), receipt.slot],
+            [t('RECEIPT_ENTRY'), receipt.entry],
+            [t('RECEIPT_EXIT'), receipt.exit],
+            [t('RECEIPT_SUBTOTAL'), receipt.subtotal],
+            ...(receipt.refunded ? [[t('RECEIPT_REFUNDED'), receipt.refunded] as [string, string]] : []),
+            [t('RECEIPT_TOTAL'), receipt.total],
+            [t('RECEIPT_PAID_WITH'), t(receipt.paidWith === 'wallet' ? 'PAID_WITH_WALLET' : 'PAID_WITH_CARD')],
+        ];
+
+        try {
+            await this.mailer.sendMail({
+                to,
+                subject: t('RECEIPT_SUBJECT', { number: receipt.receiptNumber }),
+                html: renderBookingReceiptEmail({
+                    lang,
+                    direction: lang === 'ckb' ? 'rtl' : 'ltr',
+                    title: t('RECEIPT_TITLE'),
+                    greeting: t('GREETING', { name }),
+                    intro: t('RECEIPT_INTRO', { lot: receipt.lot }),
+                    number: t('RECEIPT_NUMBER', { number: receipt.receiptNumber }),
+                    rows,
+                    footer: t('RECEIPT_FOOTER'),
+                }),
+            });
+        } catch (error) {
+            this.logger.error(
+                `Receipt ${receipt.receiptNumber} could not be sent`,
+                error instanceof Error ? error.stack : String(error),
+            );
+        }
     }
 }
