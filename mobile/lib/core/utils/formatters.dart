@@ -88,6 +88,16 @@ class Formatters {
     return amount < 0 ? '-$grouped' : grouped;
   }
 
+  /// "≈ 350 m", "≈ 2.4 km", "≈ 12 km": a straight-line distance, so never
+  /// shown as exact or as a drive.
+  static String approxDistance(double km) {
+    if (km < 1) {
+      final metres = ((km * 1000) / 50).round() * 50;
+      return '≈ ${metres < 50 ? 50 : metres} m';
+    }
+    return '≈ ${distance(km)}';
+  }
+
   /// "0.3 km", "4.8 km", "12 km".
   static String distance(double km) =>
       km < 10 ? '${km.toStringAsFixed(1)} km' : '${km.round()} km';

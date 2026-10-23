@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/injection_container.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
+import 'package:mobile/feature/location/domain/repositories/location_repository.dart';
 
 class LocationPermissionScreen extends StatelessWidget {
   const LocationPermissionScreen({super.key});
+
+  /// Shows the system prompt, then goes on whatever the answer: the app
+  /// works without location (the map then opens on central Sulaymaniyah).
+  Future<void> _allow(BuildContext context) async {
+    await sl<LocationRepository>().requestPermission();
+    if (context.mounted) AppRouter.toHome(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +98,7 @@ class LocationPermissionScreen extends StatelessWidget {
               const Spacer(),
               AppButton(
                 label: 'Allow location access',
-                onTap: () {
-                  // TODO: Request actual location permission via permission_handler
-                  AppRouter.toHome(context);
-                },
+                onTap: () => _allow(context),
               ),
               const SizedBox(height: 16),
               TextButton(

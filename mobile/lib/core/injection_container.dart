@@ -59,6 +59,15 @@ import 'package:mobile/feature/notifications/presentation/cubit/notifications_cu
 import 'package:mobile/feature/parking/data/repositories/parking_remote_data_source.dart';
 import 'package:mobile/feature/parking/data/repositories/parking_repository_implementation.dart';
 import 'package:mobile/feature/parking/domain/repositories/parking_repository.dart';
+import 'package:mobile/feature/directions/data/directions_repository_implementation.dart';
+import 'package:mobile/feature/directions/domain/repositories/directions_repository.dart';
+import 'package:mobile/feature/directions/domain/usecases/open_directions.dart';
+import 'package:mobile/feature/directions/presentation/cubit/directions_cubit.dart';
+import 'package:mobile/feature/location/data/repositories/location_repository_implementation.dart';
+import 'package:mobile/feature/location/domain/repositories/location_repository.dart';
+import 'package:mobile/feature/location/domain/usecases/get_current_location.dart';
+import 'package:mobile/feature/location/presentation/cubit/location_cubit.dart';
+import 'package:mobile/feature/map/presentation/cubit/map_cubit.dart';
 import 'package:mobile/feature/parking/domain/usecases/get_parking_lot_details.dart';
 import 'package:mobile/feature/parking/domain/usecases/search_parking_lots.dart';
 import 'package:mobile/feature/parking/presentation/cubit/parking_details_cubit.dart';
@@ -198,6 +207,16 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetParkingLotDetails(sl()));
   sl.registerLazySingleton(() => SearchParkingLots(sl()));
 
+  // Location and directions
+  sl.registerLazySingleton<LocationRepository>(
+    () => LocationRepositoryImpl(),
+  );
+  sl.registerLazySingleton<DirectionsRepository>(
+    () => DirectionsRepositoryImpl(),
+  );
+  sl.registerLazySingleton(() => GetCurrentLocation(sl()));
+  sl.registerLazySingleton(() => OpenDirections(sl()));
+
   // Use cases: notifications
   sl.registerLazySingleton(() => GetNotifications(sl()));
   sl.registerLazySingleton(() => MarkNotificationRead(sl()));
@@ -245,6 +264,9 @@ Future<void> init() async {
   sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
   sl.registerFactory(() => ParkingDetailsCubit(sl()));
+  sl.registerFactory(() => LocationCubit(sl(), sl()));
+  sl.registerFactory(() => MapCubit(sl()));
+  sl.registerFactory(() => DirectionsCubit(sl(), sl(), sl()));
   sl.registerFactory(() => NotificationsCubit(sl(), sl(), sl()));
   sl.registerFactory(() => NotificationSettingsCubit(sl(), sl()));
   // The text typed on Home, passed as param1.

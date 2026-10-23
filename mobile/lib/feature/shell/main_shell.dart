@@ -4,16 +4,16 @@ import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/home/presentation/screens/home_screen.dart';
+import 'package:mobile/feature/map/presentation/screens/map_screen.dart';
 import 'package:mobile/feature/profile/presentation/bloc/profile_bloc.dart';
 import 'package:mobile/feature/profile/presentation/bloc/profile_event.dart';
 import 'package:mobile/feature/profile/presentation/screens/profile_screen.dart';
-import 'package:mobile/feature/stub/stub_screen.dart';
 
 /// The signed-in app: the four tabs of the bottom navigation bar.
 ///
 /// IndexedStack keeps every tab alive, so switching tabs doesn't reload them
-/// or lose their scroll position. Map is a placeholder until that feature is
-/// built.
+/// or lose their scroll position. The map is only built the first time its
+/// tab is opened, so it doesn't load tiles or read the location before that.
 class MainShell extends StatefulWidget {
   const MainShell({super.key, this.initialIndex = 0});
 
@@ -28,8 +28,12 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   late int _index = widget.initialIndex;
+  late bool _hasOpenedMap = widget.initialIndex == MainShell.mapTab;
 
-  void _selectTab(int index) => setState(() => _index = index);
+  void _selectTab(int index) => setState(() {
+    _index = index;
+    if (index == MainShell.mapTab) _hasOpenedMap = true;
+  });
 
   @override
   void initState() {
@@ -49,7 +53,7 @@ class _MainShellState extends State<MainShell> {
               onOpenMap: () => _selectTab(MainShell.mapTab),
               onOpenBookings: () => _selectTab(MainShell.bookingsTab),
             ),
-            const StubScreen(routeName: 'Map', showBack: false),
+            if (_hasOpenedMap) const MapScreen() else const SizedBox.shrink(),
             const MyBookingsScreen(),
             const ProfileScreen(),
           ],

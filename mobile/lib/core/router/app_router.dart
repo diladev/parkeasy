@@ -16,6 +16,7 @@ import 'package:mobile/feature/booking/presentation/screens/cancellation_success
 import 'package:mobile/feature/booking/presentation/screens/extend_booking_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
+import 'package:mobile/feature/directions/presentation/screens/directions_screen.dart';
 import 'package:mobile/feature/notifications/presentation/screens/notification_settings_screen.dart';
 import 'package:mobile/feature/notifications/presentation/screens/notifications_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
@@ -32,6 +33,9 @@ import 'package:mobile/feature/stub/stub_screen.dart';
 import 'package:mobile/feature/wallet/domain/entities/top_up.dart';
 import 'package:mobile/feature/wallet/presentation/screens/top_up_payment_screen.dart';
 import 'package:mobile/feature/wallet/presentation/screens/wallet_screen.dart';
+
+/// Which lot Get directions is for.
+typedef DirectionsArgs = ({int lotId, String? slotLabel});
 
 /// What the search screen opens with.
 typedef SearchArgs = ({String query, bool openFilters});
@@ -152,6 +156,12 @@ class AppRouter {
       case extendParking:
         final booking = settings.arguments as Booking;
         return _route(ExtendBookingScreen(booking: booking), settings);
+      case directions:
+        final args = settings.arguments as DirectionsArgs;
+        return _route(
+          DirectionsScreen(lotId: args.lotId, slotLabel: args.slotLabel),
+          settings,
+        );
       case cancellationSuccess:
         final cancellation = settings.arguments as Cancellation;
         return _route(
@@ -301,8 +311,16 @@ class AppRouter {
     arguments: cancellation,
   );
 
-  static void toDirections(BuildContext context, int lotId) =>
-      Navigator.pushNamed(context, directions, arguments: lotId);
+  /// [slotLabel] ("Slot A04") when coming from a booking.
+  static void toDirections(
+    BuildContext context,
+    int lotId, {
+    String? slotLabel,
+  }) => Navigator.pushNamed(
+    context,
+    directions,
+    arguments: (lotId: lotId, slotLabel: slotLabel),
+  );
 
   static void toProfile(BuildContext context) =>
       Navigator.pushNamed(context, profile);

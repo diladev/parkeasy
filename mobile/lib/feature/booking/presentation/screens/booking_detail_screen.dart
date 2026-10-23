@@ -117,7 +117,11 @@ class _BookingDetails extends StatelessWidget {
                 () => AppRouter.toExtendParking(context, booking),
               ),
               onDirections: () =>
-                  AppRouter.toDirections(context, booking.lotId),
+                  AppRouter.toDirections(
+                    context,
+                    booking.lotId,
+                    slotLabel: 'Slot ${booking.slotNumber}',
+                  ),
             ),
             const SizedBox(height: 12),
             CancelBookingButton(
