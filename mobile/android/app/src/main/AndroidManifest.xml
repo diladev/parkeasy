@@ -1,4 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The API and the map tiles. Flutter's template only adds this to the
+         debug manifest, so release builds had no network without it. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Foreground location only, for "spots near you" on the map. Coarse
+         too, so the user can choose Approximate on Android 12+. No
+         background location. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <application
         android:label="mobile"
         android:name="${applicationName}"
