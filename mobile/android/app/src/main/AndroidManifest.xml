@@ -7,6 +7,10 @@
          background location. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Scanning the QR sign at a lot's entrance. Not required, so phones
+         without a camera can still install the app (they type the code). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
         android:label="mobile"
         android:name="${applicationName}"
