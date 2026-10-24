@@ -27,6 +27,7 @@ import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/booking/domain/repositories/booking_repository.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/cancel_booking.dart';
+import 'package:mobile/feature/booking/domain/usecases/end_booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/create_booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/extend_booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/get_booking.dart';
@@ -36,6 +37,7 @@ import 'package:mobile/feature/booking/domain/usecases/get_wallet_balance.dart';
 import 'package:mobile/feature/booking/presentation/cubit/booking_detail_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/booking_receipt_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/cancel_booking_cubit.dart';
+import 'package:mobile/feature/booking/presentation/cubit/end_parking_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/extend_booking_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/my_bookings_cubit.dart';
 import 'package:mobile/feature/booking/presentation/cubit/payment_cubit.dart';
@@ -237,6 +239,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetBookingReceipt(sl()));
   sl.registerLazySingleton(() => ExtendBooking(sl()));
   sl.registerLazySingleton(() => CancelBooking(sl()));
+  sl.registerLazySingleton(() => EndBooking(sl()));
 
   // Use cases: wallet
   sl.registerLazySingleton(() => GetBalance(sl()));
@@ -284,6 +287,7 @@ Future<void> init() async {
   sl.registerFactory(() => BookingDetailCubit(sl()));
   sl.registerFactory(() => BookingReceiptCubit(sl()));
   sl.registerFactory(() => CancelBookingCubit(sl()));
+  sl.registerFactory(() => EndParkingCubit(sl()));
   // Needs the booking being extended, passed as param1.
   sl.registerFactoryParam<ExtendBookingCubit, Booking, void>(
     (booking, _) => ExtendBookingCubit(sl(), sl(), booking: booking),

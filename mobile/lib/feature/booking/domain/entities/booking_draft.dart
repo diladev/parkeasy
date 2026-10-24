@@ -9,6 +9,7 @@ class BookingDraft extends Equatable {
     required this.slotNumber,
     required this.level,
     required this.pricePerHour,
+    this.freeCancellationMinutes = 10,
   });
 
   final int lotId;
@@ -17,6 +18,9 @@ class BookingDraft extends Equatable {
   final String slotNumber;
   final String level;
   final int pricePerHour;
+
+  /// The lot's free cancellation window, in minutes.
+  final int freeCancellationMinutes;
 
   /// "A04 · Level B1"
   String get slotLabel => '$slotNumber · Level $level';
@@ -29,5 +33,6 @@ class BookingDraft extends Equatable {
     slotNumber,
     level,
     pricePerHour,
+    freeCancellationMinutes,
   ];
 }

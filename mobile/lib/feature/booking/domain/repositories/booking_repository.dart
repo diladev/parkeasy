@@ -26,8 +26,13 @@ abstract class BookingRepository {
     required int extraHours,
   });
 
-  /// Cancels an active booking; returns the amount refunded to the wallet.
+  /// Cancels an active booking during its free cancellation window; returns
+  /// the amount refunded to the wallet.
   ResultFuture<int> cancelBooking(int bookingId);
+
+  /// Ends an active booking now and frees its slot, with no refund; returns
+  /// the finished booking.
+  ResultFuture<Booking> endBooking(int bookingId);
 
   /// What the booking cost: charged, refunded and the total.
   ResultFuture<BookingReceipt> getReceipt(int bookingId);

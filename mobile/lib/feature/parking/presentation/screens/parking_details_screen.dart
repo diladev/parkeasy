@@ -125,6 +125,7 @@ class _LotDetails extends StatelessWidget {
         slotNumber: slot.slotNumber,
         level: slot.level,
         pricePerHour: lot.pricePerHour,
+        freeCancellationMinutes: lot.freeCancellationMinutes,
       ),
     );
   }

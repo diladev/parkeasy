@@ -18,6 +18,9 @@ class BookingModel extends Booking {
     required super.durationHours,
     required super.pricePerHour,
     required super.totalCost,
+    required super.cancellableUntil,
+    super.endedAt,
+    super.isPaidFromWallet,
   });
 
   /// A booking from the API, with its lot, slot and vehicle included.
@@ -30,6 +33,11 @@ class BookingModel extends Booking {
       vehicle?['model'] as String? ?? '',
     ].where((part) => part.isNotEmpty).join(' ');
 
+    // The API sends UTC; the app shows local time.
+    DateTime? time(String key) =>
+        map[key] == null ? null : DateTime.parse(map[key] as String).toLocal();
+    final startTime = time('start_time')!;
+
     return BookingModel(
       id: (map['id'] as num).toInt(),
       status: BookingStatus.fromApi(map['status'] as String?),
@@ -40,12 +48,19 @@ class BookingModel extends Booking {
       level: slot?['level'] as String? ?? '',
       vehicleName: vehicleName,
       plateNumber: vehicle?['license_plate'] as String? ?? '',
-      // The API sends UTC; the app shows local time.
-      startTime: DateTime.parse(map['start_time'] as String).toLocal(),
-      endTime: DateTime.parse(map['end_time'] as String).toLocal(),
+      startTime: startTime,
+      endTime: time('end_time')!,
       durationHours: (map['duration_hours'] as num? ?? 0).toInt(),
       pricePerHour: (map['price_per_hour'] as num? ?? 0).round(),
       totalCost: (map['total_cost'] as num? ?? 0).round(),
+      // Bookings from before the window was stored got the default one.
+      cancellableUntil:
+          time('cancellable_until') ??
+          startTime.add(
+            const Duration(minutes: Booking.defaultFreeCancellationMinutes),
+          ),
+      endedAt: time('ended_at'),
+      isPaidFromWallet: map['payment_method'] != 'card',
     );
   }
 }

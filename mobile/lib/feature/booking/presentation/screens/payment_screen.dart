@@ -154,7 +154,9 @@ class _PaymentForm extends StatelessWidget {
           totalLabel: 'Total',
           total: total,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 10),
+        _CancellationPolicy(minutes: state.draft.freeCancellationMinutes),
+        const SizedBox(height: 20),
         const _SectionLabel('PAYMENT METHOD'),
         const SizedBox(height: 7),
         PaymentMethodTile(
@@ -180,6 +182,37 @@ class _PaymentForm extends StatelessWidget {
           height: 48,
           isLoading: isPaying,
           onTap: () => _pay(context),
+        ),
+      ],
+    );
+  }
+}
+
+/// "Free cancellation within 10 min of the start", under the summary.
+class _CancellationPolicy extends StatelessWidget {
+  const _CancellationPolicy({required this.minutes});
+
+  final int minutes;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+
+    return Row(
+      children: [
+        Icon(
+          LucideIcons.shieldCheck,
+          size: 12,
+          color: minutes > 0 ? AppColors.tealLight : palette.textHint,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            minutes > 0
+                ? 'Free cancellation within $minutes min of the start'
+                : "This lot doesn't offer free cancellation",
+            style: TextStyle(fontSize: 10, color: palette.textHint),
+          ),
         ),
       ],
     );

@@ -27,6 +27,8 @@ abstract class BookingRemoteDataSource {
 
   Future<int> cancelBooking(int bookingId);
 
+  Future<BookingModel> endBooking(int bookingId);
+
   Future<BookingReceiptModel> getReceipt(int bookingId);
 }
 
@@ -114,6 +116,13 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final response = await _api.patch('$kBookings/$bookingId/cancel');
     // { message, refund }
     return (response.map['refund'] as num? ?? 0).round();
+  }
+
+  @override
+  Future<BookingModel> endBooking(int bookingId) async {
+    final response = await _api.patch('$kBookings/$bookingId/end');
+    // { message, booking }
+    return BookingModel.fromMap(response.map['booking'] as DataMap);
   }
 
   @override

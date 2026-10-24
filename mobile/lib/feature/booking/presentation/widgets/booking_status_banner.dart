@@ -83,7 +83,9 @@ class _BookingStatusBannerState extends State<BookingStatusBanner> {
         dot: palette.textHint,
         title: 'Completed booking',
         titleColor: palette.textMuted,
-        subtitle: 'Ended ${Formatters.time(booking.endTime)} · $hours',
+        subtitle: booking.endedEarly
+            ? 'Ended early ${Formatters.time(booking.finishedAt)} · $hours booked'
+            : 'Ended ${Formatters.time(booking.endTime)} · $hours',
         subtitleColor: palette.textHint,
         amount: Formatters.money(booking.totalCost),
         amountColor: palette.textPrimary,
@@ -96,7 +98,7 @@ class _BookingStatusBannerState extends State<BookingStatusBanner> {
         titleColor: AppColors.red,
         subtitle: 'Started ${Formatters.time(booking.startTime)} · $hours',
         subtitleColor: palette.textHint,
-        // Cancelling can refund part or all of it, so no amount here.
+        // A cancelled booking was refunded, so no amount here.
         amount: null,
         amountColor: AppColors.red,
       ),

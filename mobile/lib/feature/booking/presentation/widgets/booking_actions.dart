@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/utils/formatters.dart';
+import 'package:mobile/feature/booking/domain/entities/booking.dart';
 
 /// "Gate QR code": where the code to open the gate goes.
 class GateCodeTile extends StatelessWidget {
@@ -169,14 +173,117 @@ class BookingActionButton extends StatelessWidget {
   }
 }
 
-/// "✕  Cancel booking", in red.
-class CancelBookingButton extends StatelessWidget {
-  const CancelBookingButton({super.key, required this.onTap});
+/// The last action on an active booking. During the free cancellation window:
+/// Cancel booking, with how long is left. After it: End parking, with when
+/// free cancellation ended. It switches by itself when the window closes.
+class CancelOrEndParking extends StatefulWidget {
+  const CancelOrEndParking({
+    super.key,
+    required this.booking,
+    required this.onCancel,
+    required this.onEnd,
+  });
 
+  final Booking booking;
+  final VoidCallback onCancel;
+  final VoidCallback onEnd;
+
+  @override
+  State<CancelOrEndParking> createState() => _CancelOrEndParkingState();
+}
+
+class _CancelOrEndParkingState extends State<CancelOrEndParking> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTicking();
+  }
+
+  @override
+  void didUpdateWidget(CancelOrEndParking oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.booking != widget.booking) _startTicking();
+  }
+
+  /// Ticks only while the window is open: the minutes left count down, and
+  /// the last tick swaps Cancel for End parking.
+  void _startTicking() {
+    _ticker?.cancel();
+    _ticker = null;
+    if (!widget.booking.canCancelAt(DateTime.now())) return;
+    _ticker = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (!widget.booking.canCancelAt(DateTime.now())) _ticker?.cancel();
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final booking = widget.booking;
+    final now = DateTime.now();
+
+    if (booking.canCancelAt(now)) {
+      final minutes = booking.freeCancellationMinutesLeft(now);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _RedButton(
+            label: '✕  Cancel booking',
+            onTap: widget.onCancel,
+          ),
+          const SizedBox(height: 10),
+          _Note(
+            icon: LucideIcons.timer,
+            iconColor: AppColors.tealLight,
+            text: booking.isPaidFromWallet
+                ? 'Free cancellation for $minutes more min · full refund'
+                : 'Free cancellation for $minutes more min',
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _RedButton(
+          label: 'End parking',
+          icon: LucideIcons.circleStop,
+          onTap: widget.onEnd,
+        ),
+        const SizedBox(height: 10),
+        _Note(
+          icon: LucideIcons.clock,
+          iconColor: context.palette.textHint,
+          text:
+              'Free cancellation ended at '
+              '${Formatters.time(booking.cancellableUntil)}',
+        ),
+      ],
+    );
+  }
+}
+
+/// A full-width red-tinted button: "✕  Cancel booking", "End parking".
+class _RedButton extends StatelessWidget {
+  const _RedButton({required this.label, required this.onTap, this.icon});
+
+  final String label;
+  final IconData? icon;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final leading = icon;
+
     return Material(
       color: AppColors.red12,
       shape: RoundedRectangleBorder(
@@ -189,16 +296,50 @@ class CancelBookingButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: const SizedBox(
+        child: SizedBox(
           height: 44,
-          child: Center(
-            child: Text(
-              '✕  Cancel booking',
-              style: TextStyle(fontSize: 12, color: AppColors.red),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (leading != null) ...[
+                Icon(leading, size: 12, color: AppColors.red),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: const TextStyle(fontSize: 12, color: AppColors.red),
+              ),
+            ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A small centred line under the button.
+class _Note extends StatelessWidget {
+  const _Note({required this.icon, required this.iconColor, required this.text});
+
+  final IconData icon;
+  final Color iconColor;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 12, color: iconColor),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 10, color: context.palette.textHint),
+          ),
+        ),
+      ],
     );
   }
 }

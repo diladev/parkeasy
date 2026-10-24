@@ -11,9 +11,10 @@ class Faq {
 const List<Faq> kFaqs = [
   Faq(
     'How do I cancel a booking?',
-    'Go to My bookings, tap the booking, and select Cancel booking. Cancel '
-        'within 10 minutes of the start for a full refund; after that, the '
-        'unused whole hours go back to your wallet.',
+    'Go to My bookings, tap the booking, and select Cancel booking. '
+        'You can cancel for a full refund within 10 minutes of the start '
+        '(some lots give longer: Payment shows it). After that, tap End '
+        "parking to leave early; the booked time isn't refunded.",
   ),
   Faq(
     'Can I extend my parking time?',
@@ -24,8 +25,9 @@ const List<Faq> kFaqs = [
   Faq(
     'What if the spot is already taken?',
     'Your slot is reserved for you from the moment you book. If someone is '
-        'parked in it anyway, cancel within 10 minutes for a full refund and '
-        'book another slot, then email us with your receipt number.',
+        'parked in it anyway, cancel while free cancellation is still open '
+        '(the booking shows how long) and book another slot, then email us '
+        'with your receipt number.',
   ),
   Faq(
     'How does the QR code work?',

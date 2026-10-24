@@ -104,13 +104,16 @@ class _Receipt extends StatelessWidget {
         _ReceiptCard(
           rows: [
             _Row('Entry', Formatters.dayAndTime(booking.startTime)),
-            // A cancelled booking ended early; this is when it would have.
+            // A cancelled booking never ran its time; this is when it would
+            // have ended. One ended early shows when it really ended.
             _Row(
               isCancelled ? 'Booked until' : 'Exit',
-              Formatters.dayAndTime(booking.endTime),
+              Formatters.dayAndTime(
+                isCancelled ? booking.endTime : booking.finishedAt,
+              ),
             ),
             _Row(
-              'Duration',
+              booking.endedEarly ? 'Booked' : 'Duration',
               Formatters.duration(
                 booking.endTime.difference(booking.startTime),
               ),

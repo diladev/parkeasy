@@ -10,6 +10,7 @@ class ParkingLotDetailsModel extends ParkingLotDetails {
     required super.latitude,
     required super.longitude,
     required super.pricePerHour,
+    super.freeCancellationMinutes,
     required super.rating,
     required super.isOpen24h,
     required super.openingTime,
@@ -42,6 +43,8 @@ class ParkingLotDetailsModel extends ParkingLotDetails {
       latitude: number('latitude'),
       longitude: number('longitude'),
       pricePerHour: number('price_per_hour').round(),
+      freeCancellationMinutes: (map['free_cancellation_minutes'] as num? ?? 10)
+          .toInt(),
       rating: number('rating'),
       isOpen24h: flag('is_open_24h'),
       openingTime: map['opening_time'] as String? ?? '00:00',

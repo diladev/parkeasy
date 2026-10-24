@@ -10,6 +10,7 @@ class ParkingLotDetails extends Equatable {
     required this.latitude,
     required this.longitude,
     required this.pricePerHour,
+    this.freeCancellationMinutes = 10,
     required this.rating,
     required this.isOpen24h,
     required this.openingTime,
@@ -30,6 +31,10 @@ class ParkingLotDetails extends Equatable {
   final double latitude;
   final double longitude;
   final int pricePerHour;
+
+  /// How long after a booking here starts it can still be cancelled with a
+  /// full refund. The server's default is 10.
+  final int freeCancellationMinutes;
   final double rating;
   final bool isOpen24h;
 
@@ -61,6 +66,7 @@ class ParkingLotDetails extends Equatable {
     latitude,
     longitude,
     pricePerHour,
+    freeCancellationMinutes,
     rating,
     isOpen24h,
     openingTime,

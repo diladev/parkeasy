@@ -62,9 +62,12 @@ Future<Uint8List> buildReceiptPdf(BookingReceipt receipt) {
           ]),
           _section('SESSION', [
             ('Entry', _dateTime(booking.startTime)),
-            (isCancelled ? 'Booked until' : 'Exit', _dateTime(booking.endTime)),
             (
-              'Duration',
+              isCancelled ? 'Booked until' : 'Exit',
+              _dateTime(isCancelled ? booking.endTime : booking.finishedAt),
+            ),
+            (
+              booking.endedEarly ? 'Booked' : 'Duration',
               Formatters.duration(
                 booking.endTime.difference(booking.startTime),
               ),

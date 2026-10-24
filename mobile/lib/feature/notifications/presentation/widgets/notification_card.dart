@@ -156,6 +156,11 @@ class _EventLook {
       AppColors.tealBg,
       AppColors.teal,
     ),
+    'BOOKING_ENDED' => const _EventLook(
+      LucideIcons.circleStop,
+      AppColors.tealBg,
+      AppColors.teal,
+    ),
     'BOOKING_CANCELLED' => const _EventLook(
       LucideIcons.circleX,
       AppColors.red12,

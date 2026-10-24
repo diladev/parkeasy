@@ -18,6 +18,9 @@ class Booking extends Equatable {
     required this.durationHours,
     required this.pricePerHour,
     required this.totalCost,
+    required this.cancellableUntil,
+    this.endedAt,
+    this.isPaidFromWallet = true,
   });
 
   final int id;
@@ -39,22 +42,43 @@ class Booking extends Equatable {
   final int pricePerHour;
   final int totalCost;
 
+  /// The end of the free cancellation window. Until then the booking can be
+  /// cancelled with everything paid back; after it, only ended early, with
+  /// nothing paid back. The server applies the same rule.
+  final DateTime cancellableUntil;
+
+  /// When the driver ended the parking early; null if they didn't.
+  /// [endTime] stays the end they booked and paid for.
+  final DateTime? endedAt;
+
+  /// Paid from the ParkEasy Wallet, where refunds go. Only some older demo
+  /// bookings were paid by card.
+  final bool isPaidFromWallet;
+
+  /// The lot's window when it doesn't set one, in minutes.
+  static const int defaultFreeCancellationMinutes = 10;
+
   bool get isActive => status == BookingStatus.active;
 
-  /// What cancelling at [now] would refund, by the server's rule: everything
-  /// in the first [freeCancellationMinutes], then only the unused whole hours.
-  /// The server works out the real amount; this is for showing it beforehand.
-  int refundIfCancelledAt(DateTime now) {
-    final sinceStart = now.difference(startTime);
-    if (sinceStart.inSeconds <= freeCancellationMinutes * 60) {
-      return totalCost;
-    }
-    final unusedHours = endTime.difference(now).inHours;
-    return unusedHours <= 0 ? 0 : unusedHours * pricePerHour;
+  /// Whether it can still be cancelled at [now], for a full refund.
+  bool canCancelAt(DateTime now) =>
+      isActive && !now.isAfter(cancellableUntil);
+
+  /// Whole minutes of free cancellation left at [now], rounded up: 1 for
+  /// the last minute, 0 once it's over.
+  int freeCancellationMinutesLeft(DateTime now) {
+    if (!canCancelAt(now)) return 0;
+    final seconds = cancellableUntil.difference(now).inSeconds;
+    return seconds <= 0 ? 1 : (seconds / 60).ceil();
   }
 
-  /// Cancelling this soon after the start refunds everything.
-  static const int freeCancellationMinutes = 10;
+  /// What cancelling now gives back: everything that came from the wallet.
+  int get cancellationRefund => isPaidFromWallet ? totalCost : 0;
+
+  bool get endedEarly => endedAt != null;
+
+  /// When the parking actually finished: ended early, or the booked end.
+  DateTime get finishedAt => endedAt ?? endTime;
 
   /// "A04 · Level B1"
   String get slotLabel => '$slotNumber · Level $level';
@@ -81,5 +105,8 @@ class Booking extends Equatable {
     durationHours,
     pricePerHour,
     totalCost,
+    cancellableUntil,
+    endedAt,
+    isPaidFromWallet,
   ];
 }

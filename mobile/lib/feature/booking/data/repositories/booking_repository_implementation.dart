@@ -67,6 +67,11 @@ class BookingRepositoryImpl implements BookingRepository {
   }
 
   @override
+  ResultFuture<Booking> endBooking(int bookingId) {
+    return _guard(() => _remoteDataSource.endBooking(bookingId));
+  }
+
+  @override
   ResultFuture<BookingReceipt> getReceipt(int bookingId) {
     return _guard(() => _remoteDataSource.getReceipt(bookingId));
   }

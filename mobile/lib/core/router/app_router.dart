@@ -13,6 +13,7 @@ import 'package:mobile/feature/booking/presentation/screens/booking_confirmation
 import 'package:mobile/feature/booking/presentation/screens/booking_detail_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/booking_receipt_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/cancellation_success_screen.dart';
+import 'package:mobile/feature/booking/presentation/screens/parking_ended_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/extend_booking_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/my_bookings_screen.dart';
 import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart';
@@ -73,6 +74,7 @@ class AppRouter {
   static const String extendParking = '/extend-parking';
   static const String cancelConfirmation = '/cancel-confirmation';
   static const String cancellationSuccess = '/cancellation-success';
+  static const String parkingEnded = '/parking-ended';
   static const String bookingReceipt = '/booking-receipt';
   static const String directions = '/directions';
 
@@ -174,6 +176,9 @@ class AppRouter {
           CancellationSuccessScreen(cancellation: cancellation),
           settings,
         );
+      case parkingEnded:
+        final booking = settings.arguments as Booking;
+        return _route(ParkingEndedScreen(booking: booking), settings);
 
       // Profile
       case profile:
@@ -317,6 +322,16 @@ class AppRouter {
     (route) => route.isFirst,
     arguments: cancellation,
   );
+
+  /// Replaces the booking screens with the "Parking ended" screen, so back
+  /// doesn't return to the booking that just finished.
+  static void toParkingEnded(BuildContext context, Booking booking) =>
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        parkingEnded,
+        (route) => route.isFirst,
+        arguments: booking,
+      );
 
   /// [slotLabel] ("Slot A04") when coming from a booking.
   static void toDirections(
