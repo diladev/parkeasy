@@ -1,11 +1,11 @@
 import 'package:mobile/core/utils/typedef.dart';
 
-abstract class UsecaseWithParams<Type, Params> {
+abstract class UsecaseWithParams<T, Params> {
   const UsecaseWithParams();
-  ResultFuture<Type> call(Params params);
+  ResultFuture<T> call(Params params);
 }
 
-abstract class UsecaseWithoutParams<Type> {
+abstract class UsecaseWithoutParams<T> {
   const UsecaseWithoutParams();
-  ResultFuture<Type> call();
+  ResultFuture<T> call();
 }
