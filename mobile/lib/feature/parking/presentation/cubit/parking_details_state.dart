@@ -10,6 +10,7 @@ class ParkingDetailsState extends Equatable {
     this.lot,
     this.level,
     this.selectedSlot,
+    this.isFavorite = false,
     this.errorMessage,
   });
 
@@ -21,6 +22,9 @@ class ParkingDetailsState extends Equatable {
 
   final ParkingSlot? selectedSlot;
 
+  /// The heart. Changes as soon as it's tapped; the lot keeps what was loaded.
+  final bool isFavorite;
+
   /// Why the lot couldn't be loaded.
   final String? errorMessage;
 
@@ -29,5 +33,12 @@ class ParkingDetailsState extends Equatable {
       lot?.slots.where((slot) => slot.level == level).toList() ?? const [];
 
   @override
-  List<Object?> get props => [status, lot, level, selectedSlot, errorMessage];
+  List<Object?> get props => [
+    status,
+    lot,
+    level,
+    selectedSlot,
+    isFavorite,
+    errorMessage,
+  ];
 }

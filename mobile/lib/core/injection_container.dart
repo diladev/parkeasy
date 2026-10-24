@@ -68,7 +68,10 @@ import 'package:mobile/feature/location/domain/repositories/location_repository.
 import 'package:mobile/feature/location/domain/usecases/get_current_location.dart';
 import 'package:mobile/feature/location/presentation/cubit/location_cubit.dart';
 import 'package:mobile/feature/map/presentation/cubit/map_cubit.dart';
+import 'package:mobile/feature/parking/domain/usecases/get_favorite_lots.dart';
 import 'package:mobile/feature/parking/domain/usecases/get_parking_lot_details.dart';
+import 'package:mobile/feature/parking/domain/usecases/set_favorite.dart';
+import 'package:mobile/feature/parking/presentation/cubit/favorites_cubit.dart';
 import 'package:mobile/feature/parking/domain/usecases/search_parking_lots.dart';
 import 'package:mobile/feature/parking/presentation/cubit/parking_details_cubit.dart';
 import 'package:mobile/feature/parking/presentation/cubit/search_cubit.dart';
@@ -206,6 +209,8 @@ Future<void> init() async {
   // Use cases: parking
   sl.registerLazySingleton(() => GetParkingLotDetails(sl()));
   sl.registerLazySingleton(() => SearchParkingLots(sl()));
+  sl.registerLazySingleton(() => GetFavoriteLots(sl()));
+  sl.registerLazySingleton(() => SetFavorite(sl()));
 
   // Location and directions
   sl.registerLazySingleton<LocationRepository>(
@@ -263,7 +268,8 @@ Future<void> init() async {
   sl.registerFactory(() => VehiclesCubit(sl(), sl(), sl()));
   sl.registerFactory(() => VehicleFormCubit(sl(), sl()));
   sl.registerFactory(() => HomeCubit(sl(), sl(), sl()));
-  sl.registerFactory(() => ParkingDetailsCubit(sl()));
+  sl.registerFactory(() => ParkingDetailsCubit(sl(), sl()));
+  sl.registerFactory(() => FavoritesCubit(sl(), sl()));
   sl.registerFactory(() => LocationCubit(sl(), sl()));
   sl.registerFactory(() => MapCubit(sl()));
   sl.registerFactory(() => DirectionsCubit(sl(), sl(), sl()));

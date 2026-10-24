@@ -19,9 +19,11 @@ import 'package:mobile/feature/booking/presentation/screens/payment_screen.dart'
 import 'package:mobile/feature/directions/presentation/screens/directions_screen.dart';
 import 'package:mobile/feature/notifications/presentation/screens/notification_settings_screen.dart';
 import 'package:mobile/feature/notifications/presentation/screens/notifications_screen.dart';
+import 'package:mobile/feature/parking/presentation/screens/favorites_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/parking_details_screen.dart';
 import 'package:mobile/feature/parking/presentation/screens/search_screen.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
+import 'package:mobile/feature/scan/presentation/screens/scan_qr_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/change_password_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/delete_account_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/edit_profile_screen.dart';
@@ -134,6 +136,10 @@ class AppRouter {
           ),
           settings,
         );
+      case scanQr:
+        return _route(const ScanQrScreen(), settings);
+      case favorites:
+        return _route(const FavoritesScreen(), settings);
       case parkingDetails:
         final lotId = settings.arguments as int;
         return _route(ParkingDetailsScreen(lotId: lotId), settings);
@@ -264,7 +270,8 @@ class AppRouter {
     arguments: (query: query, openFilters: openFilters),
   );
 
-  static void toParkingDetails(BuildContext context, int lotId) =>
+  /// Completes when the user comes back, so the caller can reload.
+  static Future<void> toParkingDetails(BuildContext context, int lotId) =>
       Navigator.pushNamed(context, parkingDetails, arguments: lotId);
 
   static void toScanQr(BuildContext context) =>

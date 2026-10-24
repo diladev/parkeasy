@@ -20,6 +20,7 @@ const kVehicles = '$kUsers/vehicles';
 const kParking = '$kbaseUrl/parking';
 const kNearbyParking = '$kParking/nearby';
 const kSearchParking = '$kParking/search';
+const kFavoriteParking = '$kParking/favorites';
 
 const kBookings = '$kbaseUrl/booking';
 

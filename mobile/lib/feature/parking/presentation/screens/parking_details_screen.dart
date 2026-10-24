@@ -145,6 +145,8 @@ class _LotDetails extends StatelessWidget {
             name: lot.name,
             addressLine: _addressLine,
             onBack: () => Navigator.pop(context),
+            isFavorite: state.isFavorite,
+            onToggleFavorite: cubit.toggleFavorite,
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(

@@ -22,6 +22,18 @@ class ParkingRepositoryImpl implements ParkingRepository {
     return _guard(() => _remoteDataSource.searchLots(query));
   }
 
+  @override
+  ResultFuture<List<ParkingLotSummary>> getFavorites() {
+    return _guard(_remoteDataSource.getFavorites);
+  }
+
+  @override
+  ResultVoid setFavorite(int lotId, {required bool isFavorite}) {
+    return _guard(
+      () => _remoteDataSource.setFavorite(lotId, isFavorite: isFavorite),
+    );
+  }
+
   ResultFuture<T> _guard<T>(Future<T> Function() action) async {
     try {
       return Right(await action());

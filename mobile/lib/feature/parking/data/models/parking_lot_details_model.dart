@@ -19,6 +19,7 @@ class ParkingLotDetailsModel extends ParkingLotDetails {
     required super.isCovered,
     required super.isAccessible,
     required super.availableSlots,
+    super.isFavorite,
     required super.totalSlots,
     required super.slots,
   });
@@ -50,6 +51,7 @@ class ParkingLotDetailsModel extends ParkingLotDetails {
       isCovered: flag('is_covered'),
       isAccessible: flag('is_accessible'),
       availableSlots: number('available_slots').toInt(),
+      isFavorite: flag('is_favorite'),
       totalSlots: number('total_slots').toInt(),
       slots: (map['slots'] as List<dynamic>? ?? const [])
           .map((slot) => ParkingSlotModel.fromMap(slot as DataMap))

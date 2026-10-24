@@ -19,6 +19,7 @@ class ParkingLotDetails extends Equatable {
     required this.isCovered,
     required this.isAccessible,
     required this.availableSlots,
+    this.isFavorite = false,
     required this.totalSlots,
     required this.slots,
   });
@@ -41,6 +42,9 @@ class ParkingLotDetails extends Equatable {
   final bool isCovered;
   final bool isAccessible;
   final int availableSlots;
+
+  /// The user saved it with the heart.
+  final bool isFavorite;
   final int totalSlots;
 
   /// Sorted by level, then slot number.
@@ -66,6 +70,7 @@ class ParkingLotDetails extends Equatable {
     isCovered,
     isAccessible,
     availableSlots,
+    isFavorite,
     totalSlots,
     slots,
   ];

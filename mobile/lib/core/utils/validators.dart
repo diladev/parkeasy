@@ -58,8 +58,9 @@ class Validators {
     if (!text.contains(RegExp(r'[A-Z]'))) return 'Add an uppercase letter';
     if (!text.contains(RegExp(r'[a-z]'))) return 'Add a lowercase letter';
     if (!text.contains(RegExp(r'[0-9]'))) return 'Add a number';
-    if (!text.contains(RegExp(r'[^A-Za-z0-9\s]')))
+    if (!text.contains(RegExp(r'[^A-Za-z0-9\s]'))) {
       return 'Add a symbol, e.g. ! or #';
+    }
     return null;
   }
 
@@ -76,8 +77,9 @@ class Validators {
   static String? plate(String? value) {
     final text = value?.trim().replaceAll(RegExp(r'\s+'), ' ') ?? '';
     if (text.isEmpty) return 'Required';
-    if (!_plate.hasMatch(text))
+    if (!_plate.hasMatch(text)) {
       return 'Letters, numbers, spaces and dashes only';
+    }
     return null;
   }
 

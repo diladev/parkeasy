@@ -419,7 +419,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );

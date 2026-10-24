@@ -9,6 +9,10 @@ abstract class ParkingRemoteDataSource {
   Future<ParkingLotDetailsModel> getLotDetails(int lotId);
 
   Future<List<ParkingLotSummaryModel>> searchLots(String query);
+
+  Future<List<ParkingLotSummaryModel>> getFavorites();
+
+  Future<void> setFavorite(int lotId, {required bool isFavorite});
 }
 
 class ParkingRemoteDataSourceImpl implements ParkingRemoteDataSource {
@@ -42,5 +46,25 @@ class ParkingRemoteDataSourceImpl implements ParkingRemoteDataSource {
     return items
         .map((item) => ParkingLotSummaryModel.fromMap(item as DataMap))
         .toList();
+  }
+
+  @override
+  Future<List<ParkingLotSummaryModel>> getFavorites() async {
+    final response = await _api.get(kFavoriteParking);
+    // A plain list, not a page: a user saves a handful of lots.
+    return response.list
+        .map((item) => ParkingLotSummaryModel.fromMap(item as DataMap))
+        .toList();
+  }
+
+  @override
+  Future<void> setFavorite(int lotId, {required bool isFavorite}) async {
+    final url = '$kParking/$lotId/favorite';
+    // PUT and DELETE are idempotent: a double tap can't get out of step.
+    if (isFavorite) {
+      await _api.put(url);
+    } else {
+      await _api.delete(url);
+    }
   }
 }

@@ -55,6 +55,12 @@ class ApiClient {
     bool auth = true,
     Map<String, String>? headers,
   }) => _send('PATCH', url, body: body, auth: auth, headers: headers);
+  Future<ApiResponse> put(
+    String url, {
+    Object? body,
+    bool auth = true,
+    Map<String, String>? headers,
+  }) => _send('PUT', url, body: body, auth: auth, headers: headers);
   Future<ApiResponse> delete(
     String url, {
     Object? body,
