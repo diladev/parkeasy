@@ -6,12 +6,15 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
 
+import { CurrentUser } from 'src/auth/decorators/user.decorator';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
+import type { AuthenticatedUser } from 'src/auth/types/auth.types';
 import { AdminApiKeyGuard } from 'src/common/guards/admin-api-key.guard';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import { ParkingService } from 'src/parking/parking.service';
@@ -36,7 +39,7 @@ export class ParkingController {
   constructor(private readonly parkingService: ParkingService) { }
 
   // ------------------------------------------------------------- for the app
-  // ('nearby' and 'search' must stay above ':id', or ':id' would catch them.)
+  // ('nearby', 'search' and 'favorites' must stay above ':id', or ':id' would catch them.)
 
   @Get('nearby')
   @UseGuards(UserAccessTokenAuthGuard)
@@ -52,11 +55,34 @@ export class ParkingController {
     return this.parkingService.search(query);
   }
 
+  /** The lots the user saved with the heart. */
+  @Get('favorites')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  getFavorites(@CurrentUser() user: AuthenticatedUser) {
+    return this.parkingService.getFavorites(user.id);
+  }
+
   @Get(':id')
   @UseGuards(UserAccessTokenAuthGuard)
   @ApiBearerAuth()
-  getLot(@Param('id', ParseIdPipe) id: number) {
-    return this.parkingService.getLotDetails(id);
+  getLot(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+    return this.parkingService.getLotDetails(id, user.id);
+  }
+
+  /** PUT and DELETE, so tapping the heart twice in a row is harmless. */
+  @Put(':id/favorite')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  addFavorite(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+    return this.parkingService.addFavorite(user.id, id);
+  }
+
+  @Delete(':id/favorite')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  removeFavorite(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+    return this.parkingService.removeFavorite(user.id, id);
   }
 
   @Get(':id/slots')

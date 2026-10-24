@@ -27,6 +27,7 @@ import {
     NotificationEvent,
     NOTIFICATION_EVENTS,
 } from 'src/notifications/entities/notification.entity';
+import { FavoriteLot } from 'src/parking/entities/favorite-lot.entity';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
 import { Payment } from 'src/payments/entities/payment.entity';
@@ -224,6 +225,8 @@ class DemoData {
         await this.addBooking(aram, corolla, 'cityCenter', 'B1:A03', -40 * MINUTE, 2, 'wallet', 'active', {
             read: false,
         });
+        await this.addFavorite(aram, 'bakhtiari');
+        await this.addFavorite(aram, 'cityCenter');
 
         // Shilan: a low balance (1,250 IQD), so most wallet payments fail with "balance too low".
         const shilan = await this.createUser('Shilan Ahmed', 'shilan@example.com', '+964 770 100 0002', '1998-09-03');
@@ -250,6 +253,11 @@ class DemoData {
     }
 
     // ---------------------------------------------------------------- builders
+
+    private async addFavorite(user: User, lotKey: LotKey): Promise<void> {
+        const { lot } = this.lots.get(lotKey)!;
+        await FavoriteLot.create({ user_id: user.id, parking_lot_id: lot.id }, { transaction: this.transaction });
+    }
 
     private async createLot(key: LotKey, seed: LotSeed): Promise<void> {
         const { transaction } = this;
@@ -532,7 +540,7 @@ async function seed(): Promise<void> {
 
         console.log(`Demo data is ready. Every account's password is ${DEMO_PASSWORD}`);
         console.table([
-            { email: 'aram@example.com', shows: 'active booking, full history, wallet in use' },
+            { email: 'aram@example.com', shows: 'active booking, full history, wallet in use, 2 favorites' },
             { email: 'shilan@example.com', shows: 'low balance: most wallet payments fail' },
             { email: 'lana@example.com', shows: 'active booking paid by card, unread notifications' },
             { email: 'karwan@example.com', shows: 'new account: no vehicles, bookings or wallet' },

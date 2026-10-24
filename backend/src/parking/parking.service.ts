@@ -8,6 +8,7 @@ import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { ArrayPagination } from 'src/common/pagination/pagination';
 import { TranslationService } from 'src/i18n/translation.service';
 import { ParkingLot } from './entities/parking-lot.entity';
+import { FavoriteLot } from './entities/favorite-lot.entity';
 import { ParkingSlot } from './entities/parking-slot.entity';
 import { boundingBox, distanceKm } from './geo';
 import {
@@ -42,6 +43,7 @@ export class ParkingService {
   constructor(
     @InjectModel(ParkingLot) private readonly parkingLotModel: typeof ParkingLot,
     @InjectModel(ParkingSlot) private readonly parkingSlotModel: typeof ParkingSlot,
+    @InjectModel(FavoriteLot) private readonly favoriteModel: typeof FavoriteLot,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly translationService: TranslationService,
   ) { }
@@ -100,11 +102,51 @@ export class ParkingService {
     return { ...page, data: page.data.map((lot) => this.present(lot, counts)) };
   }
 
-  /** One lot with its slots, for the lot details screen. */
-  async getLotDetails(id: number): Promise<ParkingLotView & { slots: ParkingSlot[] }> {
+  /** One lot with its slots, for the lot details screen, and whether [userId] saved it. */
+  async getLotDetails(
+    id: number,
+    userId: number,
+  ): Promise<ParkingLotView & { slots: ParkingSlot[]; is_favorite: boolean }> {
     const lot = await this.getBookableLot(id);
-    const [slots, counts] = await Promise.all([this.findSlots(id), this.countSlots([id])]);
-    return { ...this.present(lot, counts), slots };
+    const [slots, counts, favorite] = await Promise.all([
+      this.findSlots(id),
+      this.countSlots([id]),
+      this.favoriteModel.count({ where: { user_id: userId, parking_lot_id: id } }),
+    ]);
+    return { ...this.present(lot, counts), slots, is_favorite: favorite > 0 };
+  }
+
+  // ------------------------------------------------------------- favorites
+
+  /** The lots the user saved, last saved first. Removed lots drop out. */
+  async getFavorites(userId: number): Promise<ParkingLotView[]> {
+    const favorites = await this.favoriteModel.findAll({
+      where: { user_id: userId },
+      include: [{ model: ParkingLot, required: true, where: { is_available: true } }],
+      order: [
+        ['createdAt', 'DESC'],
+        ['id', 'DESC'],
+      ],
+    });
+    const lots = favorites.map((favorite) => favorite.parking_lot);
+    const counts = await this.countSlots(lots.map((lot) => lot.id));
+    return lots.map((lot) => this.present(lot, counts));
+  }
+
+  /** Saving twice is fine: it stays saved once. */
+  async addFavorite(userId: number, lotId: number): Promise<{ is_favorite: true }> {
+    await this.getBookableLot(lotId);
+    await this.favoriteModel.findOrCreate({
+      where: { user_id: userId, parking_lot_id: lotId },
+      defaults: { user_id: userId, parking_lot_id: lotId },
+    });
+    return { is_favorite: true };
+  }
+
+  /** Removing one that isn't saved is fine too. */
+  async removeFavorite(userId: number, lotId: number): Promise<{ is_favorite: false }> {
+    await this.favoriteModel.destroy({ where: { user_id: userId, parking_lot_id: lotId } });
+    return { is_favorite: false };
   }
 
   async getSlots(lotId: number, query: SlotsQueryDto): Promise<ParkingSlot[]> {

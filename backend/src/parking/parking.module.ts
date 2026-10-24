@@ -5,9 +5,10 @@ import { ParkingService } from './parking.service';
 import { ParkingController } from './parking.controller';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { ParkingSlot } from './entities/parking-slot.entity';
+import { FavoriteLot } from './entities/favorite-lot.entity';
 
 @Module({
-  imports: [SequelizeModule.forFeature([ParkingLot, ParkingSlot])],
+  imports: [SequelizeModule.forFeature([ParkingLot, ParkingSlot, FavoriteLot])],
   controllers: [ParkingController],
   providers: [ParkingService],
   exports: [ParkingService],
