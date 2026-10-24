@@ -54,9 +54,18 @@ export class BookingController {
     return this.bookingService.extendBooking(user.id, id, dto);
   }
 
-  /** A PATCH, not a DELETE: nothing is deleted, the booking stays in the history. */
+  /**
+   * Cancels with a full refund, during the lot's free cancellation window only.
+   * A PATCH, not a DELETE: nothing is deleted, the booking stays in the history.
+   */
   @Patch(':id/cancel')
   cancel(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
     return this.bookingService.cancelBooking(user.id, id);
+  }
+
+  /** Ends the parking now and frees the slot. Nothing is refunded. */
+  @Patch(':id/end')
+  end(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+    return this.bookingService.endBooking(user.id, id);
   }
 }

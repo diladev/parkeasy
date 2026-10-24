@@ -30,10 +30,9 @@ import { BookingQueryDto, CreateBookingDto, ExtendBookingDto } from './dto';
 import { MAX_BOOKING_HOURS } from './dto/create-booking.dto';
 import { Booking } from './entities/booking.entity';
 import { BookingEndingAlert } from './entities/booking-ending-alert.entity';
+import { canCancel, cancellableUntil } from './cancellation';
 
 const HOUR_MS = 60 * 60 * 1000;
-/** Cancelling within this many minutes of the start refunds everything. */
-const FREE_CANCELLATION_MINUTES = 10;
 /** How often finished bookings are closed and their slots freed. */
 const EXPIRY_SWEEP_INTERVAL_MS = 60 * 1000;
 /** How long before the end the "ends soon" notice is sent. */
@@ -218,7 +217,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       lot: booking.parking_lot?.name ?? '',
       slot: [booking.parking_slot?.slot_number, booking.parking_slot?.level].filter(Boolean).join(' · '),
       entry: time(booking.start_time),
-      exit: time(booking.end_time),
+      exit: time(booking.ended_at ?? booking.end_time),
       subtotal: formatDinars(receipt.subtotal),
       refunded: receipt.refunded > 0 ? formatDinars(receipt.refunded) : null,
       total: formatDinars(receipt.total),
@@ -273,6 +272,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
           status: 'active',
           start_time: start,
           end_time: end,
+          cancellable_until: cancellableUntil(start, lot.free_cancellation_minutes),
         },
         { transaction },
       );
@@ -398,9 +398,9 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Cancels a booking and frees its slot. Refund rule: everything back within the
-   * first FREE_CANCELLATION_MINUTES, after that only the unused whole hours.
-   * Only money that came from the wallet goes back to the wallet.
+   * Cancels a booking and frees its slot, with a full refund. Only during the
+   * free cancellation window (see cancellation.ts); after it, the booking can
+   * only be ended early. Only money that came from the wallet goes back to it.
    */
   async cancelBooking(userId: number, bookingId: number): Promise<{ message: string; refund: number }> {
     await this.completeExpiredBookings(userId);
@@ -408,12 +408,14 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     const refund = await this.sequelize.transaction(async (transaction) => {
       await this.usersService.lockForUpdate(userId, transaction);
       const booking = await this.getActiveBooking(userId, bookingId, transaction);
+      if (!canCancel(booking, new Date())) {
+        throw new ConflictException(this.t('BOOKING_CANCELLATION_CLOSED'));
+      }
 
-      await booking.update({ status: 'cancelled' }, { transaction });
+      await this.closeBooking(booking, { status: 'cancelled' }, transaction);
       await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
 
-      const paidFromWallet = await this.walletService.netPaidForBooking(booking.id, transaction);
-      const refund = Math.min(this.refundableAmount(booking, new Date()), paidFromWallet);
+      const refund = await this.walletService.netPaidForBooking(booking.id, transaction);
       if (refund > 0) {
         await this.walletService.credit(userId, refund, 'BOOKING_REFUND', booking.id, transaction);
       }
@@ -434,7 +436,51 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
+  /**
+   * Ends an active booking now, before its booked end, and frees the slot for
+   * other drivers. Nothing is refunded: the booked time stays paid for.
+   */
+  async endBooking(userId: number, bookingId: number): Promise<{ message: string; booking: Booking }> {
+    await this.completeExpiredBookings(userId);
+
+    await this.sequelize.transaction(async (transaction) => {
+      await this.usersService.lockForUpdate(userId, transaction);
+      const booking = await this.getActiveBooking(userId, bookingId, transaction);
+
+      await this.closeBooking(booking, { status: 'completed', ended_at: new Date() }, transaction);
+      await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
+
+      const lot = await this.parkingService.getLot(booking.parking_lot_id, transaction);
+      await this.notificationsService.notify(userId, 'BOOKING_ENDED', { lot: lot.name }, transaction);
+    });
+
+    // After the commit and not awaited, as when a booking runs out.
+    this.emailReceipt(bookingId).catch((error: unknown) =>
+      this.logger.error('Emailing a receipt failed', error instanceof Error ? error.stack : String(error)),
+    );
+
+    return { message: this.t('BOOKING_ENDED'), booking: await this.findUserBooking(userId, bookingId) };
+  }
+
   // ---------------------------------------------------------------- helpers
+
+  /**
+   * Moves an active booking to [changes].status, only if it's still active:
+   * the minute sweep may have just completed it.
+   */
+  private async closeBooking(
+    booking: Booking,
+    changes: Partial<Pick<Booking, 'status' | 'ended_at'>>,
+    transaction: Transaction,
+  ): Promise<void> {
+    const [updated] = await this.bookingModel.update(changes, {
+      where: { id: booking.id, status: 'active' },
+      transaction,
+    });
+    if (updated === 0) {
+      throw new ConflictException(this.t('BOOKING_NOT_ACTIVE'));
+    }
+  }
 
   private async getActiveBooking(userId: number, bookingId: number, transaction: Transaction): Promise<Booking> {
     const booking = await this.bookingModel.findOne({
@@ -448,14 +494,5 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       throw new ConflictException(this.t('BOOKING_NOT_ACTIVE'));
     }
     return booking;
-  }
-
-  private refundableAmount(booking: Booking, now: Date): number {
-    const minutesSinceStart = (now.getTime() - booking.start_time.getTime()) / 60_000;
-    if (minutesSinceStart <= FREE_CANCELLATION_MINUTES) {
-      return booking.total_cost;
-    }
-    const unusedHours = Math.max(0, Math.floor((booking.end_time.getTime() - now.getTime()) / HOUR_MS));
-    return unusedHours * booking.price_per_hour;
   }
 }

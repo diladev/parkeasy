@@ -15,6 +15,10 @@
         "TITLE": "Booking cancelled",
         "BODY": "Your booking at {lot} was cancelled. Refunded to your wallet: {refund}."
     },
+    "BOOKING_ENDED": {
+        "TITLE": "Parking ended",
+        "BODY": "You ended your parking at {lot} early. Your slot is now free for other drivers."
+    },
     "BOOKING_COMPLETED": {
         "TITLE": "Booking finished",
         "BODY": "Your parking time at {lot} has ended. Thanks for using ParkEasy!"

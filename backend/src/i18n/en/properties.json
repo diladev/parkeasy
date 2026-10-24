@@ -30,6 +30,7 @@
     "opening_time": "Opening time",
     "closing_time": "Closing time",
     "price_per_hour": "Price per hour",
+    "free_cancellation_minutes": "Free cancellation time (minutes)",
     "has_cctv": "CCTV",
     "has_ev_charging": "EV charging",
     "is_covered": "Covered",

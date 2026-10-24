@@ -35,6 +35,20 @@ export class Booking extends Model {
     @Column({ type: DataType.DATE, allowNull: false })
     declare end_time: Date;
 
+    /**
+     * The end of the free cancellation window: until then it can be cancelled
+     * with a full refund, after that only ended early (see booking/cancellation.ts).
+     */
+    @Column({ type: DataType.DATE, allowNull: false })
+    declare cancellable_until: Date;
+
+    /**
+     * When the driver ended the parking before end_time; null otherwise.
+     * end_time stays the booked end, which is what was paid for.
+     */
+    @Column({ type: DataType.DATE, allowNull: true })
+    declare ended_at: Date | null;
+
     @Column({ type: DataType.INTEGER, allowNull: false })
     declare duration_hours: number;
 

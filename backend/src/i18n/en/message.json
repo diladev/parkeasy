@@ -45,6 +45,8 @@
     "BOOKING_EXTENDED": "Your booking has been extended.",
     "BOOKING_CANCELLED": "Your booking has been cancelled.",
     "BOOKING_CANCELLED_REFUNDED": "Your booking has been cancelled and {amount} was returned to your wallet.",
+    "BOOKING_CANCELLATION_CLOSED": "The free cancellation time for this booking is over. You can end your parking instead.",
+    "BOOKING_ENDED": "Your parking has ended and the slot is free for other drivers.",
     "WALLET_TOPPED_UP": "Your wallet has been topped up.",
     "INSUFFICIENT_BALANCE": "Your wallet balance is too low for this payment.",
     "NOTIFICATION_NOT_FOUND": "Notification not found.",

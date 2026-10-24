@@ -1,6 +1,7 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsInt, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
 import { i18nValidationMessage } from "nestjs-i18n";
+import { DEFAULT_FREE_CANCELLATION_MINUTES, MAX_FREE_CANCELLATION_MINUTES } from "src/booking/cancellation";
 import { Trim } from "src/common/transformers/normalize";
 
 /** "HH:mm", 24-hour clock. */
@@ -73,6 +74,17 @@ export class CreateParkingLotDto {
     @IsInt({ message: i18nValidationMessage('validation.IS_MONEY') })
     @Min(0, { message: i18nValidationMessage('validation.MIN') })
     price_per_hour!: number;
+
+    @ApiPropertyOptional({
+        description: 'How many minutes after a booking starts it can still be cancelled with a full refund. 0 means never.',
+        example: DEFAULT_FREE_CANCELLATION_MINUTES,
+        default: DEFAULT_FREE_CANCELLATION_MINUTES,
+    })
+    @IsOptional()
+    @IsInt({ message: i18nValidationMessage('validation.IS_INT') })
+    @Min(0, { message: i18nValidationMessage('validation.MIN') })
+    @Max(MAX_FREE_CANCELLATION_MINUTES, { message: i18nValidationMessage('validation.MAX') })
+    free_cancellation_minutes?: number;
 
     @ApiProperty({
         description: 'Whether the parking lot has CCTV surveillance.',

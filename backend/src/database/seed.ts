@@ -18,6 +18,7 @@ import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
 import { AppModule } from 'src/app.module';
+import { cancellableUntil, DEFAULT_FREE_CANCELLATION_MINUTES } from 'src/booking/cancellation';
 import { Booking, PaymentMethod } from 'src/booking/entities/booking.entity';
 import { CURRENCY, formatDinars } from 'src/common/money';
 import { hashPassword } from 'src/common/security/password';
@@ -57,6 +58,8 @@ interface LotSeed {
     latitude: number;
     longitude: number;
     price_per_hour: number;
+    /** Minutes a booking can be cancelled for free; 10 when not set. */
+    free_cancellation_minutes?: number;
     rating: number;
     /** null = open 24 hours, otherwise local opening and closing time. */
     hours: [string, string] | null;
@@ -81,6 +84,9 @@ const LOTS = {
         latitude: 35.5571,
         longitude: 45.4356,
         price_per_hour: 1500,
+        // Longer than the default, so right after seeding Lana's booking can
+        // still be cancelled while Aram's can only be ended.
+        free_cancellation_minutes: 30,
         rating: 4.6,
         hours: null,
         has_cctv: true,
@@ -107,6 +113,7 @@ const LOTS = {
         latitude: 35.5536,
         longitude: 45.4148,
         price_per_hour: 2000,
+        free_cancellation_minutes: 15,
         rating: 4.8,
         hours: ['07:00', '23:00'],
         has_cctv: true,
@@ -222,6 +229,10 @@ class DemoData {
             extraHours: 1,
             read: true,
         });
+        await this.addBooking(aram, sportage, 'azadiPark', 'G:A05', this.dayAt(1, '10:00'), 3, 'wallet', 'completed', {
+            endedAfterMinutes: 75,
+            read: true,
+        });
         await this.addBooking(aram, corolla, 'cityCenter', 'B1:A03', -40 * MINUTE, 2, 'wallet', 'active', {
             read: false,
         });
@@ -268,6 +279,7 @@ class DemoData {
                 latitude: seed.latitude,
                 longitude: seed.longitude,
                 price_per_hour: seed.price_per_hour,
+                free_cancellation_minutes: seed.free_cancellation_minutes ?? DEFAULT_FREE_CANCELLATION_MINUTES,
                 rating: seed.rating,
                 is_open_24h: seed.hours === null,
                 opening_time: seed.hours?.[0] ?? '00:00',
@@ -391,7 +403,7 @@ class DemoData {
         hours: number,
         payment: PaymentMethod,
         outcome: 'active' | 'completed' | 'cancelled',
-        options: { extraHours?: number; cancelAfterMinutes?: number; read: boolean },
+        options: { extraHours?: number; cancelAfterMinutes?: number; endedAfterMinutes?: number; read: boolean },
     ): Promise<void> {
         const { lot, slots } = this.lots.get(lotKey)!;
         const slot = slots.get(slotRef);
@@ -404,6 +416,7 @@ class DemoData {
         const extensionPayment = price * extraHours;
         const start = this.at(startOffset);
         const end = new Date(start.getTime() + totalHours * HOUR);
+        const endedAt = options.endedAfterMinutes === undefined ? null : this.at(startOffset + options.endedAfterMinutes * MINUTE);
 
         const booking = await Booking.create(
             {
@@ -418,6 +431,8 @@ class DemoData {
                 status: outcome,
                 start_time: start,
                 end_time: end,
+                cancellable_until: cancellableUntil(start, lot.free_cancellation_minutes),
+                ended_at: endedAt,
                 createdAt: start,
             },
             { transaction: this.transaction },
@@ -441,18 +456,21 @@ class DemoData {
             await slot.update({ status: 'reserved' }, { transaction: this.transaction });
         }
 
-        if (outcome === 'completed') {
+        if (outcome === 'completed' && options.endedAfterMinutes !== undefined) {
+            // Ended early: the booked time stays paid for.
+            await this.notify(user, 'BOOKING_ENDED', { lot: lot.name }, startOffset + options.endedAfterMinutes * MINUTE, read);
+        } else if (outcome === 'completed') {
             await this.notify(user, 'BOOKING_COMPLETED', { lot: lot.name }, startOffset + totalHours * HOUR, read);
         }
 
         if (outcome === 'cancelled') {
             const minutes = options.cancelAfterMinutes ?? 0;
             const cancelledAt = startOffset + minutes * MINUTE;
-            // Within the first 10 minutes everything comes back; after that, the unused whole hours.
-            const refundable = minutes <= 10
-                ? booking.total_cost
-                : Math.floor((totalHours * 60 - minutes) / 60) * price;
-            const refund = payment === 'wallet' ? refundable : 0;
+            // Cancelling is only possible during the lot's window, and refunds everything.
+            if (minutes > lot.free_cancellation_minutes) {
+                throw new Error(`${lot.name} bookings can't be cancelled after ${lot.free_cancellation_minutes} min`);
+            }
+            const refund = payment === 'wallet' ? booking.total_cost : 0;
             if (refund > 0) {
                 await this.walletEntry(user, 'credit', refund, 'BOOKING_REFUND', booking.id, cancelledAt);
             }
@@ -540,9 +558,9 @@ async function seed(): Promise<void> {
 
         console.log(`Demo data is ready. Every account's password is ${DEMO_PASSWORD}`);
         console.table([
-            { email: 'aram@example.com', shows: 'active booking, full history, wallet in use, 2 favorites' },
+            { email: 'aram@example.com', shows: 'active booking past free cancellation, full history, wallet in use, 2 favorites' },
             { email: 'shilan@example.com', shows: 'low balance: most wallet payments fail' },
-            { email: 'lana@example.com', shows: 'active booking paid by card, unread notifications' },
+            { email: 'lana@example.com', shows: 'active booking that can still be cancelled (paid by card), unread notifications' },
             { email: 'karwan@example.com', shows: 'new account: no vehicles, bookings or wallet' },
             { email: 'hemin@example.com', shows: 'suspended: sign-in is refused' },
         ]);

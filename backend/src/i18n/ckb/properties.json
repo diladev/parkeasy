@@ -30,6 +30,7 @@
     "opening_time": "کاتی کردنەوە",
     "closing_time": "کاتی داخستن",
     "price_per_hour": "نرخی هەر کاتژمێرێک",
+    "free_cancellation_minutes": "کاتی هەڵوەشاندنەوەی بێبەرامبەر (خولەک)",
     "has_cctv": "کامێرای چاودێری",
     "has_ev_charging": "بارگاویکردنی ئۆتۆمبێلی کارەبایی",
     "is_covered": "سەرداپۆشراو",

@@ -1,4 +1,5 @@
 import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
+import { DEFAULT_FREE_CANCELLATION_MINUTES } from "src/booking/cancellation";
 import { ParkingSlot } from "src/parking/entities/parking-slot.entity";
 
 @Table({ tableName: 'parking_lots', timestamps: true, paranoid: true })
@@ -31,6 +32,14 @@ export class ParkingLot extends Model {
     /** Whole Iraqi dinars (see common/money.ts). */
     @Column({ type: DataType.INTEGER, allowNull: false })
     declare price_per_hour: number;
+
+    /**
+     * How long after a booking starts it can still be cancelled with a full
+     * refund (see booking/cancellation.ts). Bookings keep the window they were
+     * made with.
+     */
+    @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: DEFAULT_FREE_CANCELLATION_MINUTES })
+    declare free_cancellation_minutes: number;
 
     @Column({ type: DataType.DOUBLE, allowNull: false, defaultValue: 0 })
     declare rating: number;
