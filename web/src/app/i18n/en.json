@@ -1,0 +1,61 @@
+{
+  "app": {
+    "name": "ParkEasy",
+    "adminPanel": "Admin Panel",
+    "skipToContent": "Skip to main content",
+    "mainNavigation": "Main navigation"
+  },
+  "nav": {
+    "overview": "Overview"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "garage_owner": "Garage owner",
+    "driver": "Driver"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "ckb": "کوردی"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "heading": "ParkEasy Admin",
+      "subtitle": "Restricted access — authorized staff only",
+      "email": "Email",
+      "password": "Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Sign in",
+      "footer": "Signing in here signs this account out on other devices."
+    },
+    "errors": {
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Enter your password.",
+      "network": "Can't reach the server. Check your connection and try again.",
+      "generic": "Something went wrong. Please try again."
+    },
+    "sessionExpired": "Your session ended. Please sign in again.",
+    "accountMenu": "Account menu",
+    "signOut": "Sign out",
+    "signInAgain": "Sign in with another account"
+  },
+  "errors": {
+    "forbidden": {
+      "title": "No access",
+      "description": "Your account doesn't have permission to open this page."
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "This link doesn't work or the page was removed.",
+      "home": "Go to the overview"
+    }
+  },
+  "overview": {
+    "title": "Platform overview",
+    "welcome": "Welcome back, {name}",
+    "comingSoonTitle": "Statistics are on the way",
+    "comingSoonDescription": "Users, garages, bookings and revenue will show here once the overview reports are connected."
+  }
+}
