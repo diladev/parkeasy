@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.app.json",
+
+  // Only the tests and test helpers; app code they import is included automatically.
+  "include": ["src/**/*.test.ts", "src/test/**/*", "src/**/*.d.ts", "env.d.ts", "components.d.ts"],
+  "exclude": [],
+
+  "compilerOptions": {
+    // Tests run in Node with jsdom, not in the browser.
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "types": ["node", "jsdom"],
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.vitest.tsbuildinfo"
+  }
+}
