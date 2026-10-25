@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+/* Self-hosted fonts (no Google Fonts request). Inter for Latin, Noto Sans
+   Arabic for Kurdish (Sorani); the browser only downloads a file when a page
+   uses characters from its unicode-range. */
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource/noto-sans-arabic/arabic-400.css';
+@import '@fontsource/noto-sans-arabic/arabic-500.css';
+@import '@fontsource/noto-sans-arabic/arabic-600.css';
+
+@theme static {
+  --font-sans: 'Inter Variable', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+
+  /* Admin purple, built around the Figma colours #7f77dd (500) and #534ab7 (700). */
+  --color-brand-50: #f1f0fc;
+  --color-brand-100: #e3e1f8;
+  --color-brand-200: #c8c4f1;
+  --color-brand-300: #aca6ea;
+  --color-brand-400: #958ee3;
+  --color-brand-500: #7f77dd;
+  --color-brand-600: #6a61d3;
+  --color-brand-700: #534ab7;
+  --color-brand-800: #423a91;
+  --color-brand-900: #322c6d;
+  --color-brand-950: #1f1b45;
+}
+
+/* Nuxt UI also writes these shades from JavaScript into an inline <style> tag.
+   A strict Content-Security-Policy (style-src 'self', no 'unsafe-inline') blocks
+   that tag, so the same values live here too and the theme survives the CSP. */
+:root {
+  --ui-color-primary-50: var(--color-brand-50);
+  --ui-color-primary-100: var(--color-brand-100);
+  --ui-color-primary-200: var(--color-brand-200);
+  --ui-color-primary-300: var(--color-brand-300);
+  --ui-color-primary-400: var(--color-brand-400);
+  --ui-color-primary-500: var(--color-brand-500);
+  --ui-color-primary-600: var(--color-brand-600);
+  --ui-color-primary-700: var(--color-brand-700);
+  --ui-color-primary-800: var(--color-brand-800);
+  --ui-color-primary-900: var(--color-brand-900);
+  --ui-color-primary-950: var(--color-brand-950);
+
+  --ui-color-neutral-50: oklch(98.5% 0 none);
+  --ui-color-neutral-100: oklch(96.7% 0.001 286.375);
+  --ui-color-neutral-200: oklch(92% 0.004 286.32);
+  --ui-color-neutral-300: oklch(87.1% 0.006 286.286);
+  --ui-color-neutral-400: oklch(70.5% 0.015 286.067);
+  --ui-color-neutral-500: oklch(55.2% 0.016 285.938);
+  --ui-color-neutral-600: oklch(44.2% 0.017 285.786);
+  --ui-color-neutral-700: oklch(37% 0.013 285.805);
+  --ui-color-neutral-800: oklch(27.4% 0.006 286.033);
+  --ui-color-neutral-900: oklch(21% 0.006 285.885);
+  --ui-color-neutral-950: oklch(14.1% 0.005 285.823);
+}
+
+/* Figma surfaces and text colours mapped onto Nuxt UI's semantic tokens. */
+.dark {
+  --ui-bg: #111114;
+  --ui-bg-muted: #1c1c21;
+  --ui-bg-elevated: #26262d;
+  --ui-bg-accented: #30303a;
+
+  --ui-text-highlighted: #f0eff8;
+  --ui-text: #e4e3ee;
+  --ui-text-toned: #c4c3d0;
+  --ui-text-muted: #9998a8;
+  /* Figma's hint colour #5c5b6e is 2.6:1 on the cards, below the 4.5:1 that
+     WCAG AA needs for text. #8a8899 is the closest shade that passes (4.9:1). */
+  --ui-text-dimmed: #8a8899;
+
+  --ui-border: rgb(255 255 255 / 0.08);
+  --ui-border-muted: rgb(255 255 255 / 0.06);
+  --ui-border-accented: rgb(255 255 255 / 0.12);
+
+  --ui-primary: var(--ui-color-primary-500);
+  /* Figma red #e24b4a is 4.3:1 on the cards; this shade passes for error text. */
+  --ui-error: #f06a69;
+  --ui-success: #5dcaa5;
+  --ui-warning: #ef9f27;
+
+  /* Nuxt UI derives its corner radii from this; 0.375rem gives the Figma 9-12px. */
+  --ui-radius: 0.375rem;
+}
+
+html {
+  background-color: var(--ui-bg);
+}
+
+/* Visible only when focused with the keyboard. */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: -3rem;
+  z-index: 50;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--ui-radius);
+  background: var(--ui-bg-elevated);
+  color: var(--ui-text-highlighted);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
