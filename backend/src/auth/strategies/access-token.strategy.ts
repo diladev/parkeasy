@@ -14,6 +14,8 @@ export class UserAccessTokenStrategy extends PassportStrategy(Strategy, 'user-ac
             // getOrThrow: the app refuses to start without the secret instead of
             // silently verifying tokens against `undefined`.
             secretOrKey: config.getOrThrow<string>('JWT_ACCESS_SECRET'),
+            // Only the algorithm we sign with: no 'none', no algorithm switching.
+            algorithms: ['HS256'],
         });
     }
 

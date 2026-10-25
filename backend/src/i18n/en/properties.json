@@ -3,6 +3,7 @@
     "email": "Email",
     "phone": "Phone number",
     "password": "Password",
+    "portal": "Portal",
     "username": "Username",
     "date_of_birth": "Date of birth",
     "status": "Status",

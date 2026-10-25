@@ -23,6 +23,7 @@ export class UserRefreshTokenStrategy extends PassportStrategy(Strategy, 'user-r
             jwtFromRequest: extractRefreshToken,
             ignoreExpiration: false,
             secretOrKey: config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+            algorithms: ['HS256'],
             passReqToCallback: true,
         });
     }

@@ -24,9 +24,11 @@ import {
     UserLocalLoginDto,
     VerifyOtpDto,
 } from 'src/users/dtos';
+import { canUsePortal, permissionsFor } from './permissions';
 import type {
     AccessTokenPayload,
     AuthSession,
+    MeResponse,
     PasswordResetPayload,
     RefreshTokenPayload,
 } from './types/auth.types';
@@ -94,7 +96,26 @@ export class AuthService {
         }
 
         this.assertActive(user);
+        // Checked before a session starts: a driver trying the Admin Panel is
+        // refused without being signed out of the mobile app.
+        if (dto.portal && !canUsePortal(user.role, dto.portal)) {
+            throw new ForbiddenException(this.t('PORTAL_NOT_ALLOWED'));
+        }
         return this.startSession(user);
+    }
+
+    /** The signed-in user and their permissions, read fresh from the database. */
+    async me(userId: number): Promise<MeResponse> {
+        const user = await this.usersService.findByIdOrNull(userId);
+        if (!user) {
+            throw new UnauthorizedException(this.t('UNAUTHORIZED'));
+        }
+        this.assertActive(user);
+        return {
+            user: { id: user.id, name: user.name, email: user.email },
+            role: user.role,
+            permissions: permissionsFor(user.role),
+        };
     }
 
     /** The guard has checked the token's signature; here we check it's the CURRENT one. */
@@ -185,6 +206,7 @@ export class AuthService {
         try {
             payload = await this.jwtService.verifyAsync<PasswordResetPayload>(dto.token, {
                 secret: this.secrets.reset,
+                algorithms: ['HS256'],
             });
         } catch {
             throw invalidToken();

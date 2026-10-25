@@ -1,4 +1,5 @@
 import { Table, Column, Model, HasMany, DataType } from 'sequelize-typescript';
+import type { Role } from 'src/auth/permissions';
 import { Vehicle } from './vehicle.entity';
 
 /** Columns that must never leave the server. */
@@ -59,6 +60,13 @@ export class User extends Model {
 
   @Column({ allowNull: false, defaultValue: 'active' })
   declare status: string;
+
+  /**
+   * driver (the mobile app), garage_owner (Garage Portal) or admin (Admin Panel).
+   * What each role may do is decided in auth/permissions.ts.
+   */
+  @Column({ type: DataType.STRING(20), allowNull: false, defaultValue: 'driver' })
+  declare role: Role;
 
   @HasMany(() => Vehicle)
   declare vehicles: Vehicle[];

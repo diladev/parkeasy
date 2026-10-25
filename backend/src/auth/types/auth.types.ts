@@ -1,4 +1,5 @@
 import type { User } from 'src/users/entities/user.entity';
+import type { Permission, Role } from '../permissions';
 
 /** Claims inside an access token (sent as `Authorization: Bearer ...`). */
 export interface AccessTokenPayload {
@@ -49,3 +50,10 @@ export interface AuthSession {
 
 /** What the client receives: the refresh token travels in a cookie, not in the body. */
 export type AuthResponse = Omit<AuthSession, 'refreshToken'>;
+
+/** GET /user/local/me: who is signed in and what they may do, decided by the server. */
+export interface MeResponse {
+    user: { id: number; name: string; email: string };
+    role: Role;
+    permissions: Permission[];
+}

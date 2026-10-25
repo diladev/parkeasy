@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import cookieParser from 'cookie-parser';
@@ -14,12 +15,19 @@ import { SUPPORTED_LANGUAGES } from './config/languages';
 
 async function bootstrap() {
     // rawBody: the payment webhook checks its signature against the exact bytes sent.
-    const app = await NestFactory.create(AppModule, { rawBody: true });
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
     const config = app.get(ConfigService);
     const isProduction = config.get<string>('NODE_ENV') === 'production';
 
     // Lets class-validator constraints be resolved through Nest's DI container.
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
+    // Behind a reverse proxy (nginx), trust its X-Forwarded-For so rate limits
+    // see the real client IP. TRUST_PROXY is the number of proxies in front.
+    const trustProxy = Number(config.get<string>('TRUST_PROXY') ?? 0);
+    if (trustProxy > 0) {
+        app.set('trust proxy', trustProxy);
+    }
 
     // Parses the `refreshToken` cookie that web clients send to /user/local/refresh.
     app.use(cookieParser());

@@ -19,6 +19,7 @@ import { Sequelize } from 'sequelize-typescript';
 
 import { AppModule } from 'src/app.module';
 import { cancellableUntil, DEFAULT_FREE_CANCELLATION_MINUTES } from 'src/booking/cancellation';
+import type { Role } from 'src/auth/permissions';
 import { Booking, PaymentMethod } from 'src/booking/entities/booking.entity';
 import { CURRENCY, formatDinars } from 'src/common/money';
 import { hashPassword } from 'src/common/security/password';
@@ -260,6 +261,9 @@ class DemoData {
         const hemin = await this.createUser('Hemin Aziz', 'hemin@example.com', '+964 772 100 0005', '1990-01-25', 'suspended');
         await this.createVehicle(hemin, 'Ford', 'Ranger', 2016, 'Blue', '22 SUL 99001', 'truck', true);
 
+        // The Admin Panel's account. It has no vehicles: admins don't park through the app.
+        await this.createUser('Dilan K.', 'admin@parkeasy.app', '+964 750 100 0099', null, 'active', 'admin');
+
         await this.saveWalletBalances();
     }
 
@@ -324,6 +328,7 @@ class DemoData {
         phone: string,
         dateOfBirth: string | null,
         status = 'active',
+        role: Role = 'driver',
     ): Promise<User> {
         return User.create(
             {
@@ -334,6 +339,7 @@ class DemoData {
                 password: await hashPassword(DEMO_PASSWORD),
                 date_of_birth: dateOfBirth,
                 status,
+                role,
             },
             { transaction: this.transaction },
         );
@@ -563,6 +569,7 @@ async function seed(): Promise<void> {
             { email: 'lana@example.com', shows: 'active booking that can still be cancelled (paid by card), unread notifications' },
             { email: 'karwan@example.com', shows: 'new account: no vehicles, bookings or wallet' },
             { email: 'hemin@example.com', shows: 'suspended: sign-in is refused' },
+            { email: 'admin@parkeasy.app', shows: 'Admin Panel account (web), not for the mobile app' },
         ]);
     } finally {
         await app.close();

@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { AcceptLanguageResolver, HeaderResolver, I18nModule } from 'nestjs-i18n';
 import { join } from 'path';
 import { Dialect } from 'sequelize';
 
+import { FetchMetadataMiddleware } from './common/middleware/fetch-metadata.middleware';
 import { validateEnvironment } from './config/env.validation';
 import passwordPolicy from './config/password-policy';
 import { defaultLanguage } from './config/languages';
@@ -109,4 +110,9 @@ import { Payment } from './payments/entities/payment.entity';
     PaymentsModule,
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // CSRF protection for the web portals' cookie (see the middleware).
+    consumer.apply(FetchMetadataMiddleware).forRoutes('*path');
+  }
+}

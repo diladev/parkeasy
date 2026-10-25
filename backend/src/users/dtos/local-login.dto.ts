@@ -1,6 +1,7 @@
-import { IsEmail, IsNotEmpty, IsString, MaxLength } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
+import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { i18nValidationMessage } from "nestjs-i18n";
+import { PORTALS, type Portal } from "src/auth/permissions";
 import { NormalizeEmail } from "src/common/transformers/normalize";
 
 export class UserLocalLoginDto {
@@ -23,4 +24,16 @@ export class UserLocalLoginDto {
     @IsNotEmpty({ message: i18nValidationMessage('validation.IS_NOT_EMPTY') })
     @MaxLength(128, { message: i18nValidationMessage('validation.MAX_LENGTH') })
     password!: string;
+
+    /**
+     * Sent by the web portals. Only accounts allowed into that portal get a
+     * session; the mobile app leaves it out.
+     */
+    @ApiPropertyOptional({
+        description: 'The web portal signing in. Accounts without access to it are refused.',
+        enum: PORTALS,
+    })
+    @IsOptional()
+    @IsIn(PORTALS, { message: i18nValidationMessage('validation.IS_IN') })
+    portal?: Portal;
 }
