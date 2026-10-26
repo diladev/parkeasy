@@ -7,7 +7,7 @@ import {
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { Op, Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { randomInt } from 'crypto';
+import { randomBytes, randomInt } from 'crypto';
 
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
@@ -109,6 +109,44 @@ export class UsersService {
         }
 
         return this.userModel.create({ ...dto, password: await hashPassword(dto.password) });
+    }
+
+    /**
+     * When an admin adds a garage: links the garage owner who already has this
+     * email, or opens an owner account for them. An account with another role is
+     * never promoted silently, so a driver can't be turned into an owner by mistake.
+     * The new account gets a random password nobody knows; the owner picks their
+     * own with "Forgot password".
+     */
+    async findOrCreateGarageOwner(
+        owner: { name: string; email: string; phone: string },
+        transaction: Transaction,
+    ): Promise<{ user: User; created: boolean }> {
+        // paranoid: false, because the unique index also covers soft-deleted rows.
+        const existing = await this.userModel.findOne({
+            where: { email: owner.email },
+            paranoid: false,
+            transaction,
+        });
+        if (existing) {
+            if (existing.role !== 'garage_owner' || existing.deletedAt) {
+                throw new ConflictException(this.t('GARAGE_OWNER_NOT_ELIGIBLE', { email: owner.email }));
+            }
+            return { user: existing, created: false };
+        }
+
+        const user = await this.userModel.create(
+            {
+                name: owner.name,
+                email: owner.email,
+                phone: owner.phone,
+                role: 'garage_owner',
+                username: await this.generateUsername(owner.email),
+                password: await hashPassword(randomBytes(32).toString('base64url')),
+            },
+            { transaction },
+        );
+        return { user, created: true };
     }
 
     async updateProfile(userId: number, dto: EditUserDto): Promise<{ message: string; user: User }> {

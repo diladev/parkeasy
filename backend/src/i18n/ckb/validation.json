@@ -17,6 +17,7 @@
     "MAX": "$t(properties.{property}) نابێت لە {constraints.0} زیاتر بێت.",
     "ARRAY_MIN_SIZE": "$t(properties.{property}) دەبێت لانیکەم {constraints.0} دانەی تێدا بێت.",
     "ARRAY_MAX_SIZE": "$t(properties.{property}) نابێت لە {constraints.0} دانە زیاتری تێدا بێت.",
+    "ARRAY_UNIQUE": "$t(properties.{property}) نابێت یەک شت دوو جار تێدا بێت.",
     "PASSWORD_PATTERN": "$t(properties.{property}) دەبێت {min} بۆ {max} پیت بێت بەبێ بۆشایی، و پیتێکی گەورە و پیتێکی بچووکی ئینگلیزی، ژمارەیەک و هێمایەکی (وەک ! یان #) تێدا بێت.",
     "USERNAME_PATTERN": "$t(properties.{property}) دەبێت 3 بۆ 30 پیت بێت: پیتی بچووکی ئینگلیزی، ژمارە، _ یان .",
     "DATE_PATTERN": "$t(properties.{property}) دەبێت بەروارێکی دروست بێت بە شێوەی YYYY-MM-DD.",

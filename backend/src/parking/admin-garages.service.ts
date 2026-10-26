@@ -4,8 +4,16 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { col, fn, Op, type Includeable, type WhereOptions } from 'sequelize';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
+import {
+  col,
+  fn,
+  Op,
+  UniqueConstraintError,
+  type Includeable,
+  type WhereOptions,
+} from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
 
 import {
   Booking,
@@ -16,7 +24,12 @@ import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
-import { AdminGaragesQueryDto } from './dtos';
+import { UsersService } from 'src/users/users.service';
+import {
+  AdminCreateGarageDto,
+  AdminGaragesQueryDto,
+  UpdateParkingLotDto,
+} from './dtos';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { ParkingSlot } from './entities/parking-slot.entity';
 import {
@@ -25,7 +38,7 @@ import {
   type GarageAction,
   type GarageStatus,
 } from './garage-status';
-import { compareLevels } from './levels';
+import { compareLevels, slotNumbers } from './levels';
 import { ParkingService, type SlotCounts } from './parking.service';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -101,6 +114,13 @@ export interface AdminGarageDetail {
   recent_bookings: AdminGarageBooking[];
 }
 
+/** What POST /admin/garages and PATCH /admin/garages/:id answer. */
+export interface AdminGarageSaved {
+  id: number;
+  /** Already translated, ready for a toast. */
+  message: string;
+}
+
 /** The usual paginated list, plus how many garages each status filter would show. */
 export type AdminGarageList = PaginationResult<AdminGarageRow> & {
   counts: GarageCounts;
@@ -128,7 +148,9 @@ export class AdminGaragesService {
     @InjectModel(ParkingSlot)
     private readonly slotModel: typeof ParkingSlot,
     @InjectModel(Booking) private readonly bookingModel: typeof Booking,
+    @InjectConnection() private readonly sequelize: Sequelize,
     private readonly parkingService: ParkingService,
+    private readonly usersService: UsersService,
     private readonly translationService: TranslationService,
   ) {}
 
@@ -250,6 +272,92 @@ export class AdminGaragesService {
       },
       revenue: { last_30_days: last30, previous_30_days: previous30 },
       recent_bookings: bookings,
+    };
+  }
+
+  /**
+   * Adds a garage with its levels and slots, and links or opens its owner's
+   * account, all in one transaction: a failure leaves nothing half-made.
+   * An admin vetted it, so it is approved and bookable straight away.
+   */
+  async create(
+    dto: AdminCreateGarageDto,
+    adminId: number,
+  ): Promise<AdminGarageSaved> {
+    const { levels, owner, ...details } = dto;
+
+    try {
+      const { id, newOwner } = await this.sequelize.transaction(
+        async (transaction) => {
+          const account = owner
+            ? await this.usersService.findOrCreateGarageOwner(
+                owner,
+                transaction,
+              )
+            : null;
+          const lot = await this.lotModel.create(
+            {
+              ...details,
+              status: 'approved',
+              owner_id: account?.user.id ?? null,
+            },
+            { transaction },
+          );
+          await this.slotModel.bulkCreate(
+            levels.flatMap(({ level, slots }) =>
+              slotNumbers(slots).map((slot_number) => ({
+                parking_lot_id: lot.id,
+                level,
+                slot_number,
+                status: 'free',
+              })),
+            ),
+            { transaction },
+          );
+          return {
+            id: lot.id,
+            newOwner: account?.created ? account.user : null,
+          };
+        },
+      );
+
+      this.logger.log(
+        `Admin ${adminId}: added garage ${id}` +
+          (newOwner ? ` with new owner account ${newOwner.id}` : ''),
+      );
+      return {
+        id,
+        message: newOwner
+          ? this.translationService.translate(
+              'message.GARAGE_CREATED_NEW_OWNER',
+              { args: { email: newOwner.email } },
+            )
+          : this.translationService.translate('message.GARAGE_CREATED'),
+      };
+    } catch (error) {
+      // Two admins adding the same new owner at once: the unique email index decides.
+      if (error instanceof UniqueConstraintError) {
+        throw new ConflictException(
+          this.translationService.translate('message.GARAGE_SAVE_CONFLICT'),
+        );
+      }
+      throw error;
+    }
+  }
+
+  /** Edits the garage's details. Levels, slots and the owner don't change here. */
+  async update(
+    id: number,
+    dto: UpdateParkingLotDto,
+    adminId: number,
+  ): Promise<AdminGarageSaved> {
+    await this.parkingService.updateLot(id, dto);
+    this.logger.log(
+      `Admin ${adminId}: edited garage ${id} (${Object.keys(dto).join(', ')})`,
+    );
+    return {
+      id,
+      message: this.translationService.translate('message.GARAGE_UPDATED'),
     };
   }
 

@@ -17,6 +17,7 @@
     "MAX": "$t(properties.{property}) must be at most {constraints.0}.",
     "ARRAY_MIN_SIZE": "$t(properties.{property}) must contain at least {constraints.0} items.",
     "ARRAY_MAX_SIZE": "$t(properties.{property}) can contain at most {constraints.0} items.",
+    "ARRAY_UNIQUE": "$t(properties.{property}) can't list the same item twice.",
     "PASSWORD_PATTERN": "$t(properties.{property}) must be {min}-{max} characters with no spaces and include an uppercase letter, a lowercase letter, a number and a symbol.",
     "USERNAME_PATTERN": "$t(properties.{property}) must be 3-30 characters: lowercase letters, numbers, _ or .",
     "DATE_PATTERN": "$t(properties.{property}) must be a real date in the format YYYY-MM-DD.",

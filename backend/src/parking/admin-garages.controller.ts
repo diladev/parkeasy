@@ -1,10 +1,12 @@
 import {
+  Body,
   Controller,
   Get,
   Header,
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -21,7 +23,11 @@ import { PERMISSIONS } from 'src/auth/permissions';
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import { AdminGaragesService } from './admin-garages.service';
-import { AdminGaragesQueryDto } from './dtos';
+import {
+  AdminCreateGarageDto,
+  AdminGaragesQueryDto,
+  UpdateParkingLotDto,
+} from './dtos';
 
 /** The Admin Panel's Garages page. Admins only; the role is checked on every request. */
 @ApiTags('Admin · Garages')
@@ -40,6 +46,30 @@ export class AdminGaragesController {
   })
   list(@Query() query: AdminGaragesQueryDto) {
     return this.adminGarages.list(query);
+  }
+
+  @Post()
+  @ApiOperation({
+    summary:
+      'Adds an approved garage with its levels and slots; links or opens the owner account.',
+  })
+  create(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Body() dto: AdminCreateGarageDto,
+  ) {
+    return this.adminGarages.create(dto, admin.id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({
+    summary: "Edits a garage's details (not its levels, slots or owner).",
+  })
+  update(
+    @CurrentUser() admin: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Body() dto: UpdateParkingLotDto,
+  ) {
+    return this.adminGarages.update(id, dto, admin.id);
   }
 
   @Get(':id')

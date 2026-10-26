@@ -40,6 +40,8 @@
     "slot_number": "Slot number",
     "level": "Level",
     "slots": "Slots",
+    "levels": "Levels",
+    "owner": "Owner",
     "parking_lot_id": "Parking lot",
     "parking_slot_id": "Parking slot",
     "vehicle_id": "Vehicle",

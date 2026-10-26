@@ -40,6 +40,8 @@
     "slot_number": "ژمارەی شوێن",
     "level": "نهۆم",
     "slots": "شوێنەکان",
+    "levels": "نهۆمەکان",
+    "owner": "خاوەن",
     "parking_lot_id": "پارکینگ",
     "parking_slot_id": "شوێنی وەستان",
     "vehicle_id": "ئۆتۆمبێل",
