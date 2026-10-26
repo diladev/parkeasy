@@ -127,7 +127,7 @@ describe('AdminLoginPage', () => {
         return nestError(401, 'ئیمەیڵ یان وشەی نهێنی هەڵەیە.')
       }),
     )
-    const app = await mountApp('/admin/login', 'ckb')
+    const app = await mountApp('/admin/login', { locale: 'ckb' })
     wrapper = app.wrapper
 
     expect(document.documentElement.dir).toBe('rtl')
