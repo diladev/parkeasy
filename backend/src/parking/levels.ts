@@ -10,3 +10,11 @@ export function levelHeight(level: string): number {
 export function compareLevels(a: string, b: string): number {
   return levelHeight(b) - levelHeight(a) || a.localeCompare(b);
 }
+
+/** Slot numbers for a new level: 3 -> A01, A02, A03 (the same scheme as the demo lots). */
+export function slotNumbers(count: number): string[] {
+  return Array.from(
+    { length: count },
+    (_, index) => `A${String(index + 1).padStart(2, '0')}`,
+  );
+}
