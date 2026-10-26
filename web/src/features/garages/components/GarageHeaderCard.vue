@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { I18nT, useI18n } from 'vue-i18n'
 
 import { isolate } from '@/shared/lib/bidi'
 import { formatMonthYear } from '@/shared/lib/format'
@@ -52,14 +52,17 @@ const ACTION_STYLE = {
       <p class="mt-1.5 text-sm text-dimmed">
         <span>{{ garage.address }}</span>
         <span aria-hidden="true"> · </span>
-        <span v-if="garage.owner">
-          {{
-            t('garages.detail.owner', {
-              name: isolate(garage.owner.name),
-              email: isolate(garage.owner.email),
-            })
-          }}
-        </span>
+        <!-- The owner's name opens their page under Users. -->
+        <I18nT v-if="garage.owner" keypath="garages.detail.owner" tag="span" scope="global">
+          <template #name>
+            <ULink
+              :to="{ name: 'admin.users.detail', params: { id: garage.owner.id } }"
+              class="text-default hover:underline"
+              >{{ isolate(garage.owner.name) }}</ULink
+            >
+          </template>
+          <template #email>{{ isolate(garage.owner.email) }}</template>
+        </I18nT>
         <span v-else>{{ t('garages.noOwner') }}</span>
         <span aria-hidden="true"> · </span>
         <span>{{

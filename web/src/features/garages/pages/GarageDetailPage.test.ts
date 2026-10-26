@@ -54,6 +54,10 @@ describe('GarageDetailPage', () => {
     await openGarage(5)
 
     expect(bodyText()).toContain('Owner: Sardar Ghafur (owner5@example.com)')
+    const ownerLink = [...document.querySelectorAll('a')].find(
+      (a) => clean(a.textContent) === 'Sardar Ghafur',
+    )
+    expect(ownerLink?.getAttribute('href')).toBe('/admin/users/105')
     expect(bodyText()).toContain('Added Jan 2026')
     expect(bodyText()).toContain('5 of 28 slots taken')
     expect(bodyText()).toContain('18%')
