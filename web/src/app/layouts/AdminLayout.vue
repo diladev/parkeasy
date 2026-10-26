@@ -19,9 +19,17 @@ const { can } = useCan()
 const isSidebarOpen = ref(false)
 const isRtl = computed(() => locale.value === 'ckb')
 
+const ADMIN_HOME = '/admin'
 const navItems = computed<NavigationMenuItem[]>(() =>
-  buildMenu(adminShellRoute.children ?? [], (permissions) => can(permissions), '/admin').map(
-    (item) => ({ label: t(item.title), icon: item.icon, to: item.path }),
+  buildMenu(adminShellRoute.children ?? [], (permissions) => can(permissions), ADMIN_HOME).map(
+    (item) => ({
+      label: t(item.title),
+      icon: item.icon,
+      to: item.path,
+      // Every admin page starts with /admin: only the Overview itself is "current" there.
+      // Other items stay current on their sub-pages (/admin/garages/5 -> Garages).
+      exact: item.path === ADMIN_HOME,
+    }),
   ),
 )
 
