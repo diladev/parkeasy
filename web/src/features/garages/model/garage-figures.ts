@@ -38,3 +38,8 @@ export function parseLevel(level: string): LevelName {
   const number = Number(match[2])
   return match[1] === 'B' ? { kind: 'basement', number } : { kind: 'floor', number }
 }
+
+/** The spot on OpenStreetMap (free, no key), zoomed to street level. */
+export function mapLink(latitude: number, longitude: number): string {
+  return `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=17/${latitude}/${longitude}`
+}

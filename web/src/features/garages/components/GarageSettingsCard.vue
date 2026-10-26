@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 import { formatInteger } from '@/shared/lib/format'
 
+import { mapLink } from '../model/garage-figures'
 import type { GarageDetail } from '../model/garage.schemas'
 
 const { garage } = defineProps<{ garage: GarageDetail }>()
@@ -23,10 +24,7 @@ const hours = computed(() =>
 )
 
 const coordinates = computed(() => `${garage.latitude.toFixed(4)}, ${garage.longitude.toFixed(4)}`)
-const mapUrl = computed(() => {
-  const { latitude: lat, longitude: lng } = garage
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`
-})
+const mapUrl = computed(() => mapLink(garage.latitude, garage.longitude))
 </script>
 
 <template>
