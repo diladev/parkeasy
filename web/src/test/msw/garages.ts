@@ -39,8 +39,15 @@ function garage(
   }
 }
 
-/** The detail answer for a list row; City Center (id 5) has bookings and a revenue history. */
-function detailOf(row: GarageRow) {
+type Detail = ReturnType<typeof baseDetail>
+
+/** The detail answer: the row's base, plus anything added or edited through the form. */
+function detailOf(row: GarageRow): Detail {
+  return { ...baseDetail(row), ...garagesDb.details.get(row.id) }
+}
+
+/** City Center (id 5) has bookings and a revenue history. */
+function baseDetail(row: GarageRow) {
   const hasHistory = row.id === 5
   return {
     id: row.id,
@@ -102,12 +109,62 @@ function detailOf(row: GarageRow) {
 
 export const garagesDb = {
   rows: structuredClone(SEED),
+  /** Detail fields set by POST or PATCH, by garage id. */
+  details: new Map<number, Partial<Detail>>(),
   /** Every list request, to check what the page asked for. */
   requests: [] as URLSearchParams[],
+  /** Every body sent to POST /admin/garages and PATCH /admin/garages/:id. */
+  saved: [] as { method: string; id?: number; body: Record<string, unknown> }[],
   reset() {
     this.rows = structuredClone(SEED)
+    this.details = new Map()
     this.requests = []
+    this.saved = []
   },
+}
+
+/** Emails that belong to drivers, so the backend refuses them as owners. */
+const DRIVER_EMAILS = ['karwan@example.com']
+
+interface SavedBody {
+  name: string
+  address: string
+  city: string
+  latitude: number
+  longitude: number
+  price_per_hour: number
+  free_cancellation_minutes: number
+  is_open_24h: boolean
+  opening_time: string
+  closing_time: string
+  has_cctv: boolean
+  has_ev_charging: boolean
+  is_covered: boolean
+  is_accessible: boolean
+  levels: { level: string; slots: number }[]
+  owner?: { name: string; email: string; phone: string }
+}
+
+/** The form's flat amenity fields become the detail answer's `amenities`. */
+function detailFields(body: Partial<SavedBody>, current?: Detail): Partial<Detail> {
+  const { has_cctv, has_ev_charging, is_covered, is_accessible, levels, owner, ...rest } = body
+  void levels
+  void owner
+  const amenities = current?.amenities ?? {
+    cctv: false,
+    ev_charging: false,
+    covered: false,
+    accessible: false,
+  }
+  return {
+    ...rest,
+    amenities: {
+      cctv: has_cctv ?? amenities.cctv,
+      ev_charging: has_ev_charging ?? amenities.ev_charging,
+      covered: is_covered ?? amenities.covered,
+      accessible: is_accessible ?? amenities.accessible,
+    },
+  }
 }
 
 const TRANSITIONS: Record<string, [GarageStatus, GarageStatus]> = {
@@ -164,6 +221,72 @@ export const garageHandlers = [
       )
     }
     return HttpResponse.json(detailOf(row))
+  }),
+
+  http.post('/api/admin/garages', async ({ request }) => {
+    const body = (await request.json()) as SavedBody
+    garagesDb.saved.push({ method: 'POST', body: body as unknown as Record<string, unknown> })
+    if (body.owner && DRIVER_EMAILS.includes(body.owner.email)) {
+      return HttpResponse.json(
+        {
+          statusCode: 409,
+          message: `${body.owner.email} belongs to an account that isn't a garage owner. Use a different email for the owner.`,
+        },
+        { status: 409 },
+      )
+    }
+    const id = Math.max(...garagesDb.rows.map((row) => row.id)) + 1
+    const total = body.levels.reduce((sum, level) => sum + level.slots, 0)
+    const owner = body.owner
+      ? { id: 500 + id, name: body.owner.name, email: body.owner.email }
+      : null
+    garagesDb.rows.push({
+      id,
+      name: body.name,
+      city: body.city,
+      address: body.address,
+      status: 'approved',
+      rating: 0,
+      total_slots: total,
+      revenue_30d: 0,
+      owner,
+    })
+    garagesDb.details.set(id, {
+      ...detailFields(body),
+      slots: {
+        total,
+        taken: 0,
+        levels: body.levels.map((level) => ({ level: level.level, total: level.slots, taken: 0 })),
+      },
+    })
+    return HttpResponse.json(
+      { id, message: 'Garage added. Drivers can find it in the app now.' },
+      { status: 201 },
+    )
+  }),
+
+  http.patch('/api/admin/garages/:id', async ({ params, request }) => {
+    const row = garagesDb.rows.find((item) => item.id === Number(params.id))
+    if (!row) {
+      return HttpResponse.json(
+        { statusCode: 404, message: 'Parking lot not found.' },
+        { status: 404 },
+      )
+    }
+    const body = (await request.json()) as Partial<SavedBody>
+    garagesDb.saved.push({
+      method: 'PATCH',
+      id: row.id,
+      body,
+    })
+    garagesDb.details.set(row.id, {
+      ...garagesDb.details.get(row.id),
+      ...detailFields(body, detailOf(row)),
+    })
+    if (body.name) row.name = body.name
+    if (body.city) row.city = body.city
+    if (body.address) row.address = body.address
+    return HttpResponse.json({ id: row.id, message: 'Garage details saved.' })
   }),
 
   http.post('/api/admin/garages/:id/:action', ({ params }) => {
