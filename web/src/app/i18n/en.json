@@ -6,7 +6,8 @@
     "mainNavigation": "Main navigation"
   },
   "nav": {
-    "overview": "Overview"
+    "overview": "Overview",
+    "garages": "Garages"
   },
   "roles": {
     "admin": "Administrator",
@@ -57,5 +58,61 @@
     "welcome": "Welcome back, {name}",
     "comingSoonTitle": "Statistics are on the way",
     "comingSoonDescription": "Users, garages, bookings and revenue will show here once the overview reports are connected."
+  },
+  "common": {
+    "iqd": "IQD",
+    "retry": "Try again",
+    "errors": {
+      "network": "Can't reach the server. Check your connection and try again.",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "garages": {
+    "title": "Garages",
+    "searchLabel": "Search garages",
+    "searchPlaceholder": "Search by name, city or owner…",
+    "filterLabel": "Filter by status",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "suspended": "Suspended"
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "suspended": "Suspended"
+    },
+    "columns": {
+      "garage": "Garage",
+      "owner": "Owner",
+      "city": "City",
+      "slots": "Slots",
+      "rating": "Rating",
+      "revenue": "Revenue · 30 days",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "actions": {
+      "approve": "Approve",
+      "suspend": "Suspend",
+      "restore": "Restore"
+    },
+    "noOwner": "No owner yet",
+    "notRated": "Not rated yet",
+    "showing": "Showing {from}–{to} of {total}",
+    "loadError": "Couldn't load the garages",
+    "empty": {
+      "title": "No garages found",
+      "description": "Try another search or status.",
+      "clearSearch": "Clear search"
+    },
+    "suspendDialog": {
+      "title": "Suspend {name}?",
+      "description": "Drivers won't find or book it in the app until you restore it. Bookings already made continue.",
+      "confirm": "Suspend garage",
+      "cancel": "Cancel"
+    },
+    "loading": "Loading garages…"
   }
 }
