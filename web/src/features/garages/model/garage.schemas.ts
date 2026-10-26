@@ -45,6 +45,14 @@ export const statusChangeSchema = z.object({
 })
 export type StatusChange = z.infer<typeof statusChangeSchema>
 
+/** POST /admin/garages and PATCH /admin/garages/:id */
+export const garageSavedSchema = z.object({
+  id: z.number().int(),
+  /** Already translated by the backend. */
+  message: z.string(),
+})
+export type GarageSaved = z.infer<typeof garageSavedSchema>
+
 // ------------------------------------------------------------------ detail
 
 export const BOOKING_STATUSES = ['active', 'completed', 'cancelled'] as const

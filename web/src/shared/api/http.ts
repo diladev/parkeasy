@@ -142,4 +142,13 @@ export const http = {
     const response = await client.post<unknown>(url, body, options)
     return parseBody(schema, response.data)
   },
+  async patch<T>(
+    url: string,
+    body: unknown,
+    schema: ResponseSchema<T>,
+    options?: RequestOptions,
+  ): Promise<T> {
+    const response = await client.patch<unknown>(url, body, options)
+    return parseBody(schema, response.data)
+  },
 }
