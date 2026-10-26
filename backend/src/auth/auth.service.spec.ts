@@ -1,4 +1,9 @@
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
@@ -123,5 +128,90 @@ describe('AuthService portal sign-in', () => {
       permissions: [],
     });
     await expect(service.me(99)).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+});
+
+describe('AuthService.sendResetCodeFromAdmin', () => {
+  let stored: { id: number; expiresAt: Date }[];
+  let cleared: number[];
+  let sent: { to: string; code: string }[];
+  let mailFails: boolean;
+  let service: AuthService;
+
+  const user = (overrides: Partial<User> = {}) =>
+    ({
+      id: 2,
+      name: 'Aram',
+      email: 'aram@example.com',
+      status: 'active',
+      otp_expires_at: null,
+      ...overrides,
+    }) as User;
+
+  beforeEach(() => {
+    stored = [];
+    cleared = [];
+    sent = [];
+    mailFails = false;
+    const usersService = {
+      storeOtp: (id: number, _hash: string, expiresAt: Date) => {
+        stored.push({ id, expiresAt });
+        return Promise.resolve();
+      },
+      clearOtp: (id: number) => {
+        cleared.push(id);
+        return Promise.resolve();
+      },
+    } as unknown as UsersService;
+    const mail = {
+      sendPasswordResetCode: (to: string, _name: string, code: string) => {
+        if (mailFails) return Promise.reject(new Error('SMTP down'));
+        sent.push({ to, code });
+        return Promise.resolve();
+      },
+    } as unknown as MailService;
+    const translations = {
+      translate: (key: string) => key,
+    } as unknown as TranslationService;
+    service = new AuthService(
+      new JwtService({}),
+      usersService,
+      mail,
+      translations,
+      { getOrThrow: () => 'secret' } as unknown as ConfigService,
+    );
+  });
+
+  it('emails a 6-digit code and says where it went', async () => {
+    await expect(service.sendResetCodeFromAdmin(user())).resolves.toEqual({
+      message: 'message.RESET_CODE_SENT_TO',
+    });
+    expect(sent.map((mail) => mail.to)).toEqual(['aram@example.com']);
+    expect(sent[0].code).toMatch(/^\d{6}$/);
+    expect(stored).toHaveLength(1);
+  });
+
+  it('refuses a suspended account', async () => {
+    await expect(
+      service.sendResetCodeFromAdmin(user({ status: 'suspended' })),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(sent).toEqual([]);
+  });
+
+  it('waits a minute between codes, like Forgot password', async () => {
+    // A 10-minute code sent 20 seconds ago.
+    const expiresAt = new Date(Date.now() + 10 * 60_000 - 20_000);
+    await expect(
+      service.sendResetCodeFromAdmin(user({ otp_expires_at: expiresAt })),
+    ).rejects.toMatchObject({ status: 429 });
+    expect(sent).toEqual([]);
+  });
+
+  it('forgets the code when the email could not be sent', async () => {
+    mailFails = true;
+    await expect(service.sendResetCodeFromAdmin(user())).rejects.toBeInstanceOf(
+      ServiceUnavailableException,
+    );
+    expect(cleared).toEqual([2]);
   });
 });

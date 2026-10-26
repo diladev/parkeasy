@@ -1,6 +1,9 @@
 import {
     BadRequestException,
+    ConflictException,
     ForbiddenException,
+    HttpException,
+    HttpStatus,
     Injectable,
     Logger,
     ServiceUnavailableException,
@@ -143,24 +146,44 @@ export class AuthService {
         const user = await this.usersService.findByEmail(dto.email);
 
         if (user && user.status === 'active' && !this.isInResendCooldown(user)) {
-            const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
-            const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60_000);
-            await this.usersService.storeOtp(user.id, hmacSha256(code), expiresAt);
-
-            try {
-                await this.mailService.sendPasswordResetCode(user.email, user.name, code, OTP_TTL_MINUTES);
-            } catch (error) {
-                this.logger.error(
-                    `Could not email the reset code to user ${user.id}`,
-                    error instanceof Error ? error.stack : String(error),
-                );
-                await this.usersService.clearOtp(user.id);
-                throw new ServiceUnavailableException(this.t('EMAIL_SEND_FAILED'));
-            }
+            await this.emailResetCode(user);
         }
 
         // Same answer whether or not the account exists.
         return { message: this.t('RESET_CODE_SENT') };
+    }
+
+    /**
+     * The Admin Panel's "Send password reset": the same code and email as
+     * Forgot password, but the admin is told plainly what happened, because
+     * they already know the account exists.
+     */
+    async sendResetCodeFromAdmin(user: User): Promise<{ message: string }> {
+        if (user.status !== 'active') {
+            throw new ConflictException(this.t('RESET_NEEDS_ACTIVE_ACCOUNT'));
+        }
+        if (this.isInResendCooldown(user)) {
+            throw new HttpException(this.t('RESET_CODE_RECENTLY_SENT'), HttpStatus.TOO_MANY_REQUESTS);
+        }
+        await this.emailResetCode(user);
+        return { message: this.t('RESET_CODE_SENT_TO', { email: user.email, minutes: OTP_TTL_MINUTES }) };
+    }
+
+    private async emailResetCode(user: User): Promise<void> {
+        const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
+        const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60_000);
+        await this.usersService.storeOtp(user.id, hmacSha256(code), expiresAt);
+
+        try {
+            await this.mailService.sendPasswordResetCode(user.email, user.name, code, OTP_TTL_MINUTES);
+        } catch (error) {
+            this.logger.error(
+                `Could not email the reset code to user ${user.id}`,
+                error instanceof Error ? error.stack : String(error),
+            );
+            await this.usersService.clearOtp(user.id);
+            throw new ServiceUnavailableException(this.t('EMAIL_SEND_FAILED'));
+        }
     }
 
     /** Step 2: check the code and hand out a short-lived reset token. */

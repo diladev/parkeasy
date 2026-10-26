@@ -17,6 +17,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { BookingModule } from './booking/booking.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AdminUsersModule } from './admin-users/admin-users.module';
 import { User } from './users/entities/user.entity';
 import { Vehicle } from './users/entities/vehicle.entity';
 import { ParkingLot } from './parking/entities/parking-lot.entity';
@@ -108,6 +109,7 @@ import { Payment } from './payments/entities/payment.entity';
     BookingModule,
     NotificationsModule,
     PaymentsModule,
+    AdminUsersModule,
   ],
 })
 export class AppModule implements NestModule {

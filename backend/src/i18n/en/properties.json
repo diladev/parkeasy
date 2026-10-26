@@ -7,6 +7,7 @@
     "username": "Username",
     "date_of_birth": "Date of birth",
     "status": "Status",
+    "role": "Role",
     "old_password": "Current password",
     "new_password": "New password",
     "token": "Reset token",
