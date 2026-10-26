@@ -28,10 +28,13 @@ export type ParkingLotView = Record<string, unknown> & {
   distance_km?: number;
 };
 
-interface SlotCounts {
+export interface SlotCounts {
   total: number;
   available: number;
 }
+
+/** Lots drivers can see and book: not removed, and approved by an admin. */
+export const LISTED_LOT = { is_available: true, status: 'approved' } as const;
 
 /** "B1:A01": a slot number is unique per level, not per lot. */
 const slotKey = (slot: { level: string; slot_number: string }) => `${slot.level}:${slot.slot_number}`;
@@ -61,7 +64,7 @@ export class ParkingService {
 
     const candidates = await this.parkingLotModel.findAll({
       where: {
-        is_available: true,
+        ...LISTED_LOT,
         latitude: { [Op.between]: [box.minLat, box.maxLat] },
         longitude: { [Op.between]: [box.minLng, box.maxLng] },
       },
@@ -90,7 +93,7 @@ export class ParkingService {
       query.pageSize,
       {
         where: {
-          is_available: true,
+          ...LISTED_LOT,
           [Op.or]: [{ name: { [Op.like]: pattern } }, { address: { [Op.like]: pattern } }],
         },
         order: [['name', 'ASC']],
@@ -118,11 +121,11 @@ export class ParkingService {
 
   // ------------------------------------------------------------- favorites
 
-  /** The lots the user saved, last saved first. Removed lots drop out. */
+  /** The lots the user saved, last saved first. Removed and suspended lots drop out. */
   async getFavorites(userId: number): Promise<ParkingLotView[]> {
     const favorites = await this.favoriteModel.findAll({
       where: { user_id: userId },
-      include: [{ model: ParkingLot, required: true, where: { is_available: true } }],
+      include: [{ model: ParkingLot, required: true, where: LISTED_LOT }],
       order: [
         ['createdAt', 'DESC'],
         ['id', 'DESC'],
@@ -156,8 +159,17 @@ export class ParkingService {
 
   // ------------------------------------------------- used by BookingService
 
-  /** A lot that can be booked (it exists and wasn't removed), or a 404. */
+  /** A lot that can be booked (approved and not removed), or a 404. */
   async getBookableLot(id: number, transaction?: Transaction): Promise<ParkingLot> {
+    const lot = await this.parkingLotModel.findOne({ where: { id, ...LISTED_LOT }, transaction });
+    if (!lot) {
+      throw new NotFoundException(this.t('PARKING_NOT_FOUND'));
+    }
+    return lot;
+  }
+
+  /** A lot an admin can manage: any status, but not removed. */
+  async getManagedLot(id: number, transaction?: Transaction): Promise<ParkingLot> {
     const lot = await this.parkingLotModel.findOne({ where: { id, is_available: true }, transaction });
     if (!lot) {
       throw new NotFoundException(this.t('PARKING_NOT_FOUND'));
@@ -206,20 +218,21 @@ export class ParkingService {
     );
   }
 
-  // ------------------------------------- management (x-admin-key, see controller)
+  // ------------------------------------------- management (admins, see controller)
 
+  /** An admin adds it, so it is approved straight away. */
   createLot(dto: CreateParkingLotDto): Promise<ParkingLot> {
-    return this.parkingLotModel.create({ ...dto });
+    return this.parkingLotModel.create({ ...dto, status: 'approved' });
   }
 
   async updateLot(id: number, dto: UpdateParkingLotDto): Promise<ParkingLot> {
-    const lot = await this.getBookableLot(id);
+    const lot = await this.getManagedLot(id);
     return lot.update(dto);
   }
 
   /** Removes a lot from the app. Refused while any of its slots has an active booking. */
   async deleteLot(id: number): Promise<{ message: string }> {
-    const lot = await this.getBookableLot(id);
+    const lot = await this.getManagedLot(id);
 
     const slotsInUse = await this.parkingSlotModel.count({
       where: { parking_lot_id: id, status: { [Op.in]: ['reserved', 'occupied'] } },
@@ -248,7 +261,7 @@ export class ParkingService {
    * instead of being created twice, which the unique index wouldn't allow.
    */
   async createSlots(lotId: number, dto: CreateParkingSlotsDto): Promise<ParkingSlot[]> {
-    await this.getBookableLot(lotId);
+    await this.getManagedLot(lotId);
 
     const keys = dto.slots.map(slotKey);
     if (new Set(keys).size !== keys.length) {
@@ -325,7 +338,7 @@ export class ParkingService {
   }
 
   /** Total and free slots per lot, in one grouped query. */
-  private async countSlots(lotIds: number[]): Promise<Map<number, SlotCounts>> {
+  async countSlots(lotIds: number[]): Promise<Map<number, SlotCounts>> {
     const counts = new Map<number, SlotCounts>();
     if (lotIds.length === 0) return counts;
 
@@ -347,8 +360,10 @@ export class ParkingService {
 
   private present(lot: ParkingLot, counts: Map<number, SlotCounts>, distance?: number): ParkingLotView {
     const { total, available } = counts.get(lot.id) ?? { total: 0, available: 0 };
+    // Which account owns the lot is for the Admin Panel, not for drivers.
+    const { owner_id: _ownerId, ...columns } = lot.toJSON<Record<string, unknown>>();
     return {
-      ...lot.toJSON<Record<string, unknown>>(),
+      ...columns,
       total_slots: total,
       available_slots: available,
       ...(distance !== undefined && { distance_km: Math.round(distance * 100) / 100 }),

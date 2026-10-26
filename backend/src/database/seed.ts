@@ -32,6 +32,7 @@ import {
 import { FavoriteLot } from 'src/parking/entities/favorite-lot.entity';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
+import type { GarageStatus } from 'src/parking/garage-status';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
@@ -51,11 +52,28 @@ const IRAQ_UTC_OFFSET = 3 * HOUR;
 
 const logger = new Logger('Seed');
 
+// ------------------------------------------------------------------ garage owners
+
+/** Garage-owner accounts (role garage_owner), shown as owners in the Admin Panel. */
+const OWNERS = {
+    sardar: { name: 'Sardar Ghafur', email: 'sardar@example.com', phone: '+964 750 200 0001' },
+    rawand: { name: 'Rawand Hama', email: 'rawand@example.com', phone: '+964 750 200 0002' },
+    bnar: { name: 'Bnar Ahmed', email: 'bnar@example.com', phone: '+964 750 200 0003' },
+    shwan: { name: 'Shwan Taha', email: 'shwan@example.com', phone: '+964 750 200 0004' },
+    hana: { name: 'Hana Rauf', email: 'hana@example.com', phone: '+964 750 200 0005' },
+} satisfies Record<string, { name: string; email: string; phone: string }>;
+
+type OwnerKey = keyof typeof OWNERS;
+
 // ------------------------------------------------------------------ parking lots
 
 interface LotSeed {
     name: string;
     address: string;
+    city: string;
+    /** Approved when not set. Pending and suspended lots are hidden from the app. */
+    status?: GarageStatus;
+    owner?: OwnerKey;
     latitude: number;
     longitude: number;
     price_per_hour: number;
@@ -82,6 +100,8 @@ const LOTS = {
     cityCenter: {
         name: 'City Center Parking',
         address: 'Salim Street, Sulaymaniyah',
+        city: 'Sulaymaniyah',
+        owner: 'sardar',
         latitude: 35.5571,
         longitude: 45.4356,
         price_per_hour: 1500,
@@ -100,6 +120,8 @@ const LOTS = {
     azadiPark: {
         name: 'Azadi Park Garage',
         address: 'Azadi Park, Sulaymaniyah',
+        city: 'Sulaymaniyah',
+        owner: 'rawand',
         latitude: 35.5608,
         longitude: 45.4295,
         price_per_hour: 1000,
@@ -111,6 +133,8 @@ const LOTS = {
     bakhtiari: {
         name: 'Bakhtiari Plaza Parking',
         address: 'Bakhtiari, Sulaymaniyah',
+        city: 'Sulaymaniyah',
+        owner: 'sardar',
         latitude: 35.5536,
         longitude: 45.4148,
         price_per_hour: 2000,
@@ -126,6 +150,9 @@ const LOTS = {
     sarchinar: {
         name: 'Sarchinar Night Parking',
         address: 'Sarchinar, Sulaymaniyah',
+        city: 'Sulaymaniyah',
+        status: 'suspended',
+        owner: 'shwan',
         latitude: 35.5794,
         longitude: 45.3992,
         price_per_hour: 1250,
@@ -136,6 +163,8 @@ const LOTS = {
     oldBazaar: {
         name: 'Old Bazaar Parking',
         address: 'Mawlawi Street, Sulaymaniyah',
+        city: 'Sulaymaniyah',
+        owner: 'shwan',
         latitude: 35.5642,
         longitude: 45.4371,
         price_per_hour: 750,
@@ -148,6 +177,7 @@ const LOTS = {
     tasluja: {
         name: 'Tasluja Road Parking',
         address: 'Tasluja Road, Sulaymaniyah',
+        city: 'Sulaymaniyah',
         latitude: 35.6021,
         longitude: 45.3567,
         price_per_hour: 1000,
@@ -159,6 +189,8 @@ const LOTS = {
     erbilCitadel: {
         name: 'Citadel Parking',
         address: 'Citadel Square, Erbil',
+        city: 'Erbil',
+        owner: 'rawand',
         latitude: 36.1912,
         longitude: 44.0092,
         price_per_hour: 1500,
@@ -166,6 +198,36 @@ const LOTS = {
         hours: null,
         has_cctv: true,
         levels: { G: 10 },
+    },
+    // Waiting for an admin in the Garages page: not in the app yet, no bookings.
+    zagros: {
+        name: 'Zagros Park Deck',
+        address: 'Salim Street, Sulaymaniyah',
+        city: 'Sulaymaniyah',
+        status: 'pending',
+        owner: 'bnar',
+        latitude: 35.5589,
+        longitude: 45.4402,
+        price_per_hour: 1500,
+        rating: 0,
+        hours: ['08:00', '22:00'],
+        has_cctv: true,
+        is_covered: true,
+        levels: { G: 10, F1: 10 },
+    },
+    ankawa: {
+        name: 'Ankawa Mall Parking',
+        address: 'Ankawa Road, Erbil',
+        city: 'Erbil',
+        status: 'pending',
+        owner: 'hana',
+        latitude: 36.2283,
+        longitude: 43.9925,
+        price_per_hour: 1000,
+        rating: 0,
+        hours: ['09:00', '23:00'],
+        is_accessible: true,
+        levels: { B1: 12 },
     },
 } satisfies Record<string, LotSeed>;
 
@@ -181,6 +243,7 @@ interface CreatedLot {
 class DemoData {
     private readonly now = Date.now();
     private readonly lots = new Map<LotKey, CreatedLot>();
+    private readonly owners = new Map<OwnerKey, User>();
     private readonly balances = new Map<number, number>();
     private seededPayments = 1;
 
@@ -209,6 +272,9 @@ class DemoData {
     }
 
     async run(): Promise<void> {
+        for (const [key, owner] of Object.entries(OWNERS) as [OwnerKey, (typeof OWNERS)[OwnerKey]][]) {
+            this.owners.set(key, await this.createUser(owner.name, owner.email, owner.phone, null, 'active', 'garage_owner'));
+        }
         for (const key of Object.keys(LOTS) as LotKey[]) {
             await this.createLot(key, LOTS[key]);
         }
@@ -280,6 +346,9 @@ class DemoData {
             {
                 name: seed.name,
                 address: seed.address,
+                city: seed.city,
+                status: seed.status ?? 'approved',
+                owner_id: seed.owner ? this.owners.get(seed.owner)!.id : null,
                 latitude: seed.latitude,
                 longitude: seed.longitude,
                 price_per_hour: seed.price_per_hour,
@@ -570,6 +639,7 @@ async function seed(): Promise<void> {
             { email: 'karwan@example.com', shows: 'new account: no vehicles, bookings or wallet' },
             { email: 'hemin@example.com', shows: 'suspended: sign-in is refused' },
             { email: 'admin@parkeasy.app', shows: 'Admin Panel account (web), not for the mobile app' },
+            { email: 'sardar@example.com', shows: 'garage owner (also rawand, bnar, shwan, hana): owners in the Garages page' },
         ]);
     } finally {
         await app.close();

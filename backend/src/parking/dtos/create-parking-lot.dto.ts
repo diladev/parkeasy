@@ -29,6 +29,16 @@ export class CreateParkingLotDto {
     address!: string;
 
     @ApiProperty({
+        description: 'The city the lot is in.',
+        example: 'Sulaymaniyah',
+    })
+    @Trim()
+    @IsString({ message: i18nValidationMessage('validation.IS_STRING') })
+    @MinLength(2, { message: i18nValidationMessage('validation.MIN_LENGTH') })
+    @MaxLength(100, { message: i18nValidationMessage('validation.MAX_LENGTH') })
+    city!: string;
+
+    @ApiProperty({
         description: 'The latitude of the parking lot.',
         example: 35.5571,
     })

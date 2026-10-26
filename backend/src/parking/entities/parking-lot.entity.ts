@@ -1,6 +1,8 @@
-import { Column, DataType, HasMany, Model, Table } from "sequelize-typescript";
+import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from "sequelize-typescript";
 import { DEFAULT_FREE_CANCELLATION_MINUTES } from "src/booking/cancellation";
 import { ParkingSlot } from "src/parking/entities/parking-slot.entity";
+import type { GarageStatus } from "src/parking/garage-status";
+import { User } from "src/users/entities/user.entity";
 
 @Table({ tableName: 'parking_lots', timestamps: true, paranoid: true })
 export class ParkingLot extends Model {
@@ -12,6 +14,10 @@ export class ParkingLot extends Model {
 
     @Column({ allowNull: false })
     declare address: string;
+
+    /** Shown and searched in the Admin Panel. */
+    @Column({ type: DataType.STRING(100), allowNull: false })
+    declare city: string;
 
     @Column({ type: DataType.DOUBLE, allowNull: false })
     declare latitude: number;
@@ -62,6 +68,21 @@ export class ParkingLot extends Model {
      */
     @Column({ allowNull: false, defaultValue: true })
     declare is_available: boolean;
+
+    /**
+     * Only approved lots are listed and bookable in the app (see garage-status.ts).
+     * New lots wait for an admin unless an admin created them.
+     */
+    @Column({ type: DataType.STRING(20), allowNull: false, defaultValue: 'pending' })
+    declare status: GarageStatus;
+
+    /** The garage-owner account that manages the lot; null until one is assigned. */
+    @ForeignKey(() => User)
+    @Column({ type: DataType.INTEGER, allowNull: true })
+    declare owner_id: number | null;
+
+    @BelongsTo(() => User, 'owner_id')
+    declare owner: User | null;
 
     @HasMany(() => ParkingSlot)
     declare slots: ParkingSlot[];

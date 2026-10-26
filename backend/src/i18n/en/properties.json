@@ -21,6 +21,7 @@
     "pageSize": "Page size",
     "amount": "Amount",
     "address": "Address",
+    "city": "City",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "lat": "Latitude",
