@@ -142,6 +142,20 @@ export const http = {
     const response = await client.post<unknown>(url, body, options)
     return parseBody(schema, response.data)
   },
+  /**
+   * A file to save, such as a CSV export. Goes through the same client as
+   * every other call, so the access token, refresh and error handling apply.
+   */
+  async download(
+    url: string,
+    options?: RequestOptions,
+  ): Promise<{ blob: Blob; filename: string | undefined }> {
+    const response = await client.get<Blob>(url, { ...options, responseType: 'blob' })
+    const disposition: unknown = response.headers['content-disposition']
+    const filename =
+      typeof disposition === 'string' ? /filename="?([^";]+)"?/.exec(disposition)?.[1] : undefined
+    return { blob: response.data, filename }
+  },
   async patch<T>(
     url: string,
     body: unknown,
