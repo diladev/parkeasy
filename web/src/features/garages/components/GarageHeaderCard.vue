@@ -10,7 +10,7 @@ import type { GarageDetail } from '../model/garage.schemas'
 import GarageStatusBadge from './GarageStatusBadge.vue'
 
 const { garage, busy = false } = defineProps<{ garage: GarageDetail; busy?: boolean }>()
-const emit = defineEmits<{ action: [action: GarageAction] }>()
+const emit = defineEmits<{ action: [action: GarageAction]; edit: [] }>()
 
 const { t, locale } = useI18n()
 
@@ -68,13 +68,13 @@ const ACTION_STYLE = {
       </p>
     </div>
 
-    <UButton
-      class="shrink-0 self-start sm:self-center"
-      v-bind="ACTION_STYLE[action]"
-      :loading="busy"
-      @click="emit('action', action)"
-    >
-      {{ t(`garages.detail.actions.${action}`) }}
-    </UButton>
+    <div class="flex shrink-0 flex-wrap gap-2 self-start sm:self-center">
+      <UButton color="neutral" variant="outline" icon="i-lucide-pencil" @click="emit('edit')">
+        {{ t('garages.form.editButton') }}
+      </UButton>
+      <UButton v-bind="ACTION_STYLE[action]" :loading="busy" @click="emit('action', action)">
+        {{ t(`garages.detail.actions.${action}`) }}
+      </UButton>
+    </div>
   </section>
 </template>

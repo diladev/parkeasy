@@ -6,6 +6,7 @@ import { ApiError } from '@/shared/api/errors'
 import { formatInteger, formatOneDecimal } from '@/shared/lib/format'
 import { usePageTitle } from '@/shared/navigation/page-title'
 
+import GarageFormModal from '../components/GarageFormModal.vue'
 import GarageHeaderCard from '../components/GarageHeaderCard.vue'
 import GarageSettingsCard from '../components/GarageSettingsCard.vue'
 import GarageStatCard from '../components/GarageStatCard.vue'
@@ -58,6 +59,7 @@ const revenueHint = computed(() => {
 // ------------------------------------------------------------------ actions
 
 const isConfirmOpen = ref(false)
+const isEditOpen = ref(false)
 
 function onAction(action: GarageAction) {
   if (needsConfirmation(action)) {
@@ -117,6 +119,7 @@ function run(action: GarageAction) {
         :garage
         :busy="statusChange.isPending.value && !isConfirmOpen"
         @action="onAction"
+        @edit="isEditOpen = true"
       />
 
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -161,6 +164,7 @@ function run(action: GarageAction) {
         :busy="statusChange.isPending.value"
         @confirm="run('suspend')"
       />
+      <GarageFormModal v-model:open="isEditOpen" :garage />
     </template>
 
     <div v-else class="space-y-4" :aria-label="t('garages.detail.loading')" role="status">

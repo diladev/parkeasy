@@ -1,22 +1,25 @@
 <script setup lang="ts">
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 import { ApiError } from '@/shared/api/errors'
 import { pageRange } from '@/shared/api/pagination'
 import { debounce } from '@/shared/lib/debounce'
 import { formatInteger } from '@/shared/lib/format'
 
+import GarageFormModal from '../components/GarageFormModal.vue'
 import GarageStatusFilter from '../components/GarageStatusFilter.vue'
 import GaragesTable from '../components/GaragesTable.vue'
 import { useGarageListParams } from '../composables/useGarageListParams'
 import { useGarages } from '../composables/useGarages'
 import { useGarageStatusChange } from '../composables/useGarageStatusChange'
 import type { GarageAction } from '../model/garage-actions'
-import type { GarageRow, GarageStatus } from '../model/garage.schemas'
+import type { GarageRow, GarageSaved, GarageStatus } from '../model/garage.schemas'
 import { MAX_SEARCH_LENGTH, toRouteQuery } from '../model/list-params'
 
 const { t } = useI18n()
+const router = useRouter()
 const { params, update } = useGarageListParams()
 const garages = useGarages(params)
 const statusChange = useGarageStatusChange()
@@ -71,6 +74,12 @@ function onAction(garage: GarageRow, action: GarageAction) {
   statusChange.mutate({ garage, action })
 }
 
+// A new garage opens on its own page, where its levels and settings can be checked.
+const isAddOpen = ref(false)
+function onAdded(saved: GarageSaved) {
+  void router.push({ name: 'admin.garages.detail', params: { id: saved.id } })
+}
+
 const loadError = computed(() => {
   const error = garages.error.value
   if (!error || list.value) return ''
@@ -92,7 +101,12 @@ const loadError = computed(() => {
         class="w-full lg:w-72"
       />
       <GarageStatusFilter v-model:status="status" :counts="list?.counts" />
+      <UButton icon="i-lucide-plus" class="self-start lg:ms-auto" @click="isAddOpen = true">
+        {{ t('garages.form.addButton') }}
+      </UButton>
     </div>
+
+    <GarageFormModal v-model:open="isAddOpen" @saved="onAdded" />
 
     <UAlert
       v-if="loadError"
