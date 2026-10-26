@@ -5,11 +5,11 @@ import { useI18n } from 'vue-i18n'
 import { ApiError } from '@/shared/api/errors'
 import { formatInteger, formatOneDecimal } from '@/shared/lib/format'
 import { usePageTitle } from '@/shared/navigation/page-title'
+import StatCard from '@/shared/ui/StatCard.vue'
 
 import GarageFormModal from '../components/GarageFormModal.vue'
 import GarageHeaderCard from '../components/GarageHeaderCard.vue'
 import GarageSettingsCard from '../components/GarageSettingsCard.vue'
-import GarageStatCard from '../components/GarageStatCard.vue'
 import LevelOccupancyCard from '../components/LevelOccupancyCard.vue'
 import RecentBookingsTable from '../components/RecentBookingsTable.vue'
 import SuspendGarageDialog from '../components/SuspendGarageDialog.vue'
@@ -123,12 +123,12 @@ function run(action: GarageAction) {
       />
 
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <GarageStatCard
+        <StatCard
           :label="t('garages.detail.stats.slots')"
           :value="formatInteger(garage.slots.total)"
           :hint="garage.slots.levels.map((level) => level.level).join(' · ')"
         />
-        <GarageStatCard
+        <StatCard
           :label="t('garages.detail.stats.occupancy')"
           :value="`${occupancy}%`"
           :hint="
@@ -138,13 +138,13 @@ function run(action: GarageAction) {
             })
           "
         />
-        <GarageStatCard
+        <StatCard
           :label="t('garages.detail.stats.revenue')"
           :value="`${formatInteger(garage.revenue.last_30_days)} ${t('common.iqd')}`"
           :hint="revenueHint.text"
           :tone="revenueHint.tone"
         />
-        <GarageStatCard
+        <StatCard
           :label="t('garages.detail.stats.rating')"
           :value="garage.rating > 0 ? `${formatOneDecimal(garage.rating)} ★` : '—'"
           :hint="garage.rating > 0 ? t('garages.detail.stats.ratingHint') : t('garages.notRated')"

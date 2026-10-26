@@ -1,5 +1,7 @@
 import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
+import { firstQueryValue as first } from '@/shared/navigation/route-query'
+
 import { GARAGE_STATUSES, type GarageStatus } from './garage.schemas'
 
 /**
@@ -14,11 +16,6 @@ export interface GarageListParams {
 
 export const PAGE_SIZE = 10
 export const MAX_SEARCH_LENGTH = 100
-
-const first = (value: LocationQuery[string] | undefined): string | undefined => {
-  const item = Array.isArray(value) ? value[0] : value
-  return typeof item === 'string' ? item : undefined
-}
 
 /** Anything odd in the URL falls back to the default instead of breaking the page. */
 export function parseListParams(query: LocationQuery): GarageListParams {
