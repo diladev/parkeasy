@@ -10,12 +10,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
+import { PermissionsGuard, RequirePermissions } from 'src/auth/guards/permissions.guard';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
+import { PERMISSIONS } from 'src/auth/permissions';
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
-import { AdminApiKeyGuard } from 'src/common/guards/admin-api-key.guard';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import { ParkingService } from 'src/parking/parking.service';
 import {
@@ -30,8 +31,8 @@ import {
 
 /**
  * Reading lots needs a signed-in user. Creating, editing and removing lots and
- * slots needs the `x-admin-key` header (ADMIN_API_KEY in .env) until the
- * garage-owner portal has its own login.
+ * slots needs an admin (admin.access, checked against the database on every
+ * request). Garage owners get their own routes with the Garage Portal.
  */
 @ApiTags('Parking')
 @Controller('parking')
@@ -95,43 +96,49 @@ export class ParkingController {
   // -------------------------------------------------------------- management
 
   @Post()
-  @UseGuards(AdminApiKeyGuard)
-  @ApiSecurity('admin-key')
+  @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
+  @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
+  @ApiBearerAuth()
   createLot(@Body() dto: CreateParkingLotDto) {
     return this.parkingService.createLot(dto);
   }
 
   @Patch(':id')
-  @UseGuards(AdminApiKeyGuard)
-  @ApiSecurity('admin-key')
+  @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
+  @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
+  @ApiBearerAuth()
   updateLot(@Param('id', ParseIdPipe) id: number, @Body() dto: UpdateParkingLotDto) {
     return this.parkingService.updateLot(id, dto);
   }
 
   @Delete(':id')
-  @UseGuards(AdminApiKeyGuard)
-  @ApiSecurity('admin-key')
+  @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
+  @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
+  @ApiBearerAuth()
   deleteLot(@Param('id', ParseIdPipe) id: number) {
     return this.parkingService.deleteLot(id);
   }
 
   @Post(':id/slots')
-  @UseGuards(AdminApiKeyGuard)
-  @ApiSecurity('admin-key')
+  @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
+  @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
+  @ApiBearerAuth()
   createSlots(@Param('id', ParseIdPipe) id: number, @Body() dto: CreateParkingSlotsDto) {
     return this.parkingService.createSlots(id, dto);
   }
 
   @Post(':id/slots/single')
-  @UseGuards(AdminApiKeyGuard)
-  @ApiSecurity('admin-key')
+  @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
+  @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
+  @ApiBearerAuth()
   addSlot(@Param('id', ParseIdPipe) id: number, @Body() dto: CreateParkingSlotDto) {
     return this.parkingService.addSlot(id, dto);
   }
 
   @Delete('slots/:slotId')
-  @UseGuards(AdminApiKeyGuard)
-  @ApiSecurity('admin-key')
+  @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
+  @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
+  @ApiBearerAuth()
   deleteSlot(@Param('slotId', ParseIdPipe) slotId: number) {
     return this.parkingService.deleteSlot(slotId);
   }

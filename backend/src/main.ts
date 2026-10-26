@@ -61,7 +61,6 @@ async function bootstrap() {
         .setDescription('ParkEasy API documentation')
         .setVersion('1.0')
         .addBearerAuth()
-        .addApiKey({ type: 'apiKey', in: 'header', name: 'x-admin-key' }, 'admin-key')
         .addGlobalParameters({
             name: 'x-lang',
             in: 'header',

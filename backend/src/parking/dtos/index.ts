@@ -3,3 +3,4 @@ export { CreateParkingSlotDto } from './create-parking-slot.dto';
 export { CreateParkingSlotsDto } from './create-parking-slots.dto';
 export { UpdateParkingLotDto } from './update-parking-lot.dto';
 export { NearbyQueryDto, SearchQueryDto, SlotsQueryDto } from './parking-query.dto';
+export { AdminGaragesQueryDto } from './admin-garages-query.dto';
