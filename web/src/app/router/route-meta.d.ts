@@ -18,6 +18,8 @@ declare module 'vue-router' {
     guestOnly?: boolean
     /** Which portal the route belongs to; picks the sign-in page to send people to. */
     portal?: 'admin' | 'garage'
+    /** Route name of the list page above this one, shown as "Garages /" before the heading. */
+    parent?: string
     hideInMenu?: boolean
     menuOrder?: number
   }

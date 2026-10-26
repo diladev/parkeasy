@@ -39,6 +39,67 @@ function garage(
   }
 }
 
+/** The detail answer for a list row; City Center (id 5) has bookings and a revenue history. */
+function detailOf(row: GarageRow) {
+  const hasHistory = row.id === 5
+  return {
+    id: row.id,
+    name: row.name,
+    address: row.address,
+    city: row.city,
+    status: row.status,
+    rating: row.rating,
+    latitude: 35.5571,
+    longitude: 45.4356,
+    price_per_hour: 1500,
+    is_open_24h: row.id === 5,
+    opening_time: '08:00',
+    closing_time: '22:00',
+    free_cancellation_minutes: 30,
+    amenities: { cctv: true, ev_charging: false, covered: true, accessible: row.id === 5 },
+    owner: row.owner,
+    created_at: '2026-01-15T09:00:00.000Z',
+    slots: hasHistory
+      ? {
+          total: 28,
+          taken: 5,
+          levels: [
+            { level: 'G', total: 8, taken: 7 },
+            { level: 'B1', total: 12, taken: 1 },
+            { level: 'B2', total: 8, taken: 5 },
+          ],
+        }
+      : { total: 0, taken: 0, levels: [] },
+    revenue: { last_30_days: row.revenue_30d, previous_30_days: hasHistory ? 3000 : 0 },
+    recent_bookings: hasHistory
+      ? [
+          {
+            id: 10,
+            status: 'active',
+            ended_early: false,
+            start_time: '2026-10-26T09:43:00.000Z',
+            end_time: '2026-10-26T12:43:00.000Z',
+            total_cost: 4500,
+            customer: { id: 8, name: 'Lana Rashid' },
+            vehicle: { brand: 'Toyota', model: 'Hilux', license_plate: '22 SUL 61902' },
+            slot: { level: 'B2', slot_number: 'A01' },
+          },
+          {
+            id: 4,
+            status: 'completed',
+            ended_early: true,
+            start_time: '2026-10-25T07:00:00.000Z',
+            end_time: '2026-10-25T10:00:00.000Z',
+            total_cost: 3000,
+            customer: null,
+            vehicle: null,
+            slot: { level: 'G', slot_number: 'A05' },
+          },
+        ]
+      : [],
+  }
+}
+
 export const garagesDb = {
   rows: structuredClone(SEED),
   /** Every list request, to check what the page asked for. */
@@ -92,6 +153,17 @@ export const garageHandlers = [
       links: {},
       counts,
     })
+  }),
+
+  http.get('/api/admin/garages/:id', ({ params }) => {
+    const row = garagesDb.rows.find((item) => item.id === Number(params.id))
+    if (!row) {
+      return HttpResponse.json(
+        { statusCode: 404, message: 'Parking lot not found.' },
+        { status: 404 },
+      )
+    }
+    return HttpResponse.json(detailOf(row))
   }),
 
   http.post('/api/admin/garages/:id/:action', ({ params }) => {

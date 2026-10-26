@@ -7,17 +7,17 @@ import { ApiError } from '@/shared/api/errors'
 import { garagesApi } from '../api/garages.api'
 import { garagesKeys } from '../api/garages.keys'
 import type { GarageAction } from '../model/garage-actions'
-import type { GarageRow } from '../model/garage.schemas'
 
 export interface StatusChangeRequest {
-  garage: GarageRow
+  /** A list row or the detail page's garage: only the id is sent. */
+  garage: { id: number; name: string }
   action: GarageAction
 }
 
 /**
  * Approve, suspend or restore one garage. The result (or the reason it failed)
- * is shown as a toast in the server's words, and every garage list is refetched
- * afterwards so the row and the counts are correct either way.
+ * is shown as a toast in the server's words, and every garage list and page is
+ * refetched afterwards so rows, counts and badges are correct either way.
  */
 export function useGarageStatusChange() {
   const queryClient = useQueryClient()

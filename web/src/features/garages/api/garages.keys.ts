@@ -5,4 +5,6 @@ export const garagesKeys = {
   all: ['garages'] as const,
   lists: () => [...garagesKeys.all, 'list'] as const,
   list: (params: GarageListParams) => [...garagesKeys.lists(), params] as const,
+  details: () => [...garagesKeys.all, 'detail'] as const,
+  detail: (id: number) => [...garagesKeys.details(), id] as const,
 }

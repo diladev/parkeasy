@@ -2,9 +2,10 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { useCan, useSessionStore } from '@/features/auth'
+import { pageTitle } from '@/shared/navigation/page-title'
 
 import { buildMenu } from '../navigation/buildMenu'
 import { adminShellRoute } from '../router/routes'
@@ -13,6 +14,7 @@ import UserMenu from './parts/UserMenu.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const session = useSessionStore()
 const { can } = useCan()
 
@@ -34,8 +36,17 @@ const navItems = computed<NavigationMenuItem[]>(() =>
 )
 
 const heading = computed(() => {
+  if (pageTitle.value) return pageTitle.value
   const key = route.meta.heading ?? route.meta.title
   return key ? t(key) : ''
+})
+
+/** "Garages /" before a sub-page's heading, linking back to the list. */
+const parent = computed(() => {
+  const name = route.meta.parent
+  if (!name) return null
+  const resolved = router.resolve({ name })
+  return { to: resolved, label: resolved.meta.title ? t(resolved.meta.title) : '' }
 })
 
 const roleLabel = computed(() => {
@@ -110,6 +121,20 @@ watch(
       <template #header>
         <UDashboardNavbar :as="{ title: 'div' }">
           <template #title>
+            <nav
+              v-if="parent"
+              :aria-label="t('app.breadcrumb')"
+              class="flex shrink-0 items-center gap-1.5 text-lg"
+            >
+              <ULink :to="parent.to" class="text-muted hover:text-highlighted">{{
+                parent.label
+              }}</ULink>
+              <UIcon
+                name="i-lucide-chevron-right"
+                class="size-4 text-dimmed rtl:rotate-180"
+                aria-hidden="true"
+              />
+            </nav>
             <h1 ref="heading" tabindex="-1" class="truncate text-lg font-medium outline-none">
               {{ heading }}
             </h1>

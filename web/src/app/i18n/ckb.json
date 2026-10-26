@@ -3,7 +3,8 @@
     "name": "ParkEasy",
     "adminPanel": "پانێڵی بەڕێوەبەر",
     "skipToContent": "بازدان بۆ ناوەڕۆکی سەرەکی",
-    "mainNavigation": "ڕێنیشاندەری سەرەکی"
+    "mainNavigation": "ڕێنیشاندەری سەرەکی",
+    "breadcrumb": "ڕێڕەو"
   },
   "nav": {
     "overview": "تێڕوانینی گشتی",
@@ -65,7 +66,8 @@
     "errors": {
       "network": "ناتوانرێت پەیوەندی بە ڕاژەکارەوە بکرێت. هێڵەکەت بپشکنە و دووبارە هەوڵ بدەرەوە.",
       "generic": "هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵ بدەرەوە."
-    }
+    },
+    "opensInNewTab": "(لە تابێکی نوێدا دەکرێتەوە)"
   },
   "garages": {
     "title": "گەراجەکان",
@@ -96,7 +98,8 @@
     "actions": {
       "approve": "پەسەندکردن",
       "suspend": "ڕاگرتن",
-      "restore": "گەڕاندنەوە"
+      "restore": "گەڕاندنەوە",
+      "view": "بینین"
     },
     "noOwner": "هێشتا خاوەنی نییە",
     "notRated": "هێشتا هەڵنەسەنگێنراوە",
@@ -113,6 +116,83 @@
       "confirm": "ڕاگرتنی گەراج",
       "cancel": "پاشگەزبوونەوە"
     },
-    "loading": "گەراجەکان باردەکرێن…"
+    "loading": "گەراجەکان باردەکرێن…",
+    "detail": {
+      "title": "گەراج",
+      "owner": "خاوەن: {name} ({email})",
+      "added": "زیادکراوە: {date}",
+      "loading": "گەراجەکە باردەکرێت…",
+      "loadError": "نەتوانرا ئەم گەراجە باربکرێت",
+      "actions": {
+        "approve": "پەسەندکردنی گەراج",
+        "suspend": "ڕاگرتنی گەراج",
+        "restore": "گەڕاندنەوەی گەراج"
+      },
+      "stats": {
+        "slots": "شوێنەکان",
+        "occupancy": "پڕبوونی ئێستا",
+        "occupancyHint": "{taken} لە {total} شوێن گیراون",
+        "revenue": "داهات · 30 ڕۆژ",
+        "revenueUp": "{percent}% زیاتر لە 30 ڕۆژی پێشوو",
+        "revenueDown": "{percent}% کەمتر لە 30 ڕۆژی پێشوو",
+        "revenueSame": "وەک 30 ڕۆژی پێشوو",
+        "revenueNoHistory": "هێشتا شتێک نییە بۆ بەراوردکردن",
+        "rating": "هەڵسەنگاندن",
+        "ratingHint": "لە هەڵسەنگاندنی شۆفێرانەوە"
+      },
+      "settings": {
+        "title": "ڕێکخستنەکانی پارکینگ",
+        "subtitle": "لەلایەن خاوەنەوە لە پۆرتاڵی گەراج دادەنرێت.",
+        "pricePerHour": "نرخ بۆ هەر کاتژمێرێک",
+        "openingHours": "کاتەکانی کارکردن",
+        "open24h": "24 کاتژمێر کراوەیە",
+        "hoursRange": "{from} – {to}",
+        "freeCancellation": "هەڵوەشاندنەوەی بێبەرامبەر",
+        "freeCancellationValue": "{minutes} خولەک دوای دەستپێکردن",
+        "location": "شوێن",
+        "viewOnMap": "لەسەر نەخشە ببینە",
+        "amenities": "خزمەتگوزارییەکان",
+        "noAmenities": "هیچ"
+      },
+      "amenity": {
+        "cctv": "کامێرای چاودێری",
+        "ev_charging": "بارگاویکردنی ئۆتۆمبێلی کارەبایی",
+        "covered": "داپۆشراو",
+        "accessible": "گونجاو بۆ کەمئەندامان"
+      },
+      "levels": {
+        "title": "پڕبوون بەپێی نهۆم",
+        "taken": "{taken} لە {total} گیراوە",
+        "ground": "نهۆمی زەوی",
+        "basement": "ژێرزەمینی {number}",
+        "floor": "نهۆمی {number}",
+        "empty": "هێشتا هیچ شوێنێک نییە."
+      },
+      "bookings": {
+        "title": "دوایین حیجزەکان",
+        "empty": "هێشتا هیچ حیجزێک نییە.",
+        "deletedAccount": "هەژماری سڕاوە",
+        "columns": {
+          "id": "ژمارە",
+          "customer": "کڕیار",
+          "vehicle": "ئۆتۆمبێل",
+          "slot": "شوێن",
+          "start": "دەستپێک",
+          "amount": "بڕ",
+          "status": "دۆخ"
+        },
+        "status": {
+          "active": "چالاک",
+          "completed": "تەواوبوو",
+          "cancelled": "هەڵوەشێنراوە",
+          "endedEarly": "زووتر کۆتایی هات"
+        }
+      },
+      "notFound": {
+        "title": "گەراجەکە نەدۆزرایەوە",
+        "description": "لەوانەیە لابرابێت.",
+        "back": "گەڕانەوە بۆ گەراجەکان"
+      }
+    }
   }
 }

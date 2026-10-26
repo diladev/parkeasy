@@ -3,7 +3,8 @@
     "name": "ParkEasy",
     "adminPanel": "Admin Panel",
     "skipToContent": "Skip to main content",
-    "mainNavigation": "Main navigation"
+    "mainNavigation": "Main navigation",
+    "breadcrumb": "Breadcrumb"
   },
   "nav": {
     "overview": "Overview",
@@ -65,7 +66,8 @@
     "errors": {
       "network": "Can't reach the server. Check your connection and try again.",
       "generic": "Something went wrong. Please try again."
-    }
+    },
+    "opensInNewTab": "(opens in a new tab)"
   },
   "garages": {
     "title": "Garages",
@@ -96,7 +98,8 @@
     "actions": {
       "approve": "Approve",
       "suspend": "Suspend",
-      "restore": "Restore"
+      "restore": "Restore",
+      "view": "View"
     },
     "noOwner": "No owner yet",
     "notRated": "Not rated yet",
@@ -113,6 +116,83 @@
       "confirm": "Suspend garage",
       "cancel": "Cancel"
     },
-    "loading": "Loading garages…"
+    "loading": "Loading garages…",
+    "detail": {
+      "title": "Garage",
+      "owner": "Owner: {name} ({email})",
+      "added": "Added {date}",
+      "loading": "Loading the garage…",
+      "loadError": "Couldn't load this garage",
+      "actions": {
+        "approve": "Approve garage",
+        "suspend": "Suspend garage",
+        "restore": "Restore garage"
+      },
+      "stats": {
+        "slots": "Slots",
+        "occupancy": "Occupancy now",
+        "occupancyHint": "{taken} of {total} slots taken",
+        "revenue": "Revenue · 30 days",
+        "revenueUp": "Up {percent}% on the 30 days before",
+        "revenueDown": "Down {percent}% on the 30 days before",
+        "revenueSame": "Same as the 30 days before",
+        "revenueNoHistory": "Nothing to compare with yet",
+        "rating": "Rating",
+        "ratingHint": "From drivers' ratings"
+      },
+      "settings": {
+        "title": "Lot settings",
+        "subtitle": "Set by the owner in the Garage Portal.",
+        "pricePerHour": "Price per hour",
+        "openingHours": "Opening hours",
+        "open24h": "Open 24 hours",
+        "hoursRange": "{from} – {to}",
+        "freeCancellation": "Free cancellation",
+        "freeCancellationValue": "{minutes} min after the start",
+        "location": "Location",
+        "viewOnMap": "View on map",
+        "amenities": "Amenities",
+        "noAmenities": "None"
+      },
+      "amenity": {
+        "cctv": "CCTV",
+        "ev_charging": "EV charging",
+        "covered": "Covered",
+        "accessible": "Accessible"
+      },
+      "levels": {
+        "title": "Occupancy by level",
+        "taken": "{taken} of {total} taken",
+        "ground": "Ground floor",
+        "basement": "Basement {number}",
+        "floor": "Floor {number}",
+        "empty": "No slots yet."
+      },
+      "bookings": {
+        "title": "Recent bookings",
+        "empty": "No bookings yet.",
+        "deletedAccount": "Deleted account",
+        "columns": {
+          "id": "ID",
+          "customer": "Customer",
+          "vehicle": "Vehicle",
+          "slot": "Slot",
+          "start": "Start",
+          "amount": "Amount",
+          "status": "Status"
+        },
+        "status": {
+          "active": "Active",
+          "completed": "Completed",
+          "cancelled": "Cancelled",
+          "endedEarly": "Ended early"
+        }
+      },
+      "notFound": {
+        "title": "Garage not found",
+        "description": "It may have been removed.",
+        "back": "Back to garages"
+      }
+    }
   }
 }

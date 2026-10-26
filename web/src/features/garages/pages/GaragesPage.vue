@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { ApiError } from '@/shared/api/errors'
@@ -9,11 +9,10 @@ import { formatInteger } from '@/shared/lib/format'
 
 import GarageStatusFilter from '../components/GarageStatusFilter.vue'
 import GaragesTable from '../components/GaragesTable.vue'
-import SuspendGarageDialog from '../components/SuspendGarageDialog.vue'
 import { useGarageListParams } from '../composables/useGarageListParams'
 import { useGarages } from '../composables/useGarages'
 import { useGarageStatusChange } from '../composables/useGarageStatusChange'
-import { needsConfirmation, type GarageAction } from '../model/garage-actions'
+import type { GarageAction } from '../model/garage-actions'
 import type { GarageRow, GarageStatus } from '../model/garage.schemas'
 import { MAX_SEARCH_LENGTH, toRouteQuery } from '../model/list-params'
 
@@ -67,25 +66,9 @@ watch(list, (value) => {
 const busyId = computed(() =>
   statusChange.isPending.value ? (statusChange.variables.value?.garage.id ?? null) : null,
 )
-const toConfirm = shallowRef<GarageRow | null>(null)
-const isConfirmOpen = ref(false)
-
+// Approve and restore happen right in the list; suspending is on the garage page.
 function onAction(garage: GarageRow, action: GarageAction) {
-  if (needsConfirmation(action)) {
-    toConfirm.value = garage
-    isConfirmOpen.value = true
-    return
-  }
   statusChange.mutate({ garage, action })
-}
-
-function confirmSuspend() {
-  const garage = toConfirm.value
-  if (!garage) return
-  statusChange.mutate(
-    { garage, action: 'suspend' },
-    { onSettled: () => (isConfirmOpen.value = false) },
-  )
 }
 
 const loadError = computed(() => {
@@ -175,12 +158,5 @@ const loadError = computed(() => {
         />
       </div>
     </template>
-
-    <SuspendGarageDialog
-      v-model:open="isConfirmOpen"
-      :garage-name="toConfirm?.name ?? ''"
-      :busy="statusChange.isPending.value"
-      @confirm="confirmSuspend"
-    />
   </div>
 </template>

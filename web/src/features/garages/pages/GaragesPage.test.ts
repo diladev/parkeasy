@@ -30,7 +30,7 @@ const bodyText = () => clean(document.body.textContent)
 
 /** Garage names in the table, top to bottom. */
 const names = () =>
-  [...document.querySelectorAll('tbody tr td:first-child span.font-medium')].map((span) =>
+  [...document.querySelectorAll('tbody tr td:first-child a[data-garage-name]')].map((span) =>
     text(span),
   )
 
@@ -118,21 +118,28 @@ describe('GaragesPage', () => {
     expect(button('Pending · 1')).toBeTruthy()
   })
 
-  it('asks before suspending, and does nothing when cancelled', async () => {
-    await openGarages()
+  it('restores a suspended garage right in the list', async () => {
+    await openGarages('/admin/garages?status=suspended')
 
-    button(/^Suspend City Center Parking$/).click()
-    await vi.waitFor(() => expect(bodyText()).toContain('Suspend City Center Parking?'))
-    button('Cancel').click()
-    await flushPromises()
-    expect(garagesDb.rows.find((row) => row.id === 5)?.status).toBe('approved')
+    button(/^Restore Sarchinar Night Parking$/).click()
 
-    button(/^Suspend City Center Parking$/).click()
-    await vi.waitFor(() => expect(() => button('Suspend garage')).not.toThrow())
-    button('Suspend garage').click()
+    await vi.waitFor(() =>
+      expect(bodyText()).toContain('Garage restored. Drivers can find it in the app again.'),
+    )
+    await vi.waitFor(() => expect(names()).toEqual([]))
+  })
 
-    await vi.waitFor(() => expect(text(rowOf('City Center Parking'))).toContain('Suspended'))
-    expect(button(/^Restore City Center Parking$/)).toBeTruthy()
+  it('opens an approved garage with View or its name (suspending happens there)', async () => {
+    const app = await openGarages()
+    const row = rowOf('City Center Parking')
+
+    const view = [...row.querySelectorAll('a')].find((a) => text(a) === 'View City Center Parking')
+    expect(view?.getAttribute('href')).toBe('/admin/garages/5')
+    expect(row.querySelector('a[data-garage-name]')?.getAttribute('href')).toBe('/admin/garages/5')
+    expect(text(row)).not.toContain('Suspend')
+
+    view?.click()
+    await vi.waitFor(() => expect(app.router.currentRoute.value.name).toBe('admin.garages.detail'))
   })
 
   it("shows the server's reason when the change is refused", async () => {

@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 
 import { formatInteger, formatOneDecimal } from '@/shared/lib/format'
 
-import { ACTION_FOR_STATUS, type GarageAction } from '../model/garage-actions'
+import { LIST_ACTION, type GarageAction } from '../model/garage-actions'
 import type { GarageRow } from '../model/garage.schemas'
 import GarageStatusBadge from './GarageStatusBadge.vue'
 
@@ -41,9 +41,20 @@ const columns = computed<TableColumn<GarageRow>[]>(() => [
 
 const ACTION_STYLE = {
   approve: { color: 'success', variant: 'solid' },
-  suspend: { color: 'error', variant: 'soft' },
+  view: { color: 'neutral', variant: 'outline' },
   restore: { color: 'neutral', variant: 'outline' },
 } as const
+
+const detailLink = (garage: GarageRow) => ({
+  name: 'admin.garages.detail',
+  params: { id: garage.id },
+})
+
+/** "View" is a link; the other buttons change the status here. */
+function onRowAction(garage: GarageRow) {
+  const action = LIST_ACTION[garage.status]
+  if (action !== 'view') emit('action', garage, action)
+}
 </script>
 
 <template>
@@ -63,7 +74,12 @@ const ACTION_STYLE = {
   >
     <template #name-cell="{ row }">
       <div class="flex flex-col">
-        <span class="font-medium text-highlighted">{{ row.original.name }}</span>
+        <ULink
+          :to="detailLink(row.original)"
+          class="font-medium text-highlighted hover:underline"
+          :data-garage-name="row.original.name"
+          >{{ row.original.name }}</ULink
+        >
         <span class="text-xs text-dimmed">{{ row.original.address }}</span>
       </div>
     </template>
@@ -99,13 +115,13 @@ const ACTION_STYLE = {
     <template #actions-cell="{ row }">
       <UButton
         size="xs"
-        :color="ACTION_STYLE[ACTION_FOR_STATUS[row.original.status]].color"
-        :variant="ACTION_STYLE[ACTION_FOR_STATUS[row.original.status]].variant"
+        v-bind="ACTION_STYLE[LIST_ACTION[row.original.status]]"
+        :to="LIST_ACTION[row.original.status] === 'view' ? detailLink(row.original) : undefined"
         :loading="busyId === row.original.id"
         :disabled="busyId !== null && busyId !== row.original.id"
-        @click="emit('action', row.original, ACTION_FOR_STATUS[row.original.status])"
+        @click="onRowAction(row.original)"
       >
-        {{ t(`garages.actions.${ACTION_FOR_STATUS[row.original.status]}`) }}
+        {{ t(`garages.actions.${LIST_ACTION[row.original.status]}`) }}
         <span class="sr-only">{{ row.original.name }}</span>
       </UButton>
     </template>
