@@ -309,6 +309,8 @@ class DemoData {
         // Shilan: a low balance (1,250 IQD), so most wallet payments fail with "balance too low".
         const shilan = await this.createUser('Shilan Ahmed', 'shilan@example.com', '+964 770 100 0002', '1998-09-03');
         const elantra = await this.createVehicle(shilan, 'Hyundai', 'Elantra', 2018, 'Silver', '22 SUL 30544', 'sedan', true);
+        // Before the last 30 days: the Admin Panel compares the two periods.
+        await this.addBooking(shilan, elantra, 'cityCenter', 'G:A04', this.dayAt(40, '11:00'), 2, 'card', 'completed', { read: true });
         await this.topUp(shilan, 5_000, this.dayAt(6, '09:40'), true);
         await this.addBooking(shilan, elantra, 'oldBazaar', 'G:A06', this.dayAt(6, '10:00'), 5, 'wallet', 'completed', { read: true });
         await this.addBooking(shilan, elantra, 'azadiPark', 'G:A02', this.dayAt(2, '09:00'), 2, 'card', 'completed', { read: false });

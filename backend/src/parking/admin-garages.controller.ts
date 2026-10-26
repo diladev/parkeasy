@@ -42,6 +42,16 @@ export class AdminGaragesController {
     return this.adminGarages.list(query);
   }
 
+  @Get(':id')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary:
+      'One garage: settings, occupancy by level, revenue and the latest bookings.',
+  })
+  detail(@Param('id', ParseIdPipe) id: number) {
+    return this.adminGarages.detail(id);
+  }
+
   @Post(':id/approve')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

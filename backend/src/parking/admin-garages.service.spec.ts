@@ -4,6 +4,7 @@ import type { Booking } from 'src/booking/entities/booking.entity';
 import type { TranslationService } from 'src/i18n/translation.service';
 import { AdminGaragesService } from './admin-garages.service';
 import type { ParkingLot } from './entities/parking-lot.entity';
+import type { ParkingSlot } from './entities/parking-slot.entity';
 import type { GarageStatus } from './garage-status';
 import type { ParkingService } from './parking.service';
 
@@ -39,6 +40,7 @@ describe('AdminGaragesService.changeStatus', () => {
 
     service = new AdminGaragesService(
       lotModel,
+      {} as typeof ParkingSlot,
       {} as typeof Booking,
       parkingService,
       translations,
