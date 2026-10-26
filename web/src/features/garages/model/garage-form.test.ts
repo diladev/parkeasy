@@ -3,9 +3,12 @@ import { describe, expect, it } from 'vitest'
 import {
   createGarageFormSchema,
   emptyGarageForm,
+  fieldsOf,
   formFromGarage,
   nextLevel,
   parseCoordinates,
+  stepOf,
+  stepsFor,
   toCreateBody,
   toUpdateBody,
   totalSlots,
@@ -215,5 +218,35 @@ describe('levels', () => {
         { level: 'B3', slots: 5 },
       ]),
     ).toBe(25)
+  })
+})
+
+describe('form steps', () => {
+  it('adds a garage in four steps and edits it in two', () => {
+    expect(stepsFor('create')).toEqual(['details', 'pricing', 'levels', 'owner'])
+    expect(stepsFor('edit')).toEqual(['details', 'pricing'])
+  })
+
+  it('knows which step each field, or error, is on', () => {
+    expect(stepOf('coordinates')).toBe('details')
+    expect(stepOf('closing_time')).toBe('pricing')
+    expect(stepOf('has_ev_charging')).toBe('pricing')
+    expect(stepOf('levels.2.slots')).toBe('levels')
+    expect(stepOf('owner.email')).toBe('owner')
+  })
+
+  it("lists a step's fields, including one pair per level", () => {
+    const values = filled()
+    expect(fieldsOf('details', values)).toEqual(['name', 'address', 'city', 'coordinates'])
+    expect(fieldsOf('levels', values)).toEqual([
+      'levels',
+      'levels.0.level',
+      'levels.0.slots',
+      'levels.1.level',
+      'levels.1.slots',
+    ])
+    for (const step of stepsFor('create')) {
+      for (const field of fieldsOf(step, values)) expect(stepOf(field)).toBe(step)
+    }
   })
 })

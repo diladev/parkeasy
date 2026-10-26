@@ -305,3 +305,56 @@ export function nextLevel(levels: GarageLevelValues[]): string {
   while (used.has(`B${basement}`)) basement++
   return `B${basement}`
 }
+
+// ------------------------------------------------------------------- steps
+
+/**
+ * The form is split into short steps instead of one long scroll. Adding a
+ * garage has all four; editing has only the first two (levels and the owner
+ * aren't edited here).
+ */
+export const FORM_STEPS = ['details', 'pricing', 'levels', 'owner'] as const
+export type FormStep = (typeof FORM_STEPS)[number]
+
+export function stepsFor(mode: 'create' | 'edit'): readonly FormStep[] {
+  return mode === 'create' ? FORM_STEPS : FORM_STEPS.slice(0, 2)
+}
+
+const DETAIL_FIELDS = ['name', 'address', 'city', 'coordinates'] as const
+const PRICING_FIELDS = [
+  'price_per_hour',
+  'free_cancellation_minutes',
+  'is_open_24h',
+  'opening_time',
+  'closing_time',
+  'has_cctv',
+  'has_ev_charging',
+  'is_covered',
+  'is_accessible',
+] as const
+
+/** The step a field (or an error's path, e.g. "levels.1.slots") belongs to. */
+export function stepOf(field: string): FormStep {
+  const root = field.split('.')[0] ?? ''
+  if ((DETAIL_FIELDS as readonly string[]).includes(root)) return 'details'
+  if ((PRICING_FIELDS as readonly string[]).includes(root)) return 'pricing'
+  if (root === 'levels') return 'levels'
+  return 'owner'
+}
+
+/** Every field name shown on `step`, to check just that step before moving on. */
+export function fieldsOf(step: FormStep, values: GarageFormValues): string[] {
+  switch (step) {
+    case 'details':
+      return [...DETAIL_FIELDS]
+    case 'pricing':
+      return [...PRICING_FIELDS]
+    case 'levels':
+      return [
+        'levels',
+        ...values.levels.flatMap((_, i) => [`levels.${i}.level`, `levels.${i}.slots`]),
+      ]
+    case 'owner':
+      return ['withOwner', 'owner.name', 'owner.email', 'owner.phone']
+  }
+}
