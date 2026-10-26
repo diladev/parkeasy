@@ -74,30 +74,86 @@ async function openAddDialog() {
   return app
 }
 
+/** The step on screen: every step stays in the page, the others are hidden. */
+const visibleStep = () =>
+  [...(dialog()?.querySelectorAll<HTMLElement>('[data-step]') ?? [])].find(
+    (panel) => panel.style.display !== 'none',
+  )?.dataset.step
+
+/** Picks a step in the step bar at the top (it reacts to mousedown, like a tab). */
+function pickStep(index: number) {
+  dialog()!
+    .querySelectorAll<HTMLButtonElement>('[data-slot="trigger"]')
+    [index]!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }))
+}
+
+/** Clicks Next and waits for `step` to show. */
+async function next(step: string) {
+  button('Next', true).click()
+  await vi.waitFor(() => expect(visibleStep()).toBe(step))
+}
+
 async function fillDetails() {
   await type('Garage name', 'Duhok Gate Parking')
   await type('Address', 'Kawa Avenue')
   await type('City', 'Duhok')
   await type('Map coordinates', '36.8667, 42.9881')
+}
+
+/** Details and price filled in, on the Levels step. */
+async function reachLevels() {
+  await fillDetails()
+  await next('pricing')
   await type('Price per hour', '1000')
+  await next('levels')
 }
 
 describe('Add garage', () => {
-  it('shows what to fix and sends nothing while the form is incomplete', async () => {
+  it('goes step by step, checking each step before moving on', async () => {
     await openAddDialog()
 
-    button('Add garage', true).click()
+    expect(visibleStep()).toBe('details')
+    expect(dialogText()).toContain('Step 1 of 4')
+    // Only the last step can send the form, and steps ahead can't be skipped to.
+    expect(() => button('Add garage', true)).toThrow('No button')
+    const triggers = dialog()!.querySelectorAll<HTMLButtonElement>('[data-slot="trigger"]')
+    expect([...triggers].map((trigger) => trigger.disabled)).toEqual([false, true, true, true])
+
+    button('Next', true).click()
 
     await vi.waitFor(() => expect(fieldErrors()).toContain('Fill this in.'))
     expect(fieldErrors()).toContain('Enter latitude and longitude, for example 35.5571, 45.4356.')
-    expect(garagesDb.saved).toEqual([])
+    expect(visibleStep()).toBe('details')
     // The first field to fix gets the focus.
     await vi.waitFor(() => expect(document.activeElement).toBe(field('Garage name')))
+    // Nothing ahead complains yet.
+    expect(fieldErrors()).not.toContain('Use 0 or more.')
+
+    await fillDetails()
+    // Messages go as soon as the fields are fixed.
+    await vi.waitFor(() => expect(fieldErrors()).toEqual([]))
+    await next('pricing')
+    expect(dialogText()).toContain('Step 2 of 4')
+
+    button('Back', true).click()
+    await vi.waitFor(() => expect(visibleStep()).toBe('details'))
+    expect(field('Garage name').value).toBe('Duhok Gate Parking')
+    expect(garagesDb.saved).toEqual([])
+  })
+
+  it('moves to the next step with Enter instead of sending', async () => {
+    await openAddDialog()
+    await fillDetails()
+
+    field('City').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+
+    await vi.waitFor(() => expect(visibleStep()).toBe('pricing'))
+    expect(garagesDb.saved).toEqual([])
   })
 
   it('adds a garage with its levels and owner, then opens its page', async () => {
     const app = await openAddDialog()
-    await fillDetails()
+    await reachLevels()
 
     await type('Slots', '20')
     button('Add level', true).click()
@@ -105,6 +161,7 @@ describe('Add garage', () => {
     expect(field('Level', 1).value).toBe('B1')
     await type('Slots', '10', 1)
     expect(dialogText()).toContain('30 slots in total')
+    await next('owner')
 
     await toggle('Add the owner now')
     await type("Owner's name", 'Aram Jalal')
@@ -136,25 +193,45 @@ describe('Add garage', () => {
     expect(dialog()).toBeNull()
   })
 
-  it('flags a level listed twice before sending', async () => {
+  it('flags a level listed twice before moving on', async () => {
     await openAddDialog()
-    await fillDetails()
+    await reachLevels()
     await type('Slots', '5')
     button('Add level', true).click()
     await flushPromises()
     await type('Level', 'g', 1)
     await type('Slots', '5', 1)
 
-    button('Add garage', true).click()
+    button('Next', true).click()
 
     await vi.waitFor(() => expect(fieldErrors()).toContain('This level is already listed.'))
+    expect(visibleStep()).toBe('levels')
+  })
+
+  it('goes back to an earlier step when something there was emptied', async () => {
+    await openAddDialog()
+    await reachLevels()
+    await type('Slots', '5')
+    await next('owner')
+
+    // Back to Details through the step bar, empty the name, then jump to the end.
+    pickStep(0)
+    await vi.waitFor(() => expect(visibleStep()).toBe('details'))
+    await type('Garage name', '')
+    pickStep(3)
+    await vi.waitFor(() => expect(visibleStep()).toBe('owner'))
+    button('Add garage', true).click()
+
+    await vi.waitFor(() => expect(visibleStep()).toBe('details'))
+    expect(fieldErrors()).toContain('Fill this in.')
     expect(garagesDb.saved).toEqual([])
   })
 
   it("keeps the form open with the server's reason when the owner can't be used", async () => {
     await openAddDialog()
-    await fillDetails()
+    await reachLevels()
     await type('Slots', '5')
+    await next('owner')
     await toggle('Add the owner now')
     await type("Owner's name", 'Karwan Ali')
     await type("Owner's email", 'karwan@example.com')
@@ -168,7 +245,7 @@ describe('Add garage', () => {
       ),
     )
     // What was typed is still there to correct.
-    expect(field('Garage name').value).toBe('Duhok Gate Parking')
+    expect(field("Owner's email").value).toBe('karwan@example.com')
     expect(garagesDb.rows).toHaveLength(8)
   })
 })
@@ -183,24 +260,28 @@ describe('Edit details', () => {
     return app
   }
 
-  it('opens with the current details and only levels/owner left out', async () => {
+  it('opens with the current details, in two steps without levels or owner', async () => {
     await openEditDialog()
 
     expect(field('Garage name').value).toBe('City Center Parking')
     expect(field('Map coordinates').value).toBe('35.5571, 45.4356')
     expect(field('Price per hour').value).toBe('1500')
+    expect(dialogText()).toContain('Step 1 of 2')
     expect(dialogText()).not.toContain('Levels and slots')
     expect(dialogText()).not.toContain('Add the owner now')
     // Nothing changed yet: nothing to save.
     expect(button('Save changes', true).disabled).toBe(true)
   })
 
-  it('saves only what changed and the page shows it at once', async () => {
+  it('saves only what changed, from any step, and the page shows it at once', async () => {
     await openEditDialog()
 
     await type('Garage name', 'City Center Parking (North)')
-    await toggle('EV charging')
+    // Save is there on the first step too...
     expect(button('Save changes', true).disabled).toBe(false)
+    // ...but the amenities are on the second.
+    await next('pricing')
+    await toggle('EV charging')
     button('Save changes', true).click()
 
     await vi.waitFor(() => expect(dialog()).toBeNull())

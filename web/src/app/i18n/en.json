@@ -249,7 +249,16 @@
         "levelTwice": "This level is already listed.",
         "email": "Enter a valid email address.",
         "phone": "Enter a phone number like +964 750 123 4567."
-      }
+      },
+      "steps": {
+        "details": "Details",
+        "pricing": "Price & amenities",
+        "levels": "Levels",
+        "owner": "Owner"
+      },
+      "next": "Next",
+      "back": "Back",
+      "stepOf": "Step {step} of {total}"
     }
   },
   "users": {
