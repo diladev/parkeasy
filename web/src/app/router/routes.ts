@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import { adminAuthRoutes, PERMISSIONS } from '@/features/auth'
 import { adminGaragesRoutes } from '@/features/garages'
 import { adminOverviewRoutes } from '@/features/overview'
+import { adminUsersRoutes } from '@/features/users'
 
 import AuthLayout from '../layouts/AuthLayout.vue'
 
@@ -15,7 +16,7 @@ export const adminShellRoute: RouteRecordRaw = {
   path: '',
   component: () => import('../layouts/AdminLayout.vue'),
   meta: { permissions: [PERMISSIONS.ADMIN_ACCESS] },
-  children: [...adminOverviewRoutes, ...adminGaragesRoutes],
+  children: [...adminOverviewRoutes, ...adminGaragesRoutes, ...adminUsersRoutes],
 }
 
 export const routes: RouteRecordRaw[] = [

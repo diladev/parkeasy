@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll } from 'vitest'
 import { tokenStore } from '@/shared/auth/token-store'
 
 import { garagesDb } from './msw/garages'
+import { usersDb } from './msw/users'
 import { server } from './msw/server'
 
 // jsdom has no layout; the router's scrollBehavior calls this.
@@ -14,6 +15,7 @@ beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterEach(() => {
   server.resetHandlers()
   garagesDb.reset()
+  usersDb.reset()
   tokenStore.clear()
 })
 afterAll(() => server.close())

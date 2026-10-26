@@ -8,7 +8,8 @@
   },
   "nav": {
     "overview": "Overview",
-    "garages": "Garages"
+    "garages": "Garages",
+    "users": "Users"
   },
   "roles": {
     "admin": "Administrator",
@@ -248,6 +249,121 @@
         "levelTwice": "This level is already listed.",
         "email": "Enter a valid email address.",
         "phone": "Enter a phone number like +964 750 123 4567."
+      }
+    }
+  },
+  "users": {
+    "title": "Users",
+    "searchLabel": "Search users",
+    "searchPlaceholder": "Search name, email, phone…",
+    "filterLabel": "Filter by role",
+    "filters": {
+      "all": "All",
+      "driver": "Drivers",
+      "garage_owner": "Garage owners",
+      "admin": "Admins"
+    },
+    "roles": {
+      "driver": "Driver",
+      "garage_owner": "Garage owner",
+      "admin": "Admin"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "inactive": "Inactive"
+    },
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "bookings": "Bookings",
+      "wallet": "Wallet",
+      "joined": "Joined",
+      "status": "Status"
+    },
+    "export": "Export CSV",
+    "showing": "Showing {from}–{to} of {total} users",
+    "loading": "Loading users…",
+    "loadError": "Couldn't load the users",
+    "empty": {
+      "title": "No users found",
+      "description": "Try another search or role.",
+      "clearSearch": "Clear search"
+    },
+    "suspendDialog": {
+      "title": "Suspend {name}?",
+      "description": "They're signed out everywhere and can't sign in until you restore the account. Bookings already made continue.",
+      "confirm": "Suspend user",
+      "cancel": "Cancel"
+    },
+    "detail": {
+      "title": "User",
+      "joined": "Joined {date}",
+      "loading": "Loading the user…",
+      "loadError": "Couldn't load this user",
+      "actions": {
+        "reset": "Send password reset",
+        "suspend": "Suspend user",
+        "restore": "Restore user"
+      },
+      "stats": {
+        "bookings": "Bookings",
+        "thisWeek": "{count} this week",
+        "wallet": "Wallet balance",
+        "lastTopUp": "Last top-up: {amount} on {date}",
+        "noTopUps": "No top-ups yet",
+        "spent": "Spent on parking",
+        "since": "Since {date}",
+        "cancelled": "Cancelled",
+        "cancelledHint": "All within free cancellation",
+        "noCancellations": "None so far"
+      },
+      "vehicles": {
+        "title": "Vehicles",
+        "count": "No vehicles saved | 1 saved | {count} saved",
+        "default": "Default",
+        "empty": "No vehicles yet."
+      },
+      "garages": {
+        "title": "Garages they run",
+        "empty": "No garages linked to this owner yet."
+      },
+      "wallet": {
+        "title": "Wallet activity",
+        "subtitle": "Latest entries",
+        "empty": "No wallet activity yet.",
+        "category": {
+          "TOP_UP": "Top-up",
+          "BOOKING_PAYMENT": "Booking",
+          "BOOKING_EXTENSION": "Extension",
+          "BOOKING_REFUND": "Refund"
+        }
+      },
+      "bookings": {
+        "title": "Bookings",
+        "empty": "No bookings yet.",
+        "hours": "{hours}h",
+        "columns": {
+          "id": "ID",
+          "garage": "Garage",
+          "slot": "Slot",
+          "start": "Start",
+          "duration": "Duration",
+          "amount": "Amount",
+          "status": "Status"
+        },
+        "status": {
+          "active": "Active",
+          "completed": "Completed",
+          "cancelled": "Cancelled",
+          "endedEarly": "Ended early"
+        }
+      },
+      "notFound": {
+        "title": "User not found",
+        "description": "The account may have been deleted.",
+        "back": "Back to users"
       }
     }
   }
