@@ -4,13 +4,16 @@ import { useRouter } from 'vue-router'
 
 import { useSessionStore } from '@/features/auth'
 
+import { activePortal, PORTALS } from '../router/portal'
+
 const { t } = useI18n()
 const router = useRouter()
 const session = useSessionStore()
 
+/** The sign-in page of the portal that refused, e.g. an owner who opened /admin. */
 async function signInAgain() {
   if (session.isAuthenticated) await session.logout()
-  await router.replace({ name: 'admin.login' })
+  await router.replace({ name: PORTALS[activePortal.value].login })
 }
 </script>
 

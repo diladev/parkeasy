@@ -2,7 +2,7 @@ import { flushPromises, type VueWrapper } from '@vue/test-utils'
 import { http as mock, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { ADMIN, API, nestError } from '@/test/msw/handlers'
+import { ADMIN, API, nestError, OWNER } from '@/test/msw/handlers'
 import { server } from '@/test/msw/server'
 import { mountApp } from '@/test/mountApp'
 
@@ -34,7 +34,7 @@ async function submit() {
 
 const alertText = () => document.querySelector('[role="alert"]')?.textContent?.trim() ?? ''
 
-describe('AdminLoginPage', () => {
+describe('LoginPage · Admin Panel', () => {
   it('signs an admin in and opens the overview', async () => {
     const app = await mountApp('/admin/login')
     wrapper = app.wrapper
@@ -137,5 +137,73 @@ describe('AdminLoginPage', () => {
 
     expect(lang).toBe('ckb')
     expect(alertText()).toBe('ئیمەیڵ یان وشەی نهێنی هەڵەیە.')
+  })
+
+  it('links to the password reset of the same portal', async () => {
+    const app = await mountApp('/admin/login')
+    wrapper = app.wrapper
+
+    const link = [...document.querySelectorAll('a')].find(
+      (a) => a.textContent?.trim() === 'Forgot password?',
+    )
+    expect(link?.getAttribute('href')).toBe('/admin/forgot-password')
+  })
+
+  it('confirms a finished password reset', async () => {
+    const app = await mountApp('/admin/login?reason=reset')
+    wrapper = app.wrapper
+
+    expect(alertText()).toBe('Your password has been reset. You can now sign in.')
+  })
+})
+
+describe('LoginPage · Garage Portal', () => {
+  it('signs an owner in and opens their dashboard, in teal', async () => {
+    let portal: unknown
+    server.use(
+      mock.post(`${API}/login`, async ({ request }) => {
+        portal = ((await request.clone().json()) as { portal?: string }).portal
+        return undefined // fall through to the default handler
+      }),
+    )
+    const app = await mountApp('/garage/login')
+    wrapper = app.wrapper
+
+    expect(document.querySelector('h1')?.textContent?.trim()).toBe('Sign in to your portal')
+    expect(document.documentElement.dataset.portal).toBe('garage')
+    expect(document.body.textContent).toContain('Live slot monitoring in real time')
+
+    await type('Email', OWNER.email)
+    await type('Password', OWNER.password)
+    await submit()
+
+    expect(portal).toBe('garage')
+    await vi.waitFor(() => {
+      expect(app.router.currentRoute.value.name).toBe('garage.dashboard')
+      expect(document.body.textContent).toContain('Sardar Ghafur')
+    })
+  })
+
+  it("explains that an admin account can't use the Garage Portal", async () => {
+    const app = await mountApp('/garage/login')
+    wrapper = app.wrapper
+
+    await type('Email', ADMIN.email)
+    await type('Password', ADMIN.password)
+    await submit()
+
+    expect(alertText()).toBe("This account can't sign in here.")
+    expect(app.router.currentRoute.value.name).toBe('garage.login')
+  })
+
+  it('goes back to the admin colours on the Admin Panel', async () => {
+    const app = await mountApp('/garage/login')
+    wrapper = app.wrapper
+    expect(document.documentElement.dataset.portal).toBe('garage')
+
+    await app.router.push('/admin/login')
+    await flushPromises()
+    expect(document.documentElement.dataset.portal).toBe('admin')
+    expect(document.body.textContent).not.toContain('Live slot monitoring in real time')
   })
 })

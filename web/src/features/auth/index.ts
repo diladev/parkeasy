@@ -1,5 +1,5 @@
 // Public API of the auth feature: the only file other folders may import.
-export { adminAuthRoutes } from './routes'
+export { adminAuthRoutes, garageAuthRoutes } from './routes'
 export { useSessionStore } from './store/session.store'
 export { useCan } from './composables/useCan'
 export { PERMISSIONS, hasPermission, type Permission, type Portal } from './model/permissions'

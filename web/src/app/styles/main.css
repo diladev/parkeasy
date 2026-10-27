@@ -24,6 +24,21 @@
   --color-brand-800: #423a91;
   --color-brand-900: #322c6d;
   --color-brand-950: #1f1b45;
+
+  /* Garage Portal teal, built around the Figma colours #1d9e75 (500) and
+     #0f6e56 (700). 600 is a little darker than an even step so that white
+     button text on it reaches 4.9:1 (WCAG AA). */
+  --color-garage-50: #e8f6f1;
+  --color-garage-100: #c9ebdf;
+  --color-garage-200: #9ad9c3;
+  --color-garage-300: #63c3a3;
+  --color-garage-400: #36ae88;
+  --color-garage-500: #1d9e75;
+  --color-garage-600: #128062;
+  --color-garage-700: #0f6e56;
+  --color-garage-800: #0c5947;
+  --color-garage-900: #094536;
+  --color-garage-950: #052a21;
 }
 
 /* Nuxt UI also writes these shades from JavaScript into an inline <style> tag.
@@ -53,6 +68,23 @@
   --ui-color-neutral-800: oklch(27.4% 0.006 286.033);
   --ui-color-neutral-900: oklch(21% 0.006 285.885);
   --ui-color-neutral-950: oklch(14.1% 0.005 285.823);
+}
+
+/* The Garage Portal is the same app in teal. app/theme/portal.ts sets
+   data-portal on <html>; the attribute selector also outranks Nuxt UI's own
+   :root block, so this wins with or without the CSP. */
+:root[data-portal='garage'] {
+  --ui-color-primary-50: var(--color-garage-50);
+  --ui-color-primary-100: var(--color-garage-100);
+  --ui-color-primary-200: var(--color-garage-200);
+  --ui-color-primary-300: var(--color-garage-300);
+  --ui-color-primary-400: var(--color-garage-400);
+  --ui-color-primary-500: var(--color-garage-500);
+  --ui-color-primary-600: var(--color-garage-600);
+  --ui-color-primary-700: var(--color-garage-700);
+  --ui-color-primary-800: var(--color-garage-800);
+  --ui-color-primary-900: var(--color-garage-900);
+  --ui-color-primary-950: var(--color-garage-950);
 }
 
 /* Figma surfaces and text colours mapped onto Nuxt UI's semantic tokens. */

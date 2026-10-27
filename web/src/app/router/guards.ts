@@ -1,26 +1,11 @@
 import type { RouteLocationNormalized, RouteLocationRaw, Router } from 'vue-router'
 
-import { PERMISSIONS, safeRedirect, useCan, useSessionStore, type Portal } from '@/features/auth'
+import { safeRedirect, useCan, useSessionStore } from '@/features/auth'
 
-interface PortalRoutes {
-  login: string
-  home: string
-  permission: string
-}
-
-const ADMIN_PORTAL: PortalRoutes = {
-  login: 'admin.login',
-  home: 'admin.overview',
-  permission: PERMISSIONS.ADMIN_ACCESS,
-}
-
-/** The garage portal gets its own entry when it is built. */
-const PORTALS: Partial<Record<Portal, PortalRoutes>> = { admin: ADMIN_PORTAL }
-const DEFAULT_PORTAL = ADMIN_PORTAL
+import { activePortal, portalOf, PORTALS, type PortalRoutes } from './portal'
 
 export function portalRoutesFor(route: RouteLocationNormalized): PortalRoutes {
-  const portal = route.matched.find((record) => record.meta.portal)?.meta.portal
-  return (portal && PORTALS[portal]) ?? DEFAULT_PORTAL
+  return PORTALS[portalOf(route) ?? activePortal.value]
 }
 
 /** The sign-in page for `route`, coming back to it afterwards. */
@@ -47,7 +32,7 @@ export function installGuards(router: Router): void {
     const { can } = useCan()
     const portal = portalRoutesFor(to)
 
-    // Signed in already: skip the sign-in page.
+    // Signed in already: skip the sign-in and reset pages.
     if (to.meta.guestOnly && session.isAuthenticated && can(portal.permission)) {
       const home = router.resolve({ name: portal.home }).fullPath
       return safeRedirect(router, to.query.redirect, home)
@@ -59,8 +44,17 @@ export function installGuards(router: Router): void {
     // `to.meta` is a shallow merge, so a child's `permissions` would replace its
     // parent's: collect them from every matched record instead.
     const required = to.matched.flatMap((record) => record.meta.permissions ?? [])
-    if (!can(required)) return { name: 'forbidden' }
+    if (!can(required)) {
+      // "No access" belongs to no portal: keep the one that was asked for, so
+      // "Sign in with another account" opens the right sign-in page.
+      activePortal.value = portalOf(to) ?? activePortal.value
+      return { name: 'forbidden' }
+    }
 
     return true
+  })
+
+  router.afterEach((to, _from, failure) => {
+    if (!failure) activePortal.value = portalOf(to) ?? activePortal.value
   })
 }

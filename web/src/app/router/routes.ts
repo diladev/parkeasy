@@ -1,26 +1,35 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-import { adminAuthRoutes, PERMISSIONS } from '@/features/auth'
+import { adminAuthRoutes, garageAuthRoutes, PERMISSIONS } from '@/features/auth'
+import { garagePortalRoutes } from '@/features/garage-portal'
 import { adminGaragesRoutes } from '@/features/garages'
 import { adminOverviewRoutes } from '@/features/overview'
 import { adminUsersRoutes } from '@/features/users'
 
 import AuthLayout from '../layouts/AuthLayout.vue'
 
-/**
- * Everything inside the admin sidebar layout. The sidebar menu is built from
- * these children (see navigation/buildMenu.ts), so a new admin page only needs
- * a route with meta.title and meta.icon.
+/*
+ * Everything inside a portal's sidebar layout. The sidebar menu is built from
+ * these children (see navigation/buildMenu.ts), so a new page only needs a
+ * route with meta.title and meta.icon.
  */
 export const adminShellRoute: RouteRecordRaw = {
   path: '',
-  component: () => import('../layouts/AdminLayout.vue'),
+  component: () => import('../layouts/PortalLayout.vue'),
+  props: { portal: 'admin' },
   meta: { permissions: [PERMISSIONS.ADMIN_ACCESS] },
   children: [...adminOverviewRoutes, ...adminGaragesRoutes, ...adminUsersRoutes],
 }
 
+export const garageShellRoute: RouteRecordRaw = {
+  path: '',
+  component: () => import('../layouts/PortalLayout.vue'),
+  props: { portal: 'garage' },
+  meta: { permissions: [PERMISSIONS.GARAGE_ACCESS] },
+  children: [...garagePortalRoutes],
+}
+
 export const routes: RouteRecordRaw[] = [
-  // Only the admin portal exists so far; the garage portal will live at /garage.
   { path: '/', redirect: { name: 'admin.overview' } },
   {
     path: '/admin',
@@ -28,6 +37,11 @@ export const routes: RouteRecordRaw[] = [
     // The shell comes first: both groups have an empty path, and /admin itself
     // must resolve to the overview, not to the bare sign-in layout.
     children: [adminShellRoute, { path: '', component: AuthLayout, children: adminAuthRoutes }],
+  },
+  {
+    path: '/garage',
+    meta: { portal: 'garage' },
+    children: [garageShellRoute, { path: '', component: AuthLayout, children: garageAuthRoutes }],
   },
   {
     path: '/forbidden',

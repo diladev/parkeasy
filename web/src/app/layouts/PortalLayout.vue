@@ -4,13 +4,26 @@ import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-import { useCan, useSessionStore } from '@/features/auth'
+import { useCan, useSessionStore, type Portal } from '@/features/auth'
+import { GarageSwitcher } from '@/features/garage-portal'
 import { pageTitle } from '@/shared/navigation/page-title'
 
 import { buildMenu } from '../navigation/buildMenu'
-import { adminShellRoute } from '../router/routes'
+import { adminShellRoute, garageShellRoute } from '../router/routes'
 import LocaleSwitch from './parts/LocaleSwitch.vue'
 import UserMenu from './parts/UserMenu.vue'
+
+/** The sidebar layout of both portals; the route passes which one. */
+const { portal } = defineProps<{ portal: Portal }>()
+
+const SHELLS = {
+  admin: { home: '/admin', subtitle: 'app.adminPanel', routes: adminShellRoute.children ?? [] },
+  garage: {
+    home: '/garage',
+    subtitle: 'app.garagePortal',
+    routes: garageShellRoute.children ?? [],
+  },
+} as const
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -18,19 +31,20 @@ const router = useRouter()
 const session = useSessionStore()
 const { can } = useCan()
 
+const shell = computed(() => SHELLS[portal])
 const isSidebarOpen = ref(false)
 const isRtl = computed(() => locale.value === 'ckb')
 
-const ADMIN_HOME = '/admin'
 const navItems = computed<NavigationMenuItem[]>(() =>
-  buildMenu(adminShellRoute.children ?? [], (permissions) => can(permissions), ADMIN_HOME).map(
+  buildMenu(shell.value.routes, (permissions) => can(permissions), shell.value.home).map(
     (item) => ({
       label: t(item.title),
       icon: item.icon,
       to: item.path,
-      // Every admin page starts with /admin: only the Overview itself is "current" there.
-      // Other items stay current on their sub-pages (/admin/garages/5 -> Garages).
-      exact: item.path === ADMIN_HOME,
+      // Every page of a portal starts with its home path: only the home page itself
+      // is "current" there. Other items stay current on their sub-pages
+      // (/admin/garages/5 -> Garages).
+      exact: item.path === shell.value.home,
     }),
   ),
 )
@@ -88,10 +102,12 @@ watch(
           >
           <span class="flex flex-col">
             <span class="text-sm font-semibold text-highlighted">{{ t('app.name') }}</span>
-            <span class="text-xs text-dimmed">{{ t('app.adminPanel') }}</span>
+            <span class="text-xs text-dimmed">{{ t(shell.subtitle) }}</span>
           </span>
         </div>
       </template>
+
+      <GarageSwitcher v-if="portal === 'garage'" class="mb-2" />
 
       <UNavigationMenu
         :items="navItems"
@@ -117,7 +133,7 @@ watch(
       </template>
     </UDashboardSidebar>
 
-    <UDashboardPanel id="admin-panel">
+    <UDashboardPanel :id="`${portal}-panel`">
       <template #header>
         <UDashboardNavbar :as="{ title: 'div' }">
           <template #title>

@@ -4,11 +4,14 @@ import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-import { ApiError } from '@/shared/api/errors'
-
 import { createLoginFormSchema, type LoginFormValues } from '../model/auth.schemas'
+import { authErrorMessage } from '../model/error-message'
+import type { Portal } from '../model/permissions'
 import { safeRedirect } from '../model/safe-redirect'
 import { useSessionStore } from '../store/session.store'
+
+/** The same sign-in page for both portals; the route passes which one. */
+const { portal } = defineProps<{ portal: Portal }>()
 
 const { t } = useI18n()
 const route = useRoute()
@@ -27,25 +30,32 @@ const isSubmitting = ref(false)
 const errorMessage = ref('')
 
 const isSessionExpired = computed(() => route.query.reason === 'expired')
+const isPasswordReset = computed(() => route.query.reason === 'reset')
 
-/** The server's message is already translated (x-lang); 5xx and network errors get ours. */
-function messageFor(error: unknown): string {
-  if (error instanceof ApiError) {
-    if (error.kind === 'network') return t('auth.errors.network')
-    if (error.message !== '') return error.message
-  }
-  return t('auth.errors.generic')
-}
+const texts = computed(() =>
+  portal === 'garage'
+    ? {
+        heading: t('auth.login.garage.heading'),
+        subtitle: t('auth.login.garage.subtitle'),
+        footer: t('auth.login.garage.footer'),
+      }
+    : {
+        heading: t('auth.login.heading'),
+        subtitle: t('auth.login.subtitle'),
+        footer: t('auth.login.footer'),
+      },
+)
 
 async function onSubmit(event: FormSubmitEvent<LoginFormValues>) {
   errorMessage.value = ''
   isSubmitting.value = true
   try {
-    await session.login(event.data, 'admin')
-    const home = router.resolve({ name: 'admin.overview' }).fullPath
+    await session.login(event.data, portal)
+    // /admin and /garage each open their portal's first page.
+    const home = router.resolve(`/${portal}`).fullPath
     await router.replace(safeRedirect(router, route.query.redirect, home))
   } catch (error) {
-    errorMessage.value = messageFor(error)
+    errorMessage.value = authErrorMessage(error, t)
     state.password = ''
   } finally {
     isSubmitting.value = false
@@ -65,9 +75,9 @@ async function onSubmit(event: FormSubmitEvent<LoginFormValues>) {
       P
     </div>
     <h1 id="login-heading" class="mt-5 text-center text-lg font-medium text-highlighted">
-      {{ t('auth.login.heading') }}
+      {{ texts.heading }}
     </h1>
-    <p class="mt-1.5 text-center text-xs text-dimmed">{{ t('auth.login.subtitle') }}</p>
+    <p class="mt-1.5 text-center text-xs text-dimmed">{{ texts.subtitle }}</p>
 
     <!-- Announced by screen readers as soon as it appears. -->
     <div role="alert" class="mt-6 empty:hidden">
@@ -85,6 +95,13 @@ async function onSubmit(event: FormSubmitEvent<LoginFormValues>) {
         icon="i-lucide-clock"
         :description="t('auth.sessionExpired')"
       />
+      <UAlert
+        v-else-if="isPasswordReset"
+        color="success"
+        variant="subtle"
+        icon="i-lucide-circle-check"
+        :description="t('auth.passwordReset')"
+      />
     </div>
 
     <UForm :schema :state class="mt-6 space-y-4" @submit="onSubmit">
@@ -100,6 +117,14 @@ async function onSubmit(event: FormSubmitEvent<LoginFormValues>) {
       </UFormField>
 
       <UFormField :label="t('auth.login.password')" name="password">
+        <template #hint>
+          <ULink
+            :to="{ name: `${portal}.forgot` }"
+            class="text-xs font-medium text-primary hover:underline"
+          >
+            {{ t('auth.login.forgot') }}
+          </ULink>
+        </template>
         <UInput
           v-model="state.password"
           :type="isPasswordVisible ? 'text' : 'password'"
@@ -129,6 +154,6 @@ async function onSubmit(event: FormSubmitEvent<LoginFormValues>) {
       </UButton>
     </UForm>
 
-    <p class="mt-5 text-center text-xs text-dimmed">{{ t('auth.login.footer') }}</p>
+    <p class="mt-5 text-center text-xs text-dimmed">{{ texts.footer }}</p>
   </section>
 </template>

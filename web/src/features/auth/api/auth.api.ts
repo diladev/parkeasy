@@ -4,6 +4,7 @@ import {
   meResponseSchema,
   messageResponseSchema,
   sessionResponseSchema,
+  verifyOtpResponseSchema,
   type MeResponse,
   type SessionResponse,
 } from '../model/auth.schemas'
@@ -32,4 +33,20 @@ export const authApi = {
   /** Ends the session on the server: the refresh cookie stops working. */
   logout: (): Promise<{ message: string }> =>
     http.post(`${BASE}/logout`, null, messageResponseSchema),
+
+  /** Step 1 of 3. Answers the same whether or not the account exists. */
+  forgotPassword: (email: string): Promise<{ message: string }> =>
+    http.post(`${BASE}/forgot-password`, { email }, messageResponseSchema),
+
+  /** Step 2 of 3: the emailed code for a token that allows step 3. */
+  verifyOtp: (email: string, otp: string): Promise<{ message: string; token: string }> =>
+    http.post(`${BASE}/verify-otp`, { email, otp }, verifyOtpResponseSchema),
+
+  /** Step 3 of 3. Signs the account out everywhere. */
+  resetPassword: (token: string, newPassword: string): Promise<{ message: string }> =>
+    http.post(
+      `${BASE}/reset-password`,
+      { token, new_password: newPassword },
+      messageResponseSchema,
+    ),
 }
