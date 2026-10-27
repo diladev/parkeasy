@@ -70,9 +70,11 @@ const roleLabel = computed(() => {
 
 // SPA navigation doesn't move focus, so screen reader and keyboard users would
 // stay on the link they clicked. Move focus to the new page's heading instead.
+// Only for a new page: a filter, search or selection kept in the query string
+// must leave focus where the user is working.
 const headingRef = useTemplateRef<HTMLElement>('heading')
 watch(
-  () => route.fullPath,
+  () => route.path,
   async () => {
     isSidebarOpen.value = false
     await nextTick()
