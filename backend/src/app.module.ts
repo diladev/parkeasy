@@ -23,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminUsersModule } from './admin-users/admin-users.module';
 import { AdminOverviewModule } from './admin-overview/admin-overview.module';
+import { GaragePortalModule } from './garage-portal/garage-portal.module';
 import { User } from './users/entities/user.entity';
 import { Vehicle } from './users/entities/vehicle.entity';
 import { ParkingLot } from './parking/entities/parking-lot.entity';
@@ -116,6 +117,7 @@ import { Payment } from './payments/entities/payment.entity';
     PaymentsModule,
     AdminUsersModule,
     AdminOverviewModule,
+    GaragePortalModule,
   ],
 })
 export class AppModule implements NestModule {

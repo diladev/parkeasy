@@ -36,7 +36,10 @@ describe('ParkEasy API (e2e)', () => {
 
   const api = () => request(app.getHttpServer());
 
-  async function signIn(email: string, portal?: 'admin'): Promise<string> {
+  async function signIn(
+    email: string,
+    portal?: 'admin' | 'garage',
+  ): Promise<string> {
     const response = await api()
       .post('/user/local/login')
       .send({ email, password: PASSWORD, ...(portal && { portal }) })
@@ -149,6 +152,59 @@ describe('ParkEasy API (e2e)', () => {
         .set(auth)
         .expect(200);
       expect(users.body).toMatchObject({ counts: { garage_owner: 5 } });
+    });
+  });
+
+  describe('the Garage Portal', () => {
+    it('lets only garage owners in', async () => {
+      await api()
+        .post('/user/local/login')
+        .send({
+          email: 'admin@parkeasy.app',
+          password: PASSWORD,
+          portal: 'garage',
+        })
+        .expect(403);
+
+      const admin = await signIn('admin@parkeasy.app', 'admin');
+      await api()
+        .get('/garage/garages')
+        .set('Authorization', `Bearer ${admin}`)
+        .expect(403);
+      await api().get('/garage/garages').expect(401);
+    });
+
+    it("shows an owner their own garages and nobody else's", async () => {
+      const sardar = await signIn('sardar@example.com', 'garage');
+      const auth = { Authorization: `Bearer ${sardar}` };
+
+      const list = await api().get('/garage/garages').set(auth).expect(200);
+      const garages = list.body as { id: number; name: string }[];
+      expect(garages.map((garage) => garage.name)).toEqual([
+        'Bakhtiari Plaza Parking',
+        'City Center Parking',
+      ]);
+
+      const cityCenter = garages[1];
+      const dashboard = await api()
+        .get(`/garage/garages/${cityCenter.id}/dashboard`)
+        .set(auth)
+        .expect(200);
+      expect(dashboard.body).toMatchObject({
+        garage: { name: 'City Center Parking' },
+        occupancy: { total: 28 },
+      });
+      const body = dashboard.body as { revenue_days: unknown[] };
+      expect(body.revenue_days).toHaveLength(7);
+      // Customers appear by name only.
+      expect(JSON.stringify(dashboard.body)).not.toMatch(/email|phone/);
+
+      // Another owner gets the same 404 as a garage that doesn't exist.
+      const rawand = await signIn('rawand@example.com', 'garage');
+      await api()
+        .get(`/garage/garages/${cityCenter.id}/dashboard`)
+        .set('Authorization', `Bearer ${rawand}`)
+        .expect(404);
     });
   });
 });
