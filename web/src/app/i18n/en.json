@@ -11,7 +11,8 @@
     "overview": "Overview",
     "garages": "Garages",
     "users": "Users",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "liveSlots": "Live Slots"
   },
   "roles": {
     "admin": "Administrator",
@@ -485,16 +486,6 @@
     "dashboard": {
       "loading": "Loading the dashboard…",
       "loadError": "Couldn't load the dashboard",
-      "garagesLoadError": "Couldn't load your garages",
-      "notFound": "This garage is no longer linked to your account.",
-      "noGarages": {
-        "title": "No garages yet",
-        "description": "When ParkEasy links a garage to your account, it shows up here."
-      },
-      "status": {
-        "pending": "Waiting for ParkEasy's approval: drivers can't find this garage in the app yet.",
-        "suspended": "Suspended by ParkEasy: drivers can't find or book this garage. Bookings already made continue."
-      },
       "stats": {
         "occupancy": "Occupancy",
         "occupancyHint": "{taken} of {total} slots taken",
@@ -519,6 +510,56 @@
       "hoursMinutes": "{hours}h {minutes}m",
       "hours": "{hours}h",
       "minutes": "{minutes} min"
+    },
+    "garagesLoadError": "Couldn't load your garages",
+    "garageGone": "This garage is no longer linked to your account.",
+    "noGarages": {
+      "title": "No garages yet",
+      "description": "When ParkEasy links a garage to your account, it shows up here."
+    },
+    "status": {
+      "pending": "Waiting for ParkEasy's approval: drivers can't find this garage in the app yet.",
+      "suspended": "Suspended by ParkEasy: drivers can't find or book this garage. Bookings already made continue."
+    },
+    "slots": {
+      "loading": "Loading the slots…",
+      "loadError": "Couldn't load the slots",
+      "levels": "Levels",
+      "levelTab": "{level} · {count} free",
+      "legend": "Slots on this level",
+      "updated": "Live · updated {time}",
+      "grid": "Slots on {level}",
+      "empty": "This garage has no slots yet.",
+      "status": {
+        "free": "Free",
+        "reserved": "Reserved",
+        "occupied": "Occupied",
+        "blocked": "Blocked"
+      },
+      "details": {
+        "title": "Slot details",
+        "select": "Select a slot to see who is in it and what you can do.",
+        "slot": "Slot {slot}",
+        "customer": "Customer",
+        "vehicle": "Vehicle",
+        "booked": "Booked",
+        "ends": "Ends",
+        "amount": "Amount",
+        "paidWith": {
+          "wallet": "Wallet"
+        }
+      },
+      "notes": {
+        "free": "Drivers can book it in the app.",
+        "reserved": "Booked in the app. It frees up by itself when the booking ends.",
+        "occupied": "A car is parked here without a booking.",
+        "blocked": "Out of service: drivers can't book it until you put it back."
+      },
+      "actions": {
+        "block": "Block for maintenance",
+        "unblock": "Put back in service",
+        "markFree": "Mark as free"
+      }
     }
   }
 }

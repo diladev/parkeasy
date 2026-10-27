@@ -2,7 +2,8 @@
 import { useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { occupancyColor, parseLevel, percent } from '@/shared/lib/levels'
+import { levelLabel } from '@/shared/lib/level-label'
+import { occupancyColor, percent } from '@/shared/lib/levels'
 
 export interface LevelOccupancy {
   level: string
@@ -15,20 +16,7 @@ const { levels } = defineProps<{ levels: LevelOccupancy[] }>()
 
 const { t } = useI18n()
 const headingId = useId()
-
-function levelLabel(level: string): string {
-  const parsed = parseLevel(level)
-  switch (parsed.kind) {
-    case 'ground':
-      return t('levels.ground')
-    case 'basement':
-      return t('levels.basement', { number: parsed.number })
-    case 'floor':
-      return t('levels.floor', { number: parsed.number })
-    case 'other':
-      return parsed.name
-  }
-}
+const label = (level: string) => levelLabel(level, t)
 </script>
 
 <template>
@@ -41,7 +29,7 @@ function levelLabel(level: string): string {
       <li v-for="level in levels" :key="level.level">
         <div class="mb-1.5 flex items-center justify-between gap-3 text-sm">
           <span class="text-highlighted">
-            {{ levelLabel(level.level) }}
+            {{ label(level.level) }}
             <span class="text-dimmed" dir="ltr">({{ level.level }})</span>
           </span>
           <span class="text-muted">
@@ -53,7 +41,7 @@ function levelLabel(level: string): string {
           :model-value="percent(level.taken, level.total)"
           :color="occupancyColor(percent(level.taken, level.total))"
           size="sm"
-          :aria-label="levelLabel(level.level)"
+          :aria-label="label(level.level)"
         />
       </li>
     </ul>
