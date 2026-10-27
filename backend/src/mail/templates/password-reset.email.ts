@@ -1,28 +1,32 @@
 import { escapeHtml } from './escape-html';
 
 export interface PasswordResetEmailContent {
-    lang: string;
-    direction: 'ltr' | 'rtl';
-    title: string;
-    greeting: string;
-    intro: string;
-    code: string;
-    expiry: string;
-    ignore: string;
+  lang: string;
+  direction: 'ltr' | 'rtl';
+  title: string;
+  greeting: string;
+  intro: string;
+  code: string;
+  expiry: string;
+  ignore: string;
 }
-
 
 /**
  * HTML for the password-reset email. Built in code instead of a .hbs file, so
  * there's no template engine to install and no asset folder to copy into dist/.
  * Every text value is escaped (the user's name comes from user input).
  */
-export function renderPasswordResetEmail(content: PasswordResetEmailContent): string {
-    const c = Object.fromEntries(
-        Object.entries(content).map(([key, value]) => [key, escapeHtml(String(value))]),
-    ) as unknown as PasswordResetEmailContent;
+export function renderPasswordResetEmail(
+  content: PasswordResetEmailContent,
+): string {
+  const c = Object.fromEntries(
+    Object.entries(content).map(([key, value]) => [
+      key,
+      escapeHtml(String(value)),
+    ]),
+  ) as unknown as PasswordResetEmailContent;
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="${c.lang}" dir="${c.direction}">
 <head>
   <meta charset="utf-8" />

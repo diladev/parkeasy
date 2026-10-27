@@ -10,7 +10,10 @@ import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { Wallet } from './entities/wallet.entity';
-import { WalletTransaction, WalletTransactionCategory } from './entities/wallet-transaction.entity';
+import {
+  WalletTransaction,
+  WalletTransactionCategory,
+} from './entities/wallet-transaction.entity';
 
 /** What a booking cost the wallet, from its recorded transactions. */
 export interface BookingCharges {
@@ -24,14 +27,18 @@ export interface BookingCharges {
 
 @Injectable()
 export class WalletService {
-  private readonly transactionPagination = new ModelPagination(WalletTransaction, '/wallet/transactions');
+  private readonly transactionPagination = new ModelPagination(
+    WalletTransaction,
+    '/wallet/transactions',
+  );
 
   constructor(
     @InjectModel(Wallet) private readonly walletModel: typeof Wallet,
-    @InjectModel(WalletTransaction) private readonly transactionModel: typeof WalletTransaction,
+    @InjectModel(WalletTransaction)
+    private readonly transactionModel: typeof WalletTransaction,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly translationService: TranslationService,
-  ) { }
+  ) {}
 
   private t(key: string, args?: Record<string, unknown>): string {
     return this.translationService.translate(`message.${key}`, { args });
@@ -67,7 +74,13 @@ export class WalletService {
 
     await wallet.update({ balance: wallet.balance - value }, { transaction });
     await this.transactionModel.create(
-      { wallet_id: wallet.id, type: 'debit', amount: value, category, booking_id: bookingId },
+      {
+        wallet_id: wallet.id,
+        type: 'debit',
+        amount: value,
+        category,
+        booking_id: bookingId,
+      },
       { transaction },
     );
     return wallet;
@@ -91,20 +104,36 @@ export class WalletService {
 
     await wallet.update({ balance: wallet.balance + value }, { transaction });
     await this.transactionModel.create(
-      { wallet_id: wallet.id, type: 'credit', amount: value, category, booking_id: bookingId, payment_id: paymentId },
+      {
+        wallet_id: wallet.id,
+        type: 'credit',
+        amount: value,
+        category,
+        booking_id: bookingId,
+        payment_id: paymentId,
+      },
       { transaction },
     );
     return wallet;
   }
 
   /** How much of a booking was paid from the wallet (payments minus refunds so far). */
-  async netPaidForBooking(bookingId: number, transaction?: Transaction): Promise<number> {
-    const { charged, refunded } = await this.bookingCharges(bookingId, transaction);
+  async netPaidForBooking(
+    bookingId: number,
+    transaction?: Transaction,
+  ): Promise<number> {
+    const { charged, refunded } = await this.bookingCharges(
+      bookingId,
+      transaction,
+    );
     return charged - refunded;
   }
 
   /** Every payment and refund recorded for a booking, added up. */
-  async bookingCharges(bookingId: number, transaction?: Transaction): Promise<BookingCharges> {
+  async bookingCharges(
+    bookingId: number,
+    transaction?: Transaction,
+  ): Promise<BookingCharges> {
     const rows = await this.transactionModel.findAll({
       where: { booking_id: bookingId },
       order: [
@@ -114,34 +143,44 @@ export class WalletService {
       transaction,
     });
     const total = (type: 'credit' | 'debit') =>
-      rows.filter((row) => row.type === type).reduce((sum, row) => sum + row.amount, 0);
+      rows
+        .filter((row) => row.type === type)
+        .reduce((sum, row) => sum + row.amount, 0);
 
     return {
       charged: total('debit'),
       refunded: total('credit'),
-      firstChargedAt: (rows.find((row) => row.type === 'debit')?.createdAt as Date | undefined) ?? null,
+      firstChargedAt:
+        (rows.find((row) => row.type === 'debit')?.createdAt as
+          Date | undefined) ?? null,
     };
   }
 
   async getTransactions(userId: number, query: PaginationQueryDto) {
     const wallet = await this.getWallet(userId);
-    const result = await this.transactionPagination.findAll(query.page, query.pageSize, {
-      where: { wallet_id: wallet.id },
-      // The lot a booking payment or refund was for, so the history can name it.
-      // paranoid: false keeps the name of a lot that was removed since.
-      include: [
-        {
-          model: Booking,
-          attributes: ['id'],
-          paranoid: false,
-          include: [{ model: ParkingLot, attributes: ['name'], paranoid: false }],
-        },
-      ],
-      order: [
-        ['createdAt', 'DESC'],
-        ['id', 'DESC'],
-      ],
-    });
+    const result = await this.transactionPagination.findAll(
+      query.page,
+      query.pageSize,
+      {
+        where: { wallet_id: wallet.id },
+        // The lot a booking payment or refund was for, so the history can name it.
+        // paranoid: false keeps the name of a lot that was removed since.
+        include: [
+          {
+            model: Booking,
+            attributes: ['id'],
+            paranoid: false,
+            include: [
+              { model: ParkingLot, attributes: ['name'], paranoid: false },
+            ],
+          },
+        ],
+        order: [
+          ['createdAt', 'DESC'],
+          ['id', 'DESC'],
+        ],
+      },
+    );
 
     return {
       ...result,
@@ -150,7 +189,9 @@ export class WalletService {
         delete transaction.booking; // only its lot name is sent
         return {
           ...transaction,
-          description: this.translationService.translate(`wallet.${row.category}`),
+          description: this.translationService.translate(
+            `wallet.${row.category}`,
+          ),
           lot_name: row.booking?.parking_lot?.name ?? null,
         };
       }),
@@ -162,7 +203,10 @@ export class WalletService {
    * user waits here until this transaction ends, so two payments can never both
    * read the same balance and spend it twice.
    */
-  private async lockWallet(userId: number, transaction: Transaction): Promise<Wallet> {
+  private async lockWallet(
+    userId: number,
+    transaction: Transaction,
+  ): Promise<Wallet> {
     const { id } = await this.getWallet(userId, transaction);
     return this.walletModel.findByPk(id, {
       transaction,

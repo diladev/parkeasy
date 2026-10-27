@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { col, fn, Op, Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
@@ -37,19 +41,26 @@ export interface SlotCounts {
 export const LISTED_LOT = { is_available: true, status: 'approved' } as const;
 
 /** "B1:A01": a slot number is unique per level, not per lot. */
-const slotKey = (slot: { level: string; slot_number: string }) => `${slot.level}:${slot.slot_number}`;
+const slotKey = (slot: { level: string; slot_number: string }) =>
+  `${slot.level}:${slot.slot_number}`;
 
 @Injectable()
 export class ParkingService {
-  private readonly searchPagination = new ModelPagination(ParkingLot, '/parking/search');
+  private readonly searchPagination = new ModelPagination(
+    ParkingLot,
+    '/parking/search',
+  );
 
   constructor(
-    @InjectModel(ParkingLot) private readonly parkingLotModel: typeof ParkingLot,
-    @InjectModel(ParkingSlot) private readonly parkingSlotModel: typeof ParkingSlot,
-    @InjectModel(FavoriteLot) private readonly favoriteModel: typeof FavoriteLot,
+    @InjectModel(ParkingLot)
+    private readonly parkingLotModel: typeof ParkingLot,
+    @InjectModel(ParkingSlot)
+    private readonly parkingSlotModel: typeof ParkingSlot,
+    @InjectModel(FavoriteLot)
+    private readonly favoriteModel: typeof FavoriteLot,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly translationService: TranslationService,
-  ) { }
+  ) {}
 
   private t(key: string, args?: Record<string, unknown>): string {
     return this.translationService.translate(`message.${key}`, { args });
@@ -58,7 +69,9 @@ export class ParkingService {
   // ------------------------------------------------------- for the app
 
   /** Lots within `radius` km, closest first, each with its distance. */
-  async findNearby(query: NearbyQueryDto): Promise<PaginationResult<ParkingLotView>> {
+  async findNearby(
+    query: NearbyQueryDto,
+  ): Promise<PaginationResult<ParkingLotView>> {
     const { lat, lng, radius } = query;
     const box = boundingBox(lat, lng, radius);
 
@@ -72,21 +85,29 @@ export class ParkingService {
 
     // The box has corners outside the circle: keep only lots really within the radius.
     const nearby = candidates
-      .map((lot) => ({ lot, distance: distanceKm(lat, lng, lot.latitude, lot.longitude) }))
+      .map((lot) => ({
+        lot,
+        distance: distanceKm(lat, lng, lot.latitude, lot.longitude),
+      }))
       .filter(({ distance }) => distance <= radius)
       .sort((a, b) => a.distance - b.distance);
 
-    const page = new ArrayPagination<(typeof nearby)[number]>('/parking/nearby')
-      .paginate(nearby, query.page, query.pageSize, { lat, lng, radius });
+    const page = new ArrayPagination<(typeof nearby)[number]>(
+      '/parking/nearby',
+    ).paginate(nearby, query.page, query.pageSize, { lat, lng, radius });
     const counts = await this.countSlots(page.data.map(({ lot }) => lot.id));
 
     return {
       ...page,
-      data: page.data.map(({ lot, distance }) => this.present(lot, counts, distance)),
+      data: page.data.map(({ lot, distance }) =>
+        this.present(lot, counts, distance),
+      ),
     };
   }
 
-  async search(query: SearchQueryDto): Promise<PaginationResult<ParkingLotView>> {
+  async search(
+    query: SearchQueryDto,
+  ): Promise<PaginationResult<ParkingLotView>> {
     const pattern = `%${query.q}%`;
     const page = await this.searchPagination.findAll(
       query.page,
@@ -94,7 +115,10 @@ export class ParkingService {
       {
         where: {
           ...LISTED_LOT,
-          [Op.or]: [{ name: { [Op.like]: pattern } }, { address: { [Op.like]: pattern } }],
+          [Op.or]: [
+            { name: { [Op.like]: pattern } },
+            { address: { [Op.like]: pattern } },
+          ],
         },
         order: [['name', 'ASC']],
       },
@@ -114,7 +138,9 @@ export class ParkingService {
     const [slots, counts, favorite] = await Promise.all([
       this.findSlots(id),
       this.countSlots([id]),
-      this.favoriteModel.count({ where: { user_id: userId, parking_lot_id: id } }),
+      this.favoriteModel.count({
+        where: { user_id: userId, parking_lot_id: id },
+      }),
     ]);
     return { ...this.present(lot, counts), slots, is_favorite: favorite > 0 };
   }
@@ -137,7 +163,10 @@ export class ParkingService {
   }
 
   /** Saving twice is fine: it stays saved once. */
-  async addFavorite(userId: number, lotId: number): Promise<{ is_favorite: true }> {
+  async addFavorite(
+    userId: number,
+    lotId: number,
+  ): Promise<{ is_favorite: true }> {
     await this.getBookableLot(lotId);
     await this.favoriteModel.findOrCreate({
       where: { user_id: userId, parking_lot_id: lotId },
@@ -147,8 +176,13 @@ export class ParkingService {
   }
 
   /** Removing one that isn't saved is fine too. */
-  async removeFavorite(userId: number, lotId: number): Promise<{ is_favorite: false }> {
-    await this.favoriteModel.destroy({ where: { user_id: userId, parking_lot_id: lotId } });
+  async removeFavorite(
+    userId: number,
+    lotId: number,
+  ): Promise<{ is_favorite: false }> {
+    await this.favoriteModel.destroy({
+      where: { user_id: userId, parking_lot_id: lotId },
+    });
     return { is_favorite: false };
   }
 
@@ -160,8 +194,14 @@ export class ParkingService {
   // ------------------------------------------------- used by BookingService
 
   /** A lot that can be booked (approved and not removed), or a 404. */
-  async getBookableLot(id: number, transaction?: Transaction): Promise<ParkingLot> {
-    const lot = await this.parkingLotModel.findOne({ where: { id, ...LISTED_LOT }, transaction });
+  async getBookableLot(
+    id: number,
+    transaction?: Transaction,
+  ): Promise<ParkingLot> {
+    const lot = await this.parkingLotModel.findOne({
+      where: { id, ...LISTED_LOT },
+      transaction,
+    });
     if (!lot) {
       throw new NotFoundException(this.t('PARKING_NOT_FOUND'));
     }
@@ -169,8 +209,14 @@ export class ParkingService {
   }
 
   /** A lot an admin can manage: any status, but not removed. */
-  async getManagedLot(id: number, transaction?: Transaction): Promise<ParkingLot> {
-    const lot = await this.parkingLotModel.findOne({ where: { id, is_available: true }, transaction });
+  async getManagedLot(
+    id: number,
+    transaction?: Transaction,
+  ): Promise<ParkingLot> {
+    const lot = await this.parkingLotModel.findOne({
+      where: { id, is_available: true },
+      transaction,
+    });
     if (!lot) {
       throw new NotFoundException(this.t('PARKING_NOT_FOUND'));
     }
@@ -179,7 +225,10 @@ export class ParkingService {
 
   /** Any lot, even a removed one (for bookings that already exist). */
   async getLot(id: number, transaction?: Transaction): Promise<ParkingLot> {
-    const lot = await this.parkingLotModel.findByPk(id, { transaction, paranoid: false });
+    const lot = await this.parkingLotModel.findByPk(id, {
+      transaction,
+      paranoid: false,
+    });
     if (!lot) {
       throw new NotFoundException(this.t('PARKING_NOT_FOUND'));
     }
@@ -191,7 +240,11 @@ export class ParkingService {
    * free, so when two people book the same slot at the same moment exactly one
    * of them gets it.
    */
-  async reserveSlot(lotId: number, slotId: number, transaction: Transaction): Promise<ParkingSlot> {
+  async reserveSlot(
+    lotId: number,
+    slotId: number,
+    transaction: Transaction,
+  ): Promise<ParkingSlot> {
     const slot = await this.parkingSlotModel.findOne({
       where: { id: slotId, parking_lot_id: lotId },
       transaction,
@@ -214,7 +267,10 @@ export class ParkingService {
   async releaseSlot(slotId: number, transaction: Transaction): Promise<void> {
     await this.parkingSlotModel.update(
       { status: 'free' },
-      { where: { id: slotId, status: { [Op.in]: ['reserved', 'occupied'] } }, transaction },
+      {
+        where: { id: slotId, status: { [Op.in]: ['reserved', 'occupied'] } },
+        transaction,
+      },
     );
   }
 
@@ -235,7 +291,10 @@ export class ParkingService {
     const lot = await this.getManagedLot(id);
 
     const slotsInUse = await this.parkingSlotModel.count({
-      where: { parking_lot_id: id, status: { [Op.in]: ['reserved', 'occupied'] } },
+      where: {
+        parking_lot_id: id,
+        status: { [Op.in]: ['reserved', 'occupied'] },
+      },
     });
     if (slotsInUse > 0) {
       throw new ConflictException(this.t('PARKING_HAS_ACTIVE_BOOKINGS'));
@@ -251,7 +310,10 @@ export class ParkingService {
     return { message: this.t('PARKING_DELETED') };
   }
 
-  async addSlot(lotId: number, dto: CreateParkingSlotDto): Promise<ParkingSlot> {
+  async addSlot(
+    lotId: number,
+    dto: CreateParkingSlotDto,
+  ): Promise<ParkingSlot> {
     const [slot] = await this.createSlots(lotId, { slots: [dto] });
     return slot;
   }
@@ -260,7 +322,10 @@ export class ParkingService {
    * Adds slots to a lot. A slot that was removed earlier comes back (as free)
    * instead of being created twice, which the unique index wouldn't allow.
    */
-  async createSlots(lotId: number, dto: CreateParkingSlotsDto): Promise<ParkingSlot[]> {
+  async createSlots(
+    lotId: number,
+    dto: CreateParkingSlotsDto,
+  ): Promise<ParkingSlot[]> {
     await this.getManagedLot(lotId);
 
     const keys = dto.slots.map(slotKey);
@@ -268,7 +333,10 @@ export class ParkingService {
       throw new ConflictException(this.t('PARKING_SLOT_DUPLICATE'));
     }
 
-    const slotFilter = dto.slots.map(({ level, slot_number }) => ({ level, slot_number }));
+    const slotFilter = dto.slots.map(({ level, slot_number }) => ({
+      level,
+      slot_number,
+    }));
     const existing = await this.parkingSlotModel.findAll({
       where: { parking_lot_id: lotId, [Op.or]: slotFilter },
     });
@@ -288,7 +356,12 @@ export class ParkingService {
       const removedKeys = new Set(removed.map(slotKey));
       const newSlots = dto.slots
         .filter((slot) => !removedKeys.has(slotKey(slot)))
-        .map(({ level, slot_number }) => ({ level, slot_number, parking_lot_id: lotId, status: 'free' }));
+        .map(({ level, slot_number }) => ({
+          level,
+          slot_number,
+          parking_lot_id: lotId,
+          status: 'free',
+        }));
       await this.parkingSlotModel.bulkCreate(newSlots, { transaction });
 
       return this.parkingSlotModel.findAll({
@@ -343,14 +416,25 @@ export class ParkingService {
     if (lotIds.length === 0) return counts;
 
     const rows = (await this.parkingSlotModel.findAll({
-      attributes: ['parking_lot_id', 'status', [fn('COUNT', col('id')), 'count']],
+      attributes: [
+        'parking_lot_id',
+        'status',
+        [fn('COUNT', col('id')), 'count'],
+      ],
       where: { parking_lot_id: lotIds, status: { [Op.ne]: 'unavailable' } },
       group: ['parking_lot_id', 'status'],
       raw: true,
-    })) as unknown as { parking_lot_id: number; status: string; count: number | string }[];
+    })) as unknown as {
+      parking_lot_id: number;
+      status: string;
+      count: number | string;
+    }[];
 
     for (const row of rows) {
-      const entry = counts.get(row.parking_lot_id) ?? { total: 0, available: 0 };
+      const entry = counts.get(row.parking_lot_id) ?? {
+        total: 0,
+        available: 0,
+      };
       entry.total += Number(row.count);
       if (row.status === 'free') entry.available += Number(row.count);
       counts.set(row.parking_lot_id, entry);
@@ -358,15 +442,25 @@ export class ParkingService {
     return counts;
   }
 
-  private present(lot: ParkingLot, counts: Map<number, SlotCounts>, distance?: number): ParkingLotView {
-    const { total, available } = counts.get(lot.id) ?? { total: 0, available: 0 };
+  private present(
+    lot: ParkingLot,
+    counts: Map<number, SlotCounts>,
+    distance?: number,
+  ): ParkingLotView {
+    const { total, available } = counts.get(lot.id) ?? {
+      total: 0,
+      available: 0,
+    };
     // Which account owns the lot is for the Admin Panel, not for drivers.
-    const { owner_id: _ownerId, ...columns } = lot.toJSON<Record<string, unknown>>();
+    const { owner_id: _ownerId, ...columns } =
+      lot.toJSON<Record<string, unknown>>();
     return {
       ...columns,
       total_slots: total,
       available_slots: available,
-      ...(distance !== undefined && { distance_km: Math.round(distance * 100) / 100 }),
+      ...(distance !== undefined && {
+        distance_km: Math.round(distance * 100) / 100,
+      }),
     };
   }
 }

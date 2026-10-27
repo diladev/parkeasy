@@ -26,10 +26,13 @@ export class NotificationsController {
   constructor(
     private readonly notificationsService: NotificationsService,
     private readonly settingsService: NotificationSettingsService,
-  ) { }
+  ) {}
 
   @Get()
-  getAll(@CurrentUser() user: AuthenticatedUser, @Query() query: NotificationQueryDto) {
+  getAll(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: NotificationQueryDto,
+  ) {
     return this.notificationsService.getUserNotifications(user.id, query);
   }
 
@@ -46,7 +49,10 @@ export class NotificationsController {
   }
 
   @Patch('settings')
-  updateSettings(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateNotificationSettingsDto) {
+  updateSettings(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateNotificationSettingsDto,
+  ) {
     return this.settingsService.update(user.id, dto);
   }
 

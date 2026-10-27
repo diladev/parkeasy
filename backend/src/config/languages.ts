@@ -3,8 +3,10 @@ export const SUPPORTED_LANGUAGES = ['en', 'ckb'] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-export function isSupportedLanguage(value: unknown): value is SupportedLanguage {
-    return (SUPPORTED_LANGUAGES as readonly unknown[]).includes(value);
+export function isSupportedLanguage(
+  value: unknown,
+): value is SupportedLanguage {
+  return (SUPPORTED_LANGUAGES as readonly unknown[]).includes(value);
 }
 
 /**
@@ -14,6 +16,6 @@ export function isSupportedLanguage(value: unknown): value is SupportedLanguage 
  * read .env, so a constant would always see an empty value.
  */
 export function defaultLanguage(): SupportedLanguage {
-    const value = process.env.DEFAULT_LANGUAGE;
-    return isSupportedLanguage(value) ? value : 'en';
+  const value = process.env.DEFAULT_LANGUAGE;
+  return isSupportedLanguage(value) ? value : 'en';
 }

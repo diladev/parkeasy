@@ -8,17 +8,19 @@ import { createHmac, timingSafeEqual } from 'crypto';
 export const SIGNATURE_HEADER = 'x-parkeasy-signature';
 
 export function signWebhook(body: string, secret: string): string {
-    return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
+  return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
 }
 
 /** Constant-time check, so the comparison doesn't leak how much matched. */
 export function isValidWebhookSignature(
-    body: string,
-    signature: string | undefined,
-    secret: string,
+  body: string,
+  signature: string | undefined,
+  secret: string,
 ): boolean {
-    if (!signature) return false;
-    const expected = Buffer.from(signWebhook(body, secret));
-    const received = Buffer.from(signature);
-    return expected.length === received.length && timingSafeEqual(expected, received);
+  if (!signature) return false;
+  const expected = Buffer.from(signWebhook(body, secret));
+  const received = Buffer.from(signature);
+  return (
+    expected.length === received.length && timingSafeEqual(expected, received)
+  );
 }

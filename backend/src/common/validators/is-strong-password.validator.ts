@@ -1,6 +1,6 @@
 import {
-    ValidatorConstraint,
-    ValidatorConstraintInterface,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 
 import passwordPolicy from 'src/config/password-policy';
@@ -12,15 +12,18 @@ import passwordPolicy from 'src/config/password-policy';
  * letters too); the policy only decides which character classes are required.
  */
 export function buildPasswordRegex(): RegExp {
-    const policy = passwordPolicy();
-    let lookaheads = '';
+  const policy = passwordPolicy();
+  let lookaheads = '';
 
-    if (policy.requireUppercase) lookaheads += '(?=.*[A-Z])';
-    if (policy.requireLowercase) lookaheads += '(?=.*[a-z])';
-    if (policy.requireNumber) lookaheads += '(?=.*\\d)';
-    if (policy.requireSpecial) lookaheads += '(?=.*[^A-Za-z0-9\\s])';
+  if (policy.requireUppercase) lookaheads += '(?=.*[A-Z])';
+  if (policy.requireLowercase) lookaheads += '(?=.*[a-z])';
+  if (policy.requireNumber) lookaheads += '(?=.*\\d)';
+  if (policy.requireSpecial) lookaheads += '(?=.*[^A-Za-z0-9\\s])';
 
-    return new RegExp(`^${lookaheads}\\S{${policy.minLength},${policy.maxLength}}$`, 'u');
+  return new RegExp(
+    `^${lookaheads}\\S{${policy.minLength},${policy.maxLength}}$`,
+    'u',
+  );
 }
 
 /**
@@ -30,10 +33,12 @@ export function buildPasswordRegex(): RegExp {
  */
 @ValidatorConstraint({ name: 'isStrongPassword', async: false })
 export class IsStrongPasswordValidator implements ValidatorConstraintInterface {
-    private static regex?: RegExp;
+  private static regex?: RegExp;
 
-    validate(value: unknown): boolean {
-        IsStrongPasswordValidator.regex ??= buildPasswordRegex();
-        return typeof value === 'string' && IsStrongPasswordValidator.regex.test(value);
-    }
+  validate(value: unknown): boolean {
+    IsStrongPasswordValidator.regex ??= buildPasswordRegex();
+    return (
+      typeof value === 'string' && IsStrongPasswordValidator.regex.test(value)
+    );
+  }
 }

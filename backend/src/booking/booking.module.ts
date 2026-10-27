@@ -23,4 +23,4 @@ import { BookingEndingAlert } from './entities/booking-ending-alert.entity';
   controllers: [BookingController],
   providers: [BookingService],
 })
-export class BookingModule { }
+export class BookingModule {}

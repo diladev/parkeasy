@@ -13,4 +13,4 @@ import { NotificationSettings } from './entities/notification-settings.entity';
   providers: [NotificationsService, NotificationSettingsService],
   exports: [NotificationsService, NotificationSettingsService],
 })
-export class NotificationsModule { }
+export class NotificationsModule {}

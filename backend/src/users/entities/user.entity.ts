@@ -65,7 +65,11 @@ export class User extends Model {
    * driver (the mobile app), garage_owner (Garage Portal) or admin (Admin Panel).
    * What each role may do is decided in auth/permissions.ts.
    */
-  @Column({ type: DataType.STRING(20), allowNull: false, defaultValue: 'driver' })
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: false,
+    defaultValue: 'driver',
+  })
   declare role: Role;
 
   @HasMany(() => Vehicle)

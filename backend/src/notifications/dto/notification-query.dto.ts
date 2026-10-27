@@ -6,8 +6,13 @@ import { PaginationQueryDto } from 'src/common/pagination/dto/pagination-query.d
 import { NOTIFICATION_TYPES } from '../entities/notification.entity';
 
 export class NotificationQueryDto extends PaginationQueryDto {
-    @ApiPropertyOptional({ enum: NOTIFICATION_TYPES, description: 'Only this category. Leave empty for all.' })
-    @IsOptional()
-    @IsIn(NOTIFICATION_TYPES, { message: i18nValidationMessage('validation.IS_IN') })
-    type?: string;
+  @ApiPropertyOptional({
+    enum: NOTIFICATION_TYPES,
+    description: 'Only this category. Leave empty for all.',
+  })
+  @IsOptional()
+  @IsIn(NOTIFICATION_TYPES, {
+    message: i18nValidationMessage('validation.IS_IN'),
+  })
+  type?: string;
 }

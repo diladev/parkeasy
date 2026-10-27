@@ -1,11 +1,22 @@
-import { Controller, HttpCode, Inject, NotFoundException, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  Inject,
+  NotFoundException,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import paymentsConfig from 'src/config/payments';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
 import { TranslationService } from 'src/i18n/translation.service';
 import { MockFibGateway } from './gateway/mock-fib.gateway';
-import { PAYMENT_GATEWAY, ProviderPaymentStatus } from './gateway/payment-gateway';
+import {
+  PAYMENT_GATEWAY,
+  ProviderPaymentStatus,
+} from './gateway/payment-gateway';
 import type { PaymentGateway } from './gateway/payment-gateway';
 import { signWebhook } from './gateway/webhook-signature';
 import { PaymentsService } from './payments.service';
@@ -22,47 +33,59 @@ import { PaymentsService } from './payments.service';
 @UseGuards(UserAccessTokenAuthGuard)
 @Controller('payments/mock')
 export class MockBankController {
-    private readonly webhookSecret = paymentsConfig().webhook_secret;
+  private readonly webhookSecret = paymentsConfig().webhook_secret;
 
-    constructor(
-        @Inject(PAYMENT_GATEWAY) private readonly gateway: PaymentGateway,
-        private readonly paymentsService: PaymentsService,
-        private readonly translationService: TranslationService,
-    ) { }
+  constructor(
+    @Inject(PAYMENT_GATEWAY) private readonly gateway: PaymentGateway,
+    private readonly paymentsService: PaymentsService,
+    private readonly translationService: TranslationService,
+  ) {}
 
-    @Post(':providerPaymentId/approve')
-    @HttpCode(200)
-    @ApiOperation({ summary: 'Pay a pending payment (mock provider only).' })
-    approve(@Param('providerPaymentId') providerPaymentId: string) {
-        return this.decide(providerPaymentId, (mock) => mock.approve(providerPaymentId));
+  @Post(':providerPaymentId/approve')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Pay a pending payment (mock provider only).' })
+  approve(@Param('providerPaymentId') providerPaymentId: string) {
+    return this.decide(providerPaymentId, (mock) =>
+      mock.approve(providerPaymentId),
+    );
+  }
+
+  @Post(':providerPaymentId/decline')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Decline a pending payment (mock provider only).' })
+  decline(@Param('providerPaymentId') providerPaymentId: string) {
+    return this.decide(providerPaymentId, (mock) =>
+      mock.decline(providerPaymentId),
+    );
+  }
+
+  private async decide(
+    providerPaymentId: string,
+    action: (mock: MockFibGateway) => ProviderPaymentStatus,
+  ): Promise<{ status: ProviderPaymentStatus['status'] }> {
+    if (!(this.gateway instanceof MockFibGateway)) {
+      throw new NotFoundException();
     }
+    const state = action(this.gateway);
 
-    @Post(':providerPaymentId/decline')
-    @HttpCode(200)
-    @ApiOperation({ summary: 'Decline a pending payment (mock provider only).' })
-    decline(@Param('providerPaymentId') providerPaymentId: string) {
-        return this.decide(providerPaymentId, (mock) => mock.decline(providerPaymentId));
+    // The callback a real provider would send: it only names the payment.
+    const body = JSON.stringify({
+      id: providerPaymentId,
+      status: state.status,
+    });
+    try {
+      await this.paymentsService.handleWebhook(
+        body,
+        signWebhook(body, this.webhookSecret),
+      );
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(
+          this.translationService.translate('message.PAYMENT_NOT_FOUND'),
+        );
+      }
+      throw error;
     }
-
-    private async decide(
-        providerPaymentId: string,
-        action: (mock: MockFibGateway) => ProviderPaymentStatus,
-    ): Promise<{ status: ProviderPaymentStatus['status'] }> {
-        if (!(this.gateway instanceof MockFibGateway)) {
-            throw new NotFoundException();
-        }
-        const state = action(this.gateway);
-
-        // The callback a real provider would send: it only names the payment.
-        const body = JSON.stringify({ id: providerPaymentId, status: state.status });
-        try {
-            await this.paymentsService.handleWebhook(body, signWebhook(body, this.webhookSecret));
-        } catch (error) {
-            if (error instanceof NotFoundException) {
-                throw new NotFoundException(this.translationService.translate('message.PAYMENT_NOT_FOUND'));
-            }
-            throw error;
-        }
-        return { status: state.status };
-    }
+    return { status: state.status };
+  }
 }

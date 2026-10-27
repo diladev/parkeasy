@@ -1,4 +1,11 @@
-import { BadRequestException, Controller, Headers, HttpCode, Post, Req } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Headers,
+  HttpCode,
+  Post,
+  Req,
+} from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
@@ -14,13 +21,19 @@ import { PaymentsService } from './payments.service';
 @ApiTags('Payments')
 @Controller('payments')
 export class PaymentsWebhookController {
-    constructor(private readonly paymentsService: PaymentsService) { }
+  constructor(private readonly paymentsService: PaymentsService) {}
 
-    @Post('webhook')
-    @HttpCode(200)
-    @ApiExcludeEndpoint()
-    webhook(@Req() request: RawBodyRequest<Request>, @Headers(SIGNATURE_HEADER) signature?: string) {
-        if (!request.rawBody) throw new BadRequestException();
-        return this.paymentsService.handleWebhook(request.rawBody.toString('utf8'), signature);
-    }
+  @Post('webhook')
+  @HttpCode(200)
+  @ApiExcludeEndpoint()
+  webhook(
+    @Req() request: RawBodyRequest<Request>,
+    @Headers(SIGNATURE_HEADER) signature?: string,
+  ) {
+    if (!request.rawBody) throw new BadRequestException();
+    return this.paymentsService.handleWebhook(
+      request.rawBody.toString('utf8'),
+      signature,
+    );
+  }
 }

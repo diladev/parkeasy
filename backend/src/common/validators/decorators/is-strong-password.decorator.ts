@@ -1,7 +1,7 @@
 import {
-    registerDecorator,
-    ValidationArguments,
-    ValidationOptions,
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
 } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
@@ -14,21 +14,21 @@ import { IsStrongPasswordValidator } from '../is-strong-password.validator';
  * message always match the configured policy.
  */
 function passwordPolicyMessage(args: ValidationArguments): string {
-    const { minLength, maxLength } = passwordPolicy();
-    return i18nValidationMessage('validation.PASSWORD_PATTERN', {
-        min: minLength,
-        max: maxLength,
-    })(args);
+  const { minLength, maxLength } = passwordPolicy();
+  return i18nValidationMessage('validation.PASSWORD_PATTERN', {
+    min: minLength,
+    max: maxLength,
+  })(args);
 }
 
 export function IsStrongPassword(validationOptions?: ValidationOptions) {
-    return function (object: object, propertyName: string) {
-        registerDecorator({
-            target: object.constructor,
-            propertyName,
-            options: { message: passwordPolicyMessage, ...validationOptions },
-            constraints: [],
-            validator: IsStrongPasswordValidator,
-        });
-    };
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName,
+      options: { message: passwordPolicyMessage, ...validationOptions },
+      constraints: [],
+      validator: IsStrongPasswordValidator,
+    });
+  };
 }

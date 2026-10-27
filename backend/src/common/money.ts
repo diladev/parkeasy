@@ -10,10 +10,10 @@ export const CURRENCY = 'IQD';
 
 /** Rounds to whole dinars. */
 export function toDinars(amount: number): number {
-    return Math.round(amount);
+  return Math.round(amount);
 }
 
 /** "12,500 IQD", for messages and notifications. */
 export function formatDinars(amount: number): string {
-    return `${toDinars(amount).toLocaleString('en-US')} ${CURRENCY}`;
+  return `${toDinars(amount).toLocaleString('en-US')} ${CURRENCY}`;
 }

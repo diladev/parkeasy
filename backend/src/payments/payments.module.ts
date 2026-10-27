@@ -17,16 +17,27 @@ import { TopUpsController } from './top-ups.controller';
  * is another PaymentGateway added here; nothing else changes.
  */
 function createGateway(): PaymentGateway {
-    const config = paymentsConfig();
-    switch (config.provider) {
-        case 'mock':
-            return new MockFibGateway(config.validity_minutes);
-    }
+  const config = paymentsConfig();
+  switch (config.provider) {
+    case 'mock':
+      return new MockFibGateway(config.validity_minutes);
+  }
 }
 
 @Module({
-    imports: [SequelizeModule.forFeature([Payment]), WalletModule, NotificationsModule],
-    controllers: [TopUpsController, PaymentsWebhookController, MockBankController],
-    providers: [PaymentsService, { provide: PAYMENT_GATEWAY, useFactory: createGateway }],
+  imports: [
+    SequelizeModule.forFeature([Payment]),
+    WalletModule,
+    NotificationsModule,
+  ],
+  controllers: [
+    TopUpsController,
+    PaymentsWebhookController,
+    MockBankController,
+  ],
+  providers: [
+    PaymentsService,
+    { provide: PAYMENT_GATEWAY, useFactory: createGateway },
+  ],
 })
-export class PaymentsModule { }
+export class PaymentsModule {}

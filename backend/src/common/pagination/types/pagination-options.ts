@@ -1,3 +1,6 @@
-import {Optional, FindAndCountOptions} from 'sequelize';
+import { Optional, FindAndCountOptions } from 'sequelize';
 
-export type OptionalPaginationOptions = Optional<FindAndCountOptions, 'include'>;
+export type OptionalPaginationOptions = Optional<
+  FindAndCountOptions,
+  'include'
+>;

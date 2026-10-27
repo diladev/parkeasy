@@ -1,7 +1,11 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { AcceptLanguageResolver, HeaderResolver, I18nModule } from 'nestjs-i18n';
+import {
+  AcceptLanguageResolver,
+  HeaderResolver,
+  I18nModule,
+} from 'nestjs-i18n';
 import { join } from 'path';
 import { Dialect } from 'sequelize';
 

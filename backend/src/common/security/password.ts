@@ -11,15 +11,18 @@ import bcryptKeys from 'src/config/bcrypt-keys';
  * into a fixed 44-character string, so the pepper always counts.
  */
 function pepper(password: string): string {
-    return createHmac('sha256', bcryptKeys().pepper_secret)
-        .update(password)
-        .digest('base64');
+  return createHmac('sha256', bcryptKeys().pepper_secret)
+    .update(password)
+    .digest('base64');
 }
 
 export function hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(pepper(password), bcryptKeys().salt_rounds);
+  return bcrypt.hash(pepper(password), bcryptKeys().salt_rounds);
 }
 
-export function verifyPassword(password: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(pepper(password), hash);
+export function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
+  return bcrypt.compare(pepper(password), hash);
 }

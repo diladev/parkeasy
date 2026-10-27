@@ -13,7 +13,10 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
-import { PermissionsGuard, RequirePermissions } from 'src/auth/guards/permissions.guard';
+import {
+  PermissionsGuard,
+  RequirePermissions,
+} from 'src/auth/guards/permissions.guard';
 import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guard';
 import { PERMISSIONS } from 'src/auth/permissions';
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
@@ -37,7 +40,7 @@ import {
 @ApiTags('Parking')
 @Controller('parking')
 export class ParkingController {
-  constructor(private readonly parkingService: ParkingService) { }
+  constructor(private readonly parkingService: ParkingService) {}
 
   // ------------------------------------------------------------- for the app
   // ('nearby', 'search' and 'favorites' must stay above ':id', or ':id' would catch them.)
@@ -67,7 +70,10 @@ export class ParkingController {
   @Get(':id')
   @UseGuards(UserAccessTokenAuthGuard)
   @ApiBearerAuth()
-  getLot(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+  getLot(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+  ) {
     return this.parkingService.getLotDetails(id, user.id);
   }
 
@@ -75,21 +81,30 @@ export class ParkingController {
   @Put(':id/favorite')
   @UseGuards(UserAccessTokenAuthGuard)
   @ApiBearerAuth()
-  addFavorite(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+  addFavorite(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+  ) {
     return this.parkingService.addFavorite(user.id, id);
   }
 
   @Delete(':id/favorite')
   @UseGuards(UserAccessTokenAuthGuard)
   @ApiBearerAuth()
-  removeFavorite(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIdPipe) id: number) {
+  removeFavorite(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+  ) {
     return this.parkingService.removeFavorite(user.id, id);
   }
 
   @Get(':id/slots')
   @UseGuards(UserAccessTokenAuthGuard)
   @ApiBearerAuth()
-  getSlots(@Param('id', ParseIdPipe) id: number, @Query() query: SlotsQueryDto) {
+  getSlots(
+    @Param('id', ParseIdPipe) id: number,
+    @Query() query: SlotsQueryDto,
+  ) {
     return this.parkingService.getSlots(id, query);
   }
 
@@ -107,7 +122,10 @@ export class ParkingController {
   @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
   @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
   @ApiBearerAuth()
-  updateLot(@Param('id', ParseIdPipe) id: number, @Body() dto: UpdateParkingLotDto) {
+  updateLot(
+    @Param('id', ParseIdPipe) id: number,
+    @Body() dto: UpdateParkingLotDto,
+  ) {
     return this.parkingService.updateLot(id, dto);
   }
 
@@ -123,7 +141,10 @@ export class ParkingController {
   @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
   @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
   @ApiBearerAuth()
-  createSlots(@Param('id', ParseIdPipe) id: number, @Body() dto: CreateParkingSlotsDto) {
+  createSlots(
+    @Param('id', ParseIdPipe) id: number,
+    @Body() dto: CreateParkingSlotsDto,
+  ) {
     return this.parkingService.createSlots(id, dto);
   }
 
@@ -131,7 +152,10 @@ export class ParkingController {
   @UseGuards(UserAccessTokenAuthGuard, PermissionsGuard)
   @RequirePermissions([PERMISSIONS.ADMIN_ACCESS])
   @ApiBearerAuth()
-  addSlot(@Param('id', ParseIdPipe) id: number, @Body() dto: CreateParkingSlotDto) {
+  addSlot(
+    @Param('id', ParseIdPipe) id: number,
+    @Body() dto: CreateParkingSlotDto,
+  ) {
     return this.parkingService.addSlot(id, dto);
   }
 

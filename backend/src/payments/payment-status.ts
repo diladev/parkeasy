@@ -9,21 +9,27 @@
  * Only `pending` can change, and only once. Every other status is final, which
  * is what makes a repeated provider callback harmless.
  */
-export const PAYMENT_STATUSES = ['pending', 'paid', 'declined', 'expired', 'cancelled'] as const;
+export const PAYMENT_STATUSES = [
+  'pending',
+  'paid',
+  'declined',
+  'expired',
+  'cancelled',
+] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
 const NEXT: Record<PaymentStatus, readonly PaymentStatus[]> = {
-    pending: ['paid', 'declined', 'expired', 'cancelled'],
-    paid: [],
-    declined: [],
-    expired: [],
-    cancelled: [],
+  pending: ['paid', 'declined', 'expired', 'cancelled'],
+  paid: [],
+  declined: [],
+  expired: [],
+  cancelled: [],
 };
 
 export function canMoveTo(from: PaymentStatus, to: PaymentStatus): boolean {
-    return NEXT[from].includes(to);
+  return NEXT[from].includes(to);
 }
 
 export function isFinal(status: PaymentStatus): boolean {
-    return NEXT[status].length === 0;
+  return NEXT[status].length === 0;
 }

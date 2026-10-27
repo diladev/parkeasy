@@ -42,7 +42,8 @@ const RECEIPT_TIME_ZONE = 'Asia/Baghdad';
 
 /** Booking details shown in the app. paranoid: false keeps showing a vehicle that was deleted later. */
 /** "PE-000123": a booking's receipt number. */
-export const receiptNumber = (bookingId: number) => `PE-${String(bookingId).padStart(6, '0')}`;
+export const receiptNumber = (bookingId: number) =>
+  `PE-${String(bookingId).padStart(6, '0')}`;
 
 /** A booking's receipt, in whole Iraqi dinars. */
 export interface BookingReceipt {
@@ -72,7 +73,8 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @InjectModel(Booking) private readonly bookingModel: typeof Booking,
-    @InjectModel(BookingEndingAlert) private readonly endingAlertModel: typeof BookingEndingAlert,
+    @InjectModel(BookingEndingAlert)
+    private readonly endingAlertModel: typeof BookingEndingAlert,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly parkingService: ParkingService,
     private readonly walletService: WalletService,
@@ -81,7 +83,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     private readonly notificationSettings: NotificationSettingsService,
     private readonly mailService: MailService,
     private readonly translationService: TranslationService,
-  ) { }
+  ) {}
 
   private t(key: string, args?: Record<string, unknown>): string {
     return this.translationService.translate(`message.${key}`, { args });
@@ -92,10 +94,16 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
   onModuleInit(): void {
     this.sweepTimer = setInterval(() => {
       this.completeExpiredBookings().catch((error: unknown) =>
-        this.logger.error('Closing finished bookings failed', error instanceof Error ? error.stack : String(error)),
+        this.logger.error(
+          'Closing finished bookings failed',
+          error instanceof Error ? error.stack : String(error),
+        ),
       );
       this.sendEndingSoonAlerts().catch((error: unknown) =>
-        this.logger.error('Sending "ends soon" notices failed', error instanceof Error ? error.stack : String(error)),
+        this.logger.error(
+          'Sending "ends soon" notices failed',
+          error instanceof Error ? error.stack : String(error),
+        ),
       );
     }, EXPIRY_SWEEP_INTERVAL_MS);
     // Don't keep the process alive just for this timer.
@@ -130,7 +138,10 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         );
         if (completed === 0) return;
 
-        await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
+        await this.parkingService.releaseSlot(
+          booking.parking_slot_id,
+          transaction,
+        );
         await this.notificationsService.notify(
           booking.user_id,
           'BOOKING_COMPLETED',
@@ -143,14 +154,21 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       // up the request that happened to close the booking.
       if (await this.bookingWasCompleted(booking.id)) {
         this.emailReceipt(booking.id).catch((error: unknown) =>
-          this.logger.error('Emailing a receipt failed', error instanceof Error ? error.stack : String(error)),
+          this.logger.error(
+            'Emailing a receipt failed',
+            error instanceof Error ? error.stack : String(error),
+          ),
         );
       }
     }
   }
 
   private async bookingWasCompleted(bookingId: number): Promise<boolean> {
-    return (await this.bookingModel.count({ where: { id: bookingId, status: 'completed' } })) > 0;
+    return (
+      (await this.bookingModel.count({
+        where: { id: bookingId, status: 'completed' },
+      })) > 0
+    );
   }
 
   /**
@@ -161,13 +179,22 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     const soon = await this.bookingModel.findAll({
       where: {
         status: 'active',
-        end_time: { [Op.gt]: now, [Op.lte]: new Date(now.getTime() + ENDING_SOON_MINUTES * 60_000) },
+        end_time: {
+          [Op.gt]: now,
+          [Op.lte]: new Date(now.getTime() + ENDING_SOON_MINUTES * 60_000),
+        },
       },
       include: [{ model: ParkingLot, attributes: ['name'], paranoid: false }],
     });
 
     for (const booking of soon) {
-      if (!(await this.notificationSettings.isEnabled(booking.user_id, 'expiry_alerts'))) continue;
+      if (
+        !(await this.notificationSettings.isEnabled(
+          booking.user_id,
+          'expiry_alerts',
+        ))
+      )
+        continue;
 
       await this.sequelize.transaction(async (transaction) => {
         const alert = await this.endingAlertModel.findOne({
@@ -180,9 +207,15 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         if (alert) {
           await alert.update({ end_time: booking.end_time }, { transaction });
         } else {
-          await this.endingAlertModel.create({ booking_id: booking.id, end_time: booking.end_time }, { transaction });
+          await this.endingAlertModel.create(
+            { booking_id: booking.id, end_time: booking.end_time },
+            { transaction },
+          );
         }
-        const minutes = Math.max(1, Math.ceil((booking.end_time.getTime() - now.getTime()) / 60_000));
+        const minutes = Math.max(
+          1,
+          Math.ceil((booking.end_time.getTime() - now.getTime()) / 60_000),
+        );
         await this.notificationsService.notify(
           booking.user_id,
           'BOOKING_ENDING_SOON',
@@ -196,10 +229,19 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
   /** Emails a finished booking's receipt, if the user wants receipt emails. */
   private async emailReceipt(bookingId: number): Promise<void> {
     const booking = await this.bookingModel.findByPk(bookingId, {
-      include: [...BOOKING_DETAILS, { model: User, attributes: ['name', 'email'] }],
+      include: [
+        ...BOOKING_DETAILS,
+        { model: User, attributes: ['name', 'email'] },
+      ],
     });
     if (!booking?.user) return;
-    if (!(await this.notificationSettings.isEnabled(booking.user_id, 'booking_receipt_emails'))) return;
+    if (
+      !(await this.notificationSettings.isEnabled(
+        booking.user_id,
+        'booking_receipt_emails',
+      ))
+    )
+      return;
 
     const receipt = await this.buildReceipt(booking);
     const time = (date: Date) =>
@@ -212,17 +254,23 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         minute: '2-digit',
       });
 
-    await this.mailService.sendBookingReceipt(booking.user.email, booking.user.name, {
-      receiptNumber: receipt.receipt_number,
-      lot: booking.parking_lot?.name ?? '',
-      slot: [booking.parking_slot?.slot_number, booking.parking_slot?.level].filter(Boolean).join(' · '),
-      entry: time(booking.start_time),
-      exit: time(booking.ended_at ?? booking.end_time),
-      subtotal: formatDinars(receipt.subtotal),
-      refunded: receipt.refunded > 0 ? formatDinars(receipt.refunded) : null,
-      total: formatDinars(receipt.total),
-      paidWith: receipt.payment_method,
-    });
+    await this.mailService.sendBookingReceipt(
+      booking.user.email,
+      booking.user.name,
+      {
+        receiptNumber: receipt.receipt_number,
+        lot: booking.parking_lot?.name ?? '',
+        slot: [booking.parking_slot?.slot_number, booking.parking_slot?.level]
+          .filter(Boolean)
+          .join(' · '),
+        entry: time(booking.start_time),
+        exit: time(booking.ended_at ?? booking.end_time),
+        subtotal: formatDinars(receipt.subtotal),
+        refunded: receipt.refunded > 0 ? formatDinars(receipt.refunded) : null,
+        total: formatDinars(receipt.total),
+        paidWith: receipt.payment_method,
+      },
+    );
   }
 
   // ------------------------------------------------------------- bookings
@@ -231,7 +279,10 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
    * Everything happens in one transaction: if any step fails (slot just taken,
    * not enough balance...), nothing is saved and no money is taken.
    */
-  async createBooking(userId: number, dto: CreateBookingDto): Promise<{ message: string; booking: Booking }> {
+  async createBooking(
+    userId: number,
+    dto: CreateBookingDto,
+  ): Promise<{ message: string; booking: Booking }> {
     await this.completeExpiredBookings(userId);
 
     const bookingId = await this.sequelize.transaction(async (transaction) => {
@@ -245,18 +296,32 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         throw new ConflictException(this.t('BOOKING_ALREADY_ACTIVE'));
       }
 
-      const vehicle = await this.usersService.getVehicle(userId, dto.vehicle_id, transaction);
-      const lot = await this.parkingService.getBookableLot(dto.parking_lot_id, transaction);
+      const vehicle = await this.usersService.getVehicle(
+        userId,
+        dto.vehicle_id,
+        transaction,
+      );
+      const lot = await this.parkingService.getBookableLot(
+        dto.parking_lot_id,
+        transaction,
+      );
 
       const start = new Date();
       const end = new Date(start.getTime() + dto.duration_hours * HOUR_MS);
       if (!isOpenDuring(lot, start, end)) {
         throw new BadRequestException(
-          this.t('PARKING_CLOSED_DURING_BOOKING', { opening: lot.opening_time, closing: lot.closing_time }),
+          this.t('PARKING_CLOSED_DURING_BOOKING', {
+            opening: lot.opening_time,
+            closing: lot.closing_time,
+          }),
         );
       }
 
-      const slot = await this.parkingService.reserveSlot(lot.id, dto.parking_slot_id, transaction);
+      const slot = await this.parkingService.reserveSlot(
+        lot.id,
+        dto.parking_slot_id,
+        transaction,
+      );
 
       const totalCost = lot.price_per_hour * dto.duration_hours;
       const booking = await this.bookingModel.create(
@@ -272,13 +337,22 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
           status: 'active',
           start_time: start,
           end_time: end,
-          cancellable_until: cancellableUntil(start, lot.free_cancellation_minutes),
+          cancellable_until: cancellableUntil(
+            start,
+            lot.free_cancellation_minutes,
+          ),
         },
         { transaction },
       );
 
       if (dto.payment_method === 'wallet') {
-        await this.walletService.debit(userId, totalCost, 'BOOKING_PAYMENT', booking.id, transaction);
+        await this.walletService.debit(
+          userId,
+          totalCost,
+          'BOOKING_PAYMENT',
+          booking.id,
+          transaction,
+        );
       }
 
       await this.notificationsService.notify(
@@ -290,17 +364,26 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       return booking.id;
     });
 
-    return { message: this.t('BOOKING_CREATED'), booking: await this.findUserBooking(userId, bookingId) };
+    return {
+      message: this.t('BOOKING_CREATED'),
+      booking: await this.findUserBooking(userId, bookingId),
+    };
   }
 
-  async getUserBookings(userId: number, query: BookingQueryDto): Promise<PaginationResult<Booking>> {
+  async getUserBookings(
+    userId: number,
+    query: BookingQueryDto,
+  ): Promise<PaginationResult<Booking>> {
     await this.completeExpiredBookings(userId);
 
     return this.pagination.findAll(
       query.page,
       query.pageSize,
       {
-        where: { user_id: userId, ...(query.status && { status: query.status }) },
+        where: {
+          user_id: userId,
+          ...(query.status && { status: query.status }),
+        },
         include: BOOKING_DETAILS,
         order: [['start_time', 'DESC']],
       },
@@ -334,7 +417,10 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
   private async buildReceipt(booking: Booking): Promise<BookingReceipt> {
     const charges = await this.walletService.bookingCharges(booking.id);
     // Older demo bookings marked "card" have no wallet records: their price is what was booked.
-    const subtotal = booking.payment_method === 'wallet' ? charges.charged : booking.total_cost;
+    const subtotal =
+      booking.payment_method === 'wallet'
+        ? charges.charged
+        : booking.total_cost;
 
     return {
       receipt_number: receiptNumber(booking.id),
@@ -357,24 +443,44 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
 
     await this.sequelize.transaction(async (transaction) => {
       await this.usersService.lockForUpdate(userId, transaction);
-      const booking = await this.getActiveBooking(userId, bookingId, transaction);
+      const booking = await this.getActiveBooking(
+        userId,
+        bookingId,
+        transaction,
+      );
 
       const totalHours = booking.duration_hours + dto.extra_hours;
       if (totalHours > MAX_BOOKING_HOURS) {
-        throw new BadRequestException(this.t('BOOKING_TOO_LONG', { max: MAX_BOOKING_HOURS }));
+        throw new BadRequestException(
+          this.t('BOOKING_TOO_LONG', { max: MAX_BOOKING_HOURS }),
+        );
       }
 
-      const lot = await this.parkingService.getLot(booking.parking_lot_id, transaction);
-      const newEnd = new Date(booking.end_time.getTime() + dto.extra_hours * HOUR_MS);
+      const lot = await this.parkingService.getLot(
+        booking.parking_lot_id,
+        transaction,
+      );
+      const newEnd = new Date(
+        booking.end_time.getTime() + dto.extra_hours * HOUR_MS,
+      );
       if (!isOpenDuring(lot, booking.end_time, newEnd)) {
         throw new BadRequestException(
-          this.t('PARKING_CLOSED_DURING_BOOKING', { opening: lot.opening_time, closing: lot.closing_time }),
+          this.t('PARKING_CLOSED_DURING_BOOKING', {
+            opening: lot.opening_time,
+            closing: lot.closing_time,
+          }),
         );
       }
 
       const extraCost = booking.price_per_hour * dto.extra_hours;
       if (dto.payment_method === 'wallet') {
-        await this.walletService.debit(userId, extraCost, 'BOOKING_EXTENSION', booking.id, transaction);
+        await this.walletService.debit(
+          userId,
+          extraCost,
+          'BOOKING_EXTENSION',
+          booking.id,
+          transaction,
+        );
       }
 
       await booking.update(
@@ -394,7 +500,10 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       );
     });
 
-    return { message: this.t('BOOKING_EXTENDED'), booking: await this.findUserBooking(userId, bookingId) };
+    return {
+      message: this.t('BOOKING_EXTENDED'),
+      booking: await this.findUserBooking(userId, bookingId),
+    };
   }
 
   /**
@@ -402,25 +511,47 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
    * free cancellation window (see cancellation.ts); after it, the booking can
    * only be ended early. Only money that came from the wallet goes back to it.
    */
-  async cancelBooking(userId: number, bookingId: number): Promise<{ message: string; refund: number }> {
+  async cancelBooking(
+    userId: number,
+    bookingId: number,
+  ): Promise<{ message: string; refund: number }> {
     await this.completeExpiredBookings(userId);
 
     const refund = await this.sequelize.transaction(async (transaction) => {
       await this.usersService.lockForUpdate(userId, transaction);
-      const booking = await this.getActiveBooking(userId, bookingId, transaction);
+      const booking = await this.getActiveBooking(
+        userId,
+        bookingId,
+        transaction,
+      );
       if (!canCancel(booking, new Date())) {
         throw new ConflictException(this.t('BOOKING_CANCELLATION_CLOSED'));
       }
 
       await this.closeBooking(booking, { status: 'cancelled' }, transaction);
-      await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
+      await this.parkingService.releaseSlot(
+        booking.parking_slot_id,
+        transaction,
+      );
 
-      const refund = await this.walletService.netPaidForBooking(booking.id, transaction);
+      const refund = await this.walletService.netPaidForBooking(
+        booking.id,
+        transaction,
+      );
       if (refund > 0) {
-        await this.walletService.credit(userId, refund, 'BOOKING_REFUND', booking.id, transaction);
+        await this.walletService.credit(
+          userId,
+          refund,
+          'BOOKING_REFUND',
+          booking.id,
+          transaction,
+        );
       }
 
-      const lot = await this.parkingService.getLot(booking.parking_lot_id, transaction);
+      const lot = await this.parkingService.getLot(
+        booking.parking_lot_id,
+        transaction,
+      );
       await this.notificationsService.notify(
         userId,
         'BOOKING_CANCELLED',
@@ -431,7 +562,12 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     });
 
     return {
-      message: refund > 0 ? this.t('BOOKING_CANCELLED_REFUNDED', { amount: formatDinars(refund) }) : this.t('BOOKING_CANCELLED'),
+      message:
+        refund > 0
+          ? this.t('BOOKING_CANCELLED_REFUNDED', {
+              amount: formatDinars(refund),
+            })
+          : this.t('BOOKING_CANCELLED'),
       refund,
     };
   }
@@ -440,26 +576,54 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
    * Ends an active booking now, before its booked end, and frees the slot for
    * other drivers. Nothing is refunded: the booked time stays paid for.
    */
-  async endBooking(userId: number, bookingId: number): Promise<{ message: string; booking: Booking }> {
+  async endBooking(
+    userId: number,
+    bookingId: number,
+  ): Promise<{ message: string; booking: Booking }> {
     await this.completeExpiredBookings(userId);
 
     await this.sequelize.transaction(async (transaction) => {
       await this.usersService.lockForUpdate(userId, transaction);
-      const booking = await this.getActiveBooking(userId, bookingId, transaction);
+      const booking = await this.getActiveBooking(
+        userId,
+        bookingId,
+        transaction,
+      );
 
-      await this.closeBooking(booking, { status: 'completed', ended_at: new Date() }, transaction);
-      await this.parkingService.releaseSlot(booking.parking_slot_id, transaction);
+      await this.closeBooking(
+        booking,
+        { status: 'completed', ended_at: new Date() },
+        transaction,
+      );
+      await this.parkingService.releaseSlot(
+        booking.parking_slot_id,
+        transaction,
+      );
 
-      const lot = await this.parkingService.getLot(booking.parking_lot_id, transaction);
-      await this.notificationsService.notify(userId, 'BOOKING_ENDED', { lot: lot.name }, transaction);
+      const lot = await this.parkingService.getLot(
+        booking.parking_lot_id,
+        transaction,
+      );
+      await this.notificationsService.notify(
+        userId,
+        'BOOKING_ENDED',
+        { lot: lot.name },
+        transaction,
+      );
     });
 
     // After the commit and not awaited, as when a booking runs out.
     this.emailReceipt(bookingId).catch((error: unknown) =>
-      this.logger.error('Emailing a receipt failed', error instanceof Error ? error.stack : String(error)),
+      this.logger.error(
+        'Emailing a receipt failed',
+        error instanceof Error ? error.stack : String(error),
+      ),
     );
 
-    return { message: this.t('BOOKING_ENDED'), booking: await this.findUserBooking(userId, bookingId) };
+    return {
+      message: this.t('BOOKING_ENDED'),
+      booking: await this.findUserBooking(userId, bookingId),
+    };
   }
 
   // ---------------------------------------------------------------- helpers
@@ -482,7 +646,11 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async getActiveBooking(userId: number, bookingId: number, transaction: Transaction): Promise<Booking> {
+  private async getActiveBooking(
+    userId: number,
+    bookingId: number,
+    transaction: Transaction,
+  ): Promise<Booking> {
     const booking = await this.bookingModel.findOne({
       where: { id: bookingId, user_id: userId },
       transaction,

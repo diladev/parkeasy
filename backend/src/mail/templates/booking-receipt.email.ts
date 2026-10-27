@@ -1,35 +1,37 @@
 import { escapeHtml } from './escape-html';
 
 export interface BookingReceiptEmailContent {
-    lang: string;
-    direction: 'ltr' | 'rtl';
-    title: string;
-    greeting: string;
-    intro: string;
-    /** "Receipt PE-000123" */
-    number: string;
-    /** (label, value) lines, e.g. ("Total", "4,500 IQD"). */
-    rows: [string, string][];
-    footer: string;
+  lang: string;
+  direction: 'ltr' | 'rtl';
+  title: string;
+  greeting: string;
+  intro: string;
+  /** "Receipt PE-000123" */
+  number: string;
+  /** (label, value) lines, e.g. ("Total", "4,500 IQD"). */
+  rows: [string, string][];
+  footer: string;
 }
 
 /**
  * HTML for the receipt sent when a booking finishes. Same approach as the
  * password-reset email: built in code, every value escaped.
  */
-export function renderBookingReceiptEmail(content: BookingReceiptEmailContent): string {
-    const e = (value: string) => escapeHtml(value);
-    const rows = content.rows
-        .map(
-            ([label, value]) => `
+export function renderBookingReceiptEmail(
+  content: BookingReceiptEmailContent,
+): string {
+  const e = (value: string) => escapeHtml(value);
+  const rows = content.rows
+    .map(
+      ([label, value]) => `
       <tr>
         <td style="padding:8px 0;border-bottom:1px solid #26262D;color:#9998A8;font-size:13px;">${e(label)}</td>
         <td style="padding:8px 0;border-bottom:1px solid #26262D;text-align:end;font-size:13px;">${e(value)}</td>
       </tr>`,
-        )
-        .join('');
+    )
+    .join('');
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="${e(content.lang)}" dir="${content.direction}">
 <head>
   <meta charset="utf-8" />

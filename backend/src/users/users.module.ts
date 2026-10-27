@@ -12,4 +12,4 @@ import { Vehicle } from './entities/vehicle.entity';
   providers: [UsersService],
   exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

@@ -7,5 +7,6 @@ import type { Request } from 'express';
  * - behind UserRefreshTokenAuthGuard: RefreshTokenUser   ({ id, refreshToken })
  */
 export const CurrentUser = createParamDecorator(
-    (_data: unknown, ctx: ExecutionContext) => ctx.switchToHttp().getRequest<Request>().user,
+  (_data: unknown, ctx: ExecutionContext) =>
+    ctx.switchToHttp().getRequest<Request>().user,
 );

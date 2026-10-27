@@ -12,7 +12,7 @@ import { WalletService } from './wallet.service';
 @UseGuards(UserAccessTokenAuthGuard)
 @Controller('wallet')
 export class WalletController {
-  constructor(private readonly walletService: WalletService) { }
+  constructor(private readonly walletService: WalletService) {}
 
   @Get()
   getWallet(@CurrentUser() user: AuthenticatedUser) {
@@ -20,7 +20,10 @@ export class WalletController {
   }
 
   @Get('transactions')
-  getTransactions(@CurrentUser() user: AuthenticatedUser, @Query() query: PaginationQueryDto) {
+  getTransactions(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: PaginationQueryDto,
+  ) {
     return this.walletService.getTransactions(user.id, query);
   }
 }

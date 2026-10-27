@@ -10,13 +10,15 @@ import { TranslationService } from 'src/i18n/translation.service';
  */
 @Injectable()
 export class ParseIdPipe implements PipeTransform<string, number> {
-    constructor(private readonly translationService: TranslationService) { }
+  constructor(private readonly translationService: TranslationService) {}
 
-    transform(value: string): number {
-        const id = Number(value);
-        if (!/^\d+$/.test(value) || !Number.isSafeInteger(id) || id < 1) {
-            throw new BadRequestException(this.translationService.translate('validation.INVALID_ID'));
-        }
-        return id;
+  transform(value: string): number {
+    const id = Number(value);
+    if (!/^\d+$/.test(value) || !Number.isSafeInteger(id) || id < 1) {
+      throw new BadRequestException(
+        this.translationService.translate('validation.INVALID_ID'),
+      );
     }
+    return id;
+  }
 }

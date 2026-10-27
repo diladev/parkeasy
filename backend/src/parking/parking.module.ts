@@ -22,4 +22,4 @@ import { FavoriteLot } from './entities/favorite-lot.entity';
   providers: [ParkingService, AdminGaragesService],
   exports: [ParkingService],
 })
-export class ParkingModule { }
+export class ParkingModule {}

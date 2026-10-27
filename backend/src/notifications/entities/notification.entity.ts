@@ -1,4 +1,11 @@
-import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  ForeignKey,
+  BelongsTo,
+} from 'sequelize-typescript';
 import { User } from 'src/users/entities/user.entity';
 
 /** Categories, used by the filter tabs in the app (?type=booking). */

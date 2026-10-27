@@ -7,7 +7,7 @@ import bcryptKeys from 'src/config/bcrypt-keys';
  * Storing only the hash means a leaked database can't be used to sign in.
  */
 export function sha256(value: string): string {
-    return createHash('sha256').update(value).digest('hex');
+  return createHash('sha256').update(value).digest('hex');
 }
 
 /**
@@ -16,12 +16,14 @@ export function sha256(value: string): string {
  * million codes; without the pepper (which isn't in the database) it can't.
  */
 export function hmacSha256(value: string): string {
-    return createHmac('sha256', bcryptKeys().pepper_secret).update(value).digest('hex');
+  return createHmac('sha256', bcryptKeys().pepper_secret)
+    .update(value)
+    .digest('hex');
 }
 
 /** Constant-time comparison of two hex digests. */
 export function safeEqual(a: string, b: string): boolean {
-    const left = Buffer.from(a, 'hex');
-    const right = Buffer.from(b, 'hex');
-    return left.length === right.length && timingSafeEqual(left, right);
+  const left = Buffer.from(a, 'hex');
+  const right = Buffer.from(b, 'hex');
+  return left.length === right.length && timingSafeEqual(left, right);
 }

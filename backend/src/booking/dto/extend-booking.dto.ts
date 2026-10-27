@@ -6,13 +6,17 @@ import { BOOKING_PAYMENT_METHODS } from '../entities/booking.entity';
 import { MAX_BOOKING_HOURS } from './create-booking.dto';
 
 export class ExtendBookingDto {
-    @ApiProperty({ example: 1, minimum: 1, maximum: MAX_BOOKING_HOURS - 1 })
-    @IsInt({ message: i18nValidationMessage('validation.IS_INT') })
-    @Min(1, { message: i18nValidationMessage('validation.MIN') })
-    @Max(MAX_BOOKING_HOURS - 1, { message: i18nValidationMessage('validation.MAX') })
-    extra_hours!: number;
+  @ApiProperty({ example: 1, minimum: 1, maximum: MAX_BOOKING_HOURS - 1 })
+  @IsInt({ message: i18nValidationMessage('validation.IS_INT') })
+  @Min(1, { message: i18nValidationMessage('validation.MIN') })
+  @Max(MAX_BOOKING_HOURS - 1, {
+    message: i18nValidationMessage('validation.MAX'),
+  })
+  extra_hours!: number;
 
-    @ApiProperty({ example: 'wallet', enum: BOOKING_PAYMENT_METHODS })
-    @IsIn(BOOKING_PAYMENT_METHODS, { message: i18nValidationMessage('validation.IS_IN') })
-    payment_method!: string;
+  @ApiProperty({ example: 'wallet', enum: BOOKING_PAYMENT_METHODS })
+  @IsIn(BOOKING_PAYMENT_METHODS, {
+    message: i18nValidationMessage('validation.IS_IN'),
+  })
+  payment_method!: string;
 }
