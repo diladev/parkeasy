@@ -19,7 +19,7 @@
 |---|---|---|
 | 📱 [`mobile/`](./mobile) | Flutter · Clean Architecture · BLoC · dartz · get_it · flutter_map | Drivers: find nearby garages on a map, scan a lot's QR sign, book, extend, end early, wallet top-ups, notifications, PDF receipts |
 | ⚙️ [`backend/`](./backend) | NestJS 11 · Sequelize · MySQL 8 · Passport JWT · nestjs-i18n · Swagger | One REST API for all apps, with errors and emails translated per request (English / Kurdish) |
-| 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (sign-in, password reset and dashboard so far), one app with English and right-to-left Kurdish |
+| 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (sign-in, password reset, dashboard and live slots so far), one app with English and right-to-left Kurdish |
 
 Everything was designed in Figma first (35 mobile screens and 10 dashboard screens) with one shared dark design system.
 
@@ -71,8 +71,8 @@ flowchart LR
 
 | App | What runs |
 |---|---|
-| Backend | ESLint + Prettier, build, 100 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
-| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 208 component and unit tests (Vitest + MSW), production build |
+| Backend | ESLint + Prettier, build, 111 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
+| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 222 component and unit tests (Vitest + MSW), production build |
 | Mobile | `flutter analyze`, `flutter test` |
 
 Dependabot keeps dependencies current, and pull requests are checked for newly added vulnerable packages.
@@ -152,7 +152,7 @@ cd mobile  && flutter analyze && flutter test
 
 ## Roadmap
 
-- **Garage Portal:** live slots, bookings, reports and lot settings pages (sign-in, password reset and the dashboard are done).
+- **Garage Portal:** bookings, reports and lot settings pages (sign-in, password reset, the dashboard and live slots are done).
 - **Admin Panel:** transactions, reports and settings pages; global search and notifications.
 - **Mobile:** live GPS location and a payment-methods screen.
 - **Deployment:** Docker images for the API and web app (nginx with security headers) and a public demo.
