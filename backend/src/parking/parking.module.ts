@@ -5,6 +5,7 @@ import { Booking } from 'src/booking/entities/booking.entity';
 import { UsersModule } from 'src/users/users.module';
 import { AdminGaragesController } from './admin-garages.controller';
 import { AdminGaragesService } from './admin-garages.service';
+import { GarageStatsService } from './garage-stats.service';
 import { ParkingService } from './parking.service';
 import { ParkingController } from './parking.controller';
 import { ParkingLot } from './entities/parking-lot.entity';
@@ -19,7 +20,7 @@ import { FavoriteLot } from './entities/favorite-lot.entity';
     UsersModule,
   ],
   controllers: [ParkingController, AdminGaragesController],
-  providers: [ParkingService, AdminGaragesService],
-  exports: [ParkingService],
+  providers: [ParkingService, AdminGaragesService, GarageStatsService],
+  exports: [ParkingService, GarageStatsService],
 })
 export class ParkingModule {}

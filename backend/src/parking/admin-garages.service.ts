@@ -15,15 +15,11 @@ import {
 } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
-import {
-  Booking,
-  type BookingStatus,
-} from 'src/booking/entities/booking.entity';
+import { Booking } from 'src/booking/entities/booking.entity';
 import type { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
 import { User } from 'src/users/entities/user.entity';
-import { Vehicle } from 'src/users/entities/vehicle.entity';
 import { UsersService } from 'src/users/users.service';
 import {
   AdminCreateGarageDto,
@@ -38,15 +34,18 @@ import {
   type GarageAction,
   type GarageStatus,
 } from './garage-status';
-import { compareLevels, slotNumbers } from './levels';
+import {
+  GarageStatsService,
+  PAID_BOOKINGS,
+  type GarageBookingRow,
+} from './garage-stats.service';
+import { slotNumbers } from './levels';
 import { ParkingService, type SlotCounts } from './parking.service';
 
 const DAY = 24 * 60 * 60 * 1000;
 const REVENUE_DAYS = 30;
 /** How many bookings the detail page lists. */
 const RECENT_BOOKINGS = 10;
-/** Bookings that were paid for and not refunded. */
-const PAID_BOOKINGS: BookingStatus[] = ['active', 'completed'];
 
 /** One row of the Admin Panel's Garages table. Amounts are whole dinars. */
 export interface AdminGarageRow {
@@ -66,19 +65,8 @@ export interface AdminGarageRow {
 
 export type GarageCounts = Record<'all' | GarageStatus, number>;
 
-/** One booking on the detail page. Only what an admin needs: no phone or email. */
-export interface AdminGarageBooking {
-  id: number;
-  status: BookingStatus;
-  /** Completed before its booked end time (the driver ended parking early). */
-  ended_early: boolean;
-  start_time: Date;
-  end_time: Date;
-  total_cost: number;
-  customer: { id: number; name: string } | null;
-  vehicle: { brand: string; model: string; license_plate: string } | null;
-  slot: { level: string; slot_number: string } | null;
-}
+/** One booking on the detail page. */
+export type AdminGarageBooking = GarageBookingRow;
 
 /** GET /admin/garages/:id: everything on the Admin Panel's garage page. */
 export interface AdminGarageDetail {
@@ -150,6 +138,7 @@ export class AdminGaragesService {
     @InjectModel(Booking) private readonly bookingModel: typeof Booking,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly parkingService: ParkingService,
+    private readonly stats: GarageStatsService,
     private readonly usersService: UsersService,
     private readonly translationService: TranslationService,
   ) {}
@@ -231,14 +220,18 @@ export class AdminGaragesService {
 
     const now = Date.now();
     const [levels, last30, previous30, bookings] = await Promise.all([
-      this.slotsByLevel(id),
-      this.revenueBetween(id, now - REVENUE_DAYS * DAY, now),
-      this.revenueBetween(
+      this.stats.slotsByLevel(id),
+      this.stats.revenueBetween(
         id,
-        now - 2 * REVENUE_DAYS * DAY,
-        now - REVENUE_DAYS * DAY,
+        new Date(now - REVENUE_DAYS * DAY),
+        new Date(now),
       ),
-      this.recentBookings(id),
+      this.stats.revenueBetween(
+        id,
+        new Date(now - 2 * REVENUE_DAYS * DAY),
+        new Date(now - REVENUE_DAYS * DAY),
+      ),
+      this.stats.recentBookings(id, RECENT_BOOKINGS),
     ]);
 
     return {
@@ -425,113 +418,6 @@ export class AdminGaragesService {
       counts.all += Number(row.count);
     }
     return counts;
-  }
-
-  private async slotsByLevel(
-    lotId: number,
-  ): Promise<{ level: string; total: number; taken: number }[]> {
-    const rows = (await this.slotModel.findAll({
-      attributes: ['level', 'status', [fn('COUNT', col('id')), 'count']],
-      where: { parking_lot_id: lotId, status: { [Op.ne]: 'unavailable' } },
-      group: ['level', 'status'],
-      raw: true,
-    })) as unknown as {
-      level: string;
-      status: string;
-      count: number | string;
-    }[];
-
-    const levels = new Map<
-      string,
-      { level: string; total: number; taken: number }
-    >();
-    for (const row of rows) {
-      const entry = levels.get(row.level) ?? {
-        level: row.level,
-        total: 0,
-        taken: 0,
-      };
-      entry.total += Number(row.count);
-      if (row.status === 'reserved' || row.status === 'occupied') {
-        entry.taken += Number(row.count);
-      }
-      levels.set(row.level, entry);
-    }
-    return [...levels.values()].sort((a, b) => compareLevels(a.level, b.level));
-  }
-
-  private async revenueBetween(
-    lotId: number,
-    from: number,
-    to: number,
-  ): Promise<number> {
-    const total = await this.bookingModel.sum('total_cost', {
-      where: {
-        parking_lot_id: lotId,
-        status: { [Op.in]: PAID_BOOKINGS },
-        start_time: { [Op.gte]: new Date(from), [Op.lt]: new Date(to) },
-      },
-    });
-    return Number(total ?? 0);
-  }
-
-  private async recentBookings(lotId: number): Promise<AdminGarageBooking[]> {
-    const bookings = await this.bookingModel.findAll({
-      where: { parking_lot_id: lotId },
-      include: [
-        {
-          model: User,
-          attributes: ['id', 'name'],
-          required: false,
-          paranoid: false,
-        },
-        {
-          model: Vehicle,
-          attributes: ['brand', 'model', 'license_plate'],
-          required: false,
-          paranoid: false,
-        },
-        {
-          model: ParkingSlot,
-          attributes: ['level', 'slot_number'],
-          required: false,
-          paranoid: false,
-        },
-      ],
-      order: [
-        ['start_time', 'DESC'],
-        ['id', 'DESC'],
-      ],
-      limit: RECENT_BOOKINGS,
-    });
-
-    return bookings.map((booking) => ({
-      id: booking.id,
-      status: booking.status,
-      ended_early:
-        booking.status === 'completed' &&
-        booking.ended_at !== null &&
-        booking.ended_at.getTime() < booking.end_time.getTime(),
-      start_time: booking.start_time,
-      end_time: booking.end_time,
-      total_cost: booking.total_cost,
-      customer: booking.user
-        ? { id: booking.user.id, name: booking.user.name }
-        : null,
-      vehicle: booking.vehicle
-        ? {
-            brand: booking.vehicle.brand,
-            model: booking.vehicle.model,
-            license_plate: booking.vehicle.license_plate,
-          }
-        : null,
-      slot: booking.parking_slot
-        ? {
-            level: booking.parking_slot.level,
-            slot_number: booking.parking_slot.slot_number,
-          }
-        : null,
-    }));
   }
 
   private async revenueLast30Days(

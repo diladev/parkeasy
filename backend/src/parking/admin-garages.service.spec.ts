@@ -11,6 +11,7 @@ import type { AdminCreateGarageDto } from './dtos';
 import type { ParkingLot } from './entities/parking-lot.entity';
 import type { ParkingSlot } from './entities/parking-slot.entity';
 import type { GarageStatus } from './garage-status';
+import type { GarageStatsService } from './garage-stats.service';
 import type { ParkingService } from './parking.service';
 
 describe('AdminGaragesService.changeStatus', () => {
@@ -49,6 +50,7 @@ describe('AdminGaragesService.changeStatus', () => {
       {} as typeof Booking,
       {} as Sequelize,
       parkingService,
+      {} as GarageStatsService,
       {} as UsersService,
       translations,
     );
@@ -174,6 +176,7 @@ describe('AdminGaragesService.create', () => {
       {} as typeof Booking,
       sequelize,
       {} as ParkingService,
+      {} as GarageStatsService,
       usersService,
       translations,
     );
