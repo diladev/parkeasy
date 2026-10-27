@@ -224,7 +224,10 @@ describe('ParkEasy API (e2e)', () => {
       const live = await api().get(base).set(auth).expect(200);
       const slots = (live.body as { slots: Slot[] }).slots;
       const free = slots.find((slot) => slot.status === 'free')!;
-      const booked = slots.find((slot) => slot.booking !== null)!;
+      const booked = slots.find(
+        (slot) =>
+          (slot.booking as { source?: string } | null)?.source === 'app',
+      )!;
       expect(booked.status).toBe('reserved');
       expect(JSON.stringify(live.body)).not.toMatch(/email|phone/);
 
@@ -245,6 +248,72 @@ describe('ParkEasy API (e2e)', () => {
 
       await api().post(`${base}/${booked.id}/release`).set(auth).expect(409);
       await api().post(`${base}/${booked.id}/block`).set(auth).expect(409);
+    });
+
+    it('starts a walk-in on a free slot, charges it at the exit and frees the slot', async () => {
+      const sardar = await signIn('sardar@example.com', 'garage');
+      const auth = { Authorization: `Bearer ${sardar}` };
+      const list = await api().get('/garage/garages').set(auth).expect(200);
+      const cityCenter = (list.body as { id: number; name: string }[]).find(
+        (garage) => garage.name === 'City Center Parking',
+      )!;
+      const garage = `/garage/garages/${cityCenter.id}`;
+
+      type Slot = {
+        id: number;
+        status: string;
+        booking: { id: number; source: string; plate: string | null } | null;
+      };
+      const live = await api().get(`${garage}/slots`).set(auth).expect(200);
+      const slots = (live.body as { slots: Slot[] }).slots;
+      // The demo data has cars parked without the app.
+      expect(slots.some((slot) => slot.booking?.source === 'walk_in')).toBe(
+        true,
+      );
+      const free = slots.find((slot) => slot.status === 'free')!;
+
+      const bad = await api()
+        .post(`${garage}/slots/${free.id}/walk-in`)
+        .set(auth)
+        .send({ plate: '!' })
+        .expect(400);
+      expect(JSON.stringify(bad.body)).toContain('plate');
+
+      const started = await api()
+        .post(`${garage}/slots/${free.id}/walk-in`)
+        .set(auth)
+        .send({ plate: ' 22 sul 909 ' })
+        .expect(200);
+      const walkIn = (started.body as { slot: Slot }).slot;
+      expect(walkIn).toMatchObject({
+        status: 'occupied',
+        booking: { source: 'walk_in', plate: '22 SUL 909' },
+      });
+      // The slot is taken: no second walk-in, no "mark as free".
+      await api()
+        .post(`${garage}/slots/${free.id}/walk-in`)
+        .set(auth)
+        .send({ plate: '22 SUL 910' })
+        .expect(409);
+      await api()
+        .post(`${garage}/slots/${free.id}/release`)
+        .set(auth)
+        .expect(409);
+
+      const ended = await api()
+        .post(`${garage}/walk-ins/${walkIn.booking!.id}/end`)
+        .set(auth)
+        .send({ payment_method: 'cash' })
+        .expect(200);
+      expect(ended.body).toMatchObject({
+        charge: { hours: 1 },
+        slot: { status: 'free', booking: null },
+      });
+      await api()
+        .post(`${garage}/walk-ins/${walkIn.booking!.id}/end`)
+        .set(auth)
+        .send({ payment_method: 'cash' })
+        .expect(409);
     });
   });
 });

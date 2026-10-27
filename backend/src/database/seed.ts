@@ -35,6 +35,7 @@ import {
 import { FavoriteLot } from 'src/parking/entities/favorite-lot.entity';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
+import { walkInCharge } from 'src/parking/pricing';
 import type { GarageStatus } from 'src/parking/garage-status';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -554,6 +555,58 @@ class DemoData {
       'admin',
     );
 
+    // Walk-ins: cars that parked without the app. Every occupied slot in the
+    // demo lots has one, so the Garage Portal shows a plate and a running fee.
+    await this.addWalkIn('cityCenter', 'G:A01', '22 SUL 18450', -25 * MINUTE);
+    await this.addWalkIn('cityCenter', 'G:A02', '22 SUL 90312', -95 * MINUTE);
+    await this.addWalkIn('cityCenter', 'G:A05', '22 SUL 4471', -150 * MINUTE);
+    const bazaarPlates = [
+      '22 SUL 2210',
+      '22 SUL 8813',
+      '21 ERB 5506',
+      '22 SUL 3390',
+      '22 SUL 7702',
+    ];
+    for (const [index, plate] of bazaarPlates.entries()) {
+      await this.addWalkIn(
+        'oldBazaar',
+        `G:A0${index + 1}`,
+        plate,
+        -(20 + index * 35) * MINUTE,
+      );
+    }
+    // Earlier walk-ins, already paid at the exit: part of the garages' revenue.
+    await this.addWalkIn(
+      'cityCenter',
+      'G:A06',
+      '22 SUL 62018',
+      this.dayAt(1, '10:15'),
+      {
+        afterMinutes: 130,
+        payment: 'cash',
+      },
+    );
+    await this.addWalkIn(
+      'cityCenter',
+      'G:A07',
+      '22 SUL 30991',
+      this.dayAt(2, '16:40'),
+      {
+        afterMinutes: 45,
+        payment: 'card',
+      },
+    );
+    await this.addWalkIn(
+      'bakhtiari',
+      'G:A03',
+      '22 SUL 71120',
+      this.dayAt(1, '12:00'),
+      {
+        afterMinutes: 200,
+        payment: 'cash',
+      },
+    );
+
     await this.saveWalletBalances();
   }
 
@@ -865,6 +918,57 @@ class DemoData {
         { lot: lot.name, refund: formatDinars(refund) },
         cancelledAt,
         read,
+      );
+    }
+  }
+
+  /**
+   * A car that parked without the app, started from the Garage Portal. Still
+   * parked (the slot is occupied) unless `ended` says when it left and how it
+   * paid; the fee follows the same rule as GarageSlotsService.
+   */
+  private async addWalkIn(
+    lotKey: LotKey,
+    slotRef: string,
+    plate: string,
+    startOffset: number,
+    ended?: { afterMinutes: number; payment: 'cash' | 'card' },
+  ): Promise<void> {
+    const { lot, slots } = this.lots.get(lotKey)!;
+    const slot = slots.get(slotRef);
+    if (!slot) throw new Error(`No slot ${slotRef} in ${lot.name}`);
+
+    const start = this.at(startOffset);
+    const end = ended
+      ? this.at(startOffset + ended.afterMinutes * MINUTE)
+      : null;
+    const charge = end ? walkInCharge(lot.price_per_hour, start, end) : null;
+
+    await Booking.create(
+      {
+        source: 'walk_in',
+        status: end ? 'completed' : 'active',
+        plate,
+        user_id: null,
+        vehicle_id: null,
+        parking_lot_id: lot.id,
+        parking_slot_id: slot.id,
+        start_time: start,
+        end_time: end,
+        ended_at: end,
+        cancellable_until: start,
+        duration_hours: charge?.hours ?? 0,
+        price_per_hour: lot.price_per_hour,
+        total_cost: charge?.amount ?? 0,
+        payment_method: ended?.payment ?? 'cash',
+        createdAt: start,
+      },
+      { transaction: this.transaction },
+    );
+    if (!end) {
+      await slot.update(
+        { status: 'occupied' },
+        { transaction: this.transaction },
       );
     }
   }
