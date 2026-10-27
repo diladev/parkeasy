@@ -1,0 +1,80 @@
+name: Backend
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend.yml', '.nvmrc']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml', '.nvmrc']
+  workflow_dispatch:
+
+# A newer push to the same branch cancels the run that's still going.
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  check:
+    name: Lint, build and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint:check
+      - run: npm run format:check
+      - run: npm run build
+      - run: npm test
+
+  e2e:
+    name: API tests against MySQL
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: parkeasy
+          MYSQL_ROOT_PASSWORD: ci-only-password
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-only-password"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    # Throwaway values for a throwaway database: nothing here is a real secret.
+    env:
+      NODE_ENV: test
+      DB_DIALECT: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: ci-only-password
+      DB_NAME: parkeasy
+      JWT_ACCESS_SECRET: ci-only-access-secret-0123456789abcdefghijklmnop
+      JWT_REFRESH_SECRET: ci-only-refresh-secret-0123456789abcdefghijklmnop
+      JWT_RESET_PASSWORD_SECRET: ci-only-reset-secret-0123456789abcdefghijklmnop
+      PEPPER_SECRET: ci-only-pepper
+      SALT_ROUNDS: 4
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Load the demo data
+        run: npm run seed
+      - run: npm run test:e2e
