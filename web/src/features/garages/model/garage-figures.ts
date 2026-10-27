@@ -1,3 +1,5 @@
+import { percentChange } from '@/shared/lib/numbers'
+
 /*
  * Pure helpers for the numbers on the garage page, kept out of the components
  * so they are easy to test.
@@ -20,8 +22,7 @@ export function occupancyColor(percentTaken: number): 'error' | 'warning' | 'suc
  * previous revenue to compare with ("+∞%" helps nobody).
  */
 export function revenueChange(current: number, previous: number): number | null {
-  if (previous <= 0) return null
-  return Math.round(((current - previous) / previous) * 100)
+  return percentChange(current, previous)
 }
 
 export type LevelName =

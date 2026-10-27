@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDateTime, formatInteger, formatMonthYear, formatOneDecimal } from './format'
+import {
+  formatDateTime,
+  formatInteger,
+  formatMonthYear,
+  formatOneDecimal,
+  formatTime,
+  formatWeekday,
+  iraqDaysAgo,
+} from './format'
 
 describe('format', () => {
   it('formats numbers with Western digits', () => {
@@ -19,5 +27,21 @@ describe('format', () => {
   it("uses the Iraq date, not the viewer's, around midnight", () => {
     // 22:30 UTC on the 31st is 01:30 on 1 Nov in Iraq.
     expect(formatDateTime(new Date('2026-10-31T22:30:00Z'), 'en')).toBe('1 Nov 2026, 01:30')
+  })
+})
+
+describe('weekdays, times and days ago', () => {
+  it('names the weekday of an Iraq calendar day', () => {
+    expect(formatWeekday('2026-10-27', 'en')).toBe('Tue')
+    expect(formatWeekday('2026-10-27', 'ckb')).toBe('سێشەممە')
+    expect(formatWeekday('2026-10-23', 'ckb')).toBe('هەینی')
+  })
+
+  it('tells the time and the day in Iraq, not in UTC', () => {
+    // 22:30 UTC on the 26th is 01:30 on the 27th in Iraq.
+    const lateNight = new Date('2026-10-26T22:30:00Z')
+    expect(formatTime(lateNight)).toBe('01:30')
+    expect(iraqDaysAgo(lateNight, new Date('2026-10-27T08:00:00Z'))).toBe(0)
+    expect(iraqDaysAgo(new Date('2026-10-26T20:00:00Z'), new Date('2026-10-27T08:00:00Z'))).toBe(1)
   })
 })

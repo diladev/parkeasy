@@ -85,3 +85,37 @@ export function formatMonthYear(date: Date, language: string): string {
     timeZone: IRAQ,
   }).format(date)
 }
+
+/** Sunday first, as Date.getDay() counts. Built in for the same reason as the months. */
+const KURDISH_WEEKDAYS = [
+  'یەکشەممە',
+  'دووشەممە',
+  'سێشەممە',
+  'چوارشەممە',
+  'پێنجشەممە',
+  'هەینی',
+  'شەممە',
+] as const
+
+/** "2026-10-27" (an Iraq calendar day, as the API sends it) -> "Tue" / "سێشەممە" */
+export function formatWeekday(isoDate: string, language: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  // Noon UTC is the same calendar day everywhere, so the weekday can't slip.
+  const date = new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1, 12))
+  if (language === 'ckb') return KURDISH_WEEKDAYS[date.getUTCDay()] ?? ''
+  return new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' }).format(date)
+}
+
+/** "14:37", Iraq time. */
+export function formatTime(date: Date): string {
+  return iraqParts(date).time
+}
+
+/** 0 for today, 1 for yesterday... counted in Iraq calendar days. */
+export function iraqDaysAgo(date: Date, now: Date = new Date()): number {
+  const dayNumber = (value: Date) => {
+    const { day, month, year } = iraqParts(value)
+    return Date.UTC(Number(year), month - 1, Number(day)) / 86_400_000
+  }
+  return dayNumber(now) - dayNumber(date)
+}
