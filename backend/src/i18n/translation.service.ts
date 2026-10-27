@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { I18nContext, I18nService, TranslateOptions } from 'nestjs-i18n';
-import { defaultLanguage, isSupportedLanguage, SupportedLanguage } from 'src/config/languages';
+import {
+  defaultLanguage,
+  isSupportedLanguage,
+  SupportedLanguage,
+} from 'src/config/languages';
 
 /**
  * Thin wrapper around nestjs-i18n.
@@ -13,19 +17,21 @@ import { defaultLanguage, isSupportedLanguage, SupportedLanguage } from 'src/con
  */
 @Injectable()
 export class TranslationService {
-    constructor(private readonly i18n: I18nService) { }
+  constructor(private readonly i18n: I18nService) {}
 
-    /** Language of the request being handled ('ckb-IQ' becomes 'ckb', unknown values the default). */
-    get lang(): SupportedLanguage {
-        const requested = I18nContext.current()?.lang;
-        const resolved = requested ? this.i18n.resolveLanguage(requested) : undefined;
-        return isSupportedLanguage(resolved) ? resolved : defaultLanguage();
-    }
+  /** Language of the request being handled ('ckb-IQ' becomes 'ckb', unknown values the default). */
+  get lang(): SupportedLanguage {
+    const requested = I18nContext.current()?.lang;
+    const resolved = requested
+      ? this.i18n.resolveLanguage(requested)
+      : undefined;
+    return isSupportedLanguage(resolved) ? resolved : defaultLanguage();
+  }
 
-    translate(key: string, options?: TranslateOptions): string {
-        return this.i18n.translate(key, {
-            ...options,
-            lang: options?.lang ?? this.lang,
-        }) as string;
-    }
+  translate(key: string, options?: TranslateOptions): string {
+    return this.i18n.translate(key, {
+      ...options,
+      lang: options?.lang ?? this.lang,
+    });
+  }
 }

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -18,7 +18,11 @@ import {
 } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
-import { NormalizeEmail, Trim } from 'src/common/transformers/normalize';
+import {
+  NormalizeEmail,
+  Trim,
+  UpperCaseTrim,
+} from 'src/common/transformers/normalize';
 import { CreateParkingLotDto } from './create-parking-lot.dto';
 import { LEVEL_PATTERN } from './create-parking-slot.dto';
 
@@ -31,9 +35,7 @@ export class GarageLevelDto {
     description: 'B1, B2... (basements), G (ground), F1, F2... (floors).',
     example: 'G',
   })
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.trim().toUpperCase() : value,
-  )
+  @UpperCaseTrim()
   @Matches(LEVEL_PATTERN, {
     message: i18nValidationMessage('validation.LEVEL_PATTERN'),
   })

@@ -29,7 +29,12 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      // `const { secret: _secret, ...rest } = x` drops a field on purpose.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^_', argsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
 );

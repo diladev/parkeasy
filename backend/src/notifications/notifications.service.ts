@@ -27,12 +27,16 @@ export interface NotificationView {
 
 @Injectable()
 export class NotificationsService {
-  private readonly pagination = new ModelPagination(Notification, '/notifications');
+  private readonly pagination = new ModelPagination(
+    Notification,
+    '/notifications',
+  );
 
   constructor(
-    @InjectModel(Notification) private readonly notificationModel: typeof Notification,
+    @InjectModel(Notification)
+    private readonly notificationModel: typeof Notification,
     private readonly translationService: TranslationService,
-  ) { }
+  ) {}
 
   private t(key: string): string {
     return this.translationService.translate(`message.${key}`);
@@ -66,15 +70,23 @@ export class NotificationsService {
         ['id', 'DESC'],
       ],
     });
-    return { ...result, data: result.data.map((notification) => this.present(notification)) };
+    return {
+      ...result,
+      data: result.data.map((notification) => this.present(notification)),
+    };
   }
 
   async countUnread(userId: number): Promise<{ count: number }> {
-    const count = await this.notificationModel.count({ where: { user_id: userId, is_read: false } });
+    const count = await this.notificationModel.count({
+      where: { user_id: userId, is_read: false },
+    });
     return { count };
   }
 
-  async markAsRead(userId: number, notificationId: number): Promise<{ message: string }> {
+  async markAsRead(
+    userId: number,
+    notificationId: number,
+  ): Promise<{ message: string }> {
     // user_id in the query: users can only touch their own notifications.
     const notification = await this.notificationModel.findOne({
       where: { id: notificationId, user_id: userId },
@@ -100,7 +112,10 @@ export class NotificationsService {
   private present(notification: Notification): NotificationView {
     const args = notification.data ?? {};
     const translate = (part: 'TITLE' | 'BODY') =>
-      this.translationService.translate(`notification.${notification.event}.${part}`, { args });
+      this.translationService.translate(
+        `notification.${notification.event}.${part}`,
+        { args },
+      );
 
     return {
       id: notification.id,
@@ -110,7 +125,7 @@ export class NotificationsService {
       body: translate('BODY'),
       data: args,
       is_read: notification.is_read,
-      createdAt: notification.createdAt,
+      createdAt: notification.createdAt as Date,
     };
   }
 }
