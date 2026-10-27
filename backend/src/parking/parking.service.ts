@@ -13,7 +13,7 @@ import { ArrayPagination } from 'src/common/pagination/pagination';
 import { TranslationService } from 'src/i18n/translation.service';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { FavoriteLot } from './entities/favorite-lot.entity';
-import { ParkingSlot } from './entities/parking-slot.entity';
+import { OUT_OF_SERVICE, ParkingSlot } from './entities/parking-slot.entity';
 import { boundingBox, distanceKm } from './geo';
 import {
   CreateParkingLotDto,
@@ -382,11 +382,11 @@ export class ParkingService {
       throw new NotFoundException(this.t('PARKING_SLOT_NOT_FOUND'));
     }
 
-    // Only a free slot can be removed; checked in the UPDATE itself so a booking
-    // made at the same moment can't slip in between.
+    // Only a free (or blocked) slot can be removed; checked in the UPDATE itself
+    // so a booking made at the same moment can't slip in between.
     const [removed] = await this.parkingSlotModel.update(
       { status: 'unavailable' },
-      { where: { id: slotId, status: 'free' } },
+      { where: { id: slotId, status: { [Op.in]: ['free', 'blocked'] } } },
     );
     if (removed === 0) {
       throw new ConflictException(this.t('PARKING_SLOT_IN_USE'));
@@ -421,7 +421,11 @@ export class ParkingService {
         'status',
         [fn('COUNT', col('id')), 'count'],
       ],
-      where: { parking_lot_id: lotIds, status: { [Op.ne]: 'unavailable' } },
+      // Blocked slots can't be booked for now: left out of "x of y free".
+      where: {
+        parking_lot_id: lotIds,
+        status: { [Op.notIn]: OUT_OF_SERVICE },
+      },
       group: ['parking_lot_id', 'status'],
       raw: true,
     })) as unknown as {

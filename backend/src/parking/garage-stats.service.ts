@@ -8,7 +8,7 @@ import {
 } from 'src/booking/entities/booking.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
-import { ParkingSlot } from './entities/parking-slot.entity';
+import { OUT_OF_SERVICE, ParkingSlot } from './entities/parking-slot.entity';
 import { compareLevels } from './levels';
 
 /** Bookings that were paid for and not refunded. */
@@ -50,7 +50,10 @@ export class GarageStatsService {
   async slotsByLevel(lotId: number): Promise<LevelOccupancy[]> {
     const rows = (await this.slotModel.findAll({
       attributes: ['level', 'status', [fn('COUNT', col('id')), 'count']],
-      where: { parking_lot_id: lotId, status: { [Op.ne]: 'unavailable' } },
+      where: {
+        parking_lot_id: lotId,
+        status: { [Op.notIn]: OUT_OF_SERVICE },
+      },
       group: ['level', 'status'],
       raw: true,
     })) as unknown as {

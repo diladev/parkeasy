@@ -10,15 +10,20 @@ import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 /**
  * free        -> can be booked
  * reserved    -> has an active booking
- * occupied    -> a car is parked (for a future gate/sensor integration)
+ * occupied    -> a car is parked without a booking (a walk-in, or later a gate/sensor)
+ * blocked     -> out of service for a while (maintenance); the owner puts it back
  * unavailable -> removed by the lot manager
  */
 export const SLOT_STATUSES = [
   'free',
   'reserved',
   'occupied',
+  'blocked',
   'unavailable',
 ] as const;
+
+/** Slots that exist but can't be used: left out of totals and occupancy. */
+export const OUT_OF_SERVICE: SlotStatus[] = ['blocked', 'unavailable'];
 export type SlotStatus = (typeof SLOT_STATUSES)[number];
 
 @Table({
