@@ -4,12 +4,14 @@
     "adminPanel": "Admin Panel",
     "skipToContent": "Skip to main content",
     "mainNavigation": "Main navigation",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "garagePortal": "Garage Portal"
   },
   "nav": {
     "overview": "Overview",
     "garages": "Garages",
-    "users": "Users"
+    "users": "Users",
+    "dashboard": "Dashboard"
   },
   "roles": {
     "admin": "Administrator",
@@ -31,7 +33,13 @@
       "showPassword": "Show password",
       "hidePassword": "Hide password",
       "submit": "Sign in",
-      "footer": "Signing in here signs this account out on other devices."
+      "footer": "Signing in here signs this account out on other devices.",
+      "forgot": "Forgot password?",
+      "garage": {
+        "heading": "Sign in to your portal",
+        "subtitle": "Manage your parking lots from one place.",
+        "footer": "Need a garage account? Contact ParkEasy."
+      }
     },
     "errors": {
       "emailInvalid": "Enter a valid email address.",
@@ -42,7 +50,48 @@
     "sessionExpired": "Your session ended. Please sign in again.",
     "accountMenu": "Account menu",
     "signOut": "Sign out",
-    "signInAgain": "Sign in with another account"
+    "signInAgain": "Sign in with another account",
+    "passwordReset": "Your password has been reset. You can now sign in.",
+    "brand": {
+      "title": "Garage Portal",
+      "live": "Live slot monitoring in real time",
+      "revenue": "Bookings & revenue at a glance",
+      "manage": "Manage pricing, hours & amenities",
+      "copyright": "© {year} ParkEasy Inc."
+    },
+    "forgot": {
+      "title": "Reset password",
+      "stepOf": "Step {step} of {total}",
+      "back": "Back to sign in",
+      "email": {
+        "heading": "Forgot your password?",
+        "description": "Enter the email you sign in with. We'll send you a 6-digit code.",
+        "submit": "Send code"
+      },
+      "code": {
+        "heading": "Enter the code",
+        "description": "Check {email} for a 6-digit code. It expires after 10 minutes.",
+        "label": "6-digit code",
+        "submit": "Verify code",
+        "resend": "Send a new code",
+        "resent": "A new code is on its way, if the last one is over a minute old.",
+        "changeEmail": "Use another email"
+      },
+      "password": {
+        "heading": "Choose a new password",
+        "description": "Changing it signs you out on every device.",
+        "new": "New password",
+        "confirm": "Confirm new password",
+        "hint": "At least 8 characters, with upper- and lower-case letters, a number and a symbol.",
+        "submit": "Reset password",
+        "startAgain": "Start again"
+      },
+      "errors": {
+        "code": "Enter the 6 digits from the email.",
+        "passwordShort": "Use at least {min} characters.",
+        "mismatch": "The passwords don't match."
+      }
+    }
   },
   "errors": {
     "forbidden": {
@@ -52,7 +101,8 @@
     "notFound": {
       "title": "Page not found",
       "description": "This link doesn't work or the page was removed.",
-      "home": "Go to the overview"
+      "home": "Go to the overview",
+      "homeGarage": "Go to the dashboard"
     }
   },
   "overview": {
@@ -85,10 +135,7 @@
       "noneLastMonth": "Nothing last month to compare with"
     },
     "revenueChart": {
-      "title": "Platform revenue · last 7 days",
-      "total": "{amount} in total",
-      "day": "Day",
-      "revenue": "Revenue"
+      "title": "Platform revenue · last 7 days"
     },
     "topGarages": {
       "title": "Top garages · last 7 days",
@@ -209,33 +256,8 @@
         "covered": "Covered",
         "accessible": "Accessible"
       },
-      "levels": {
-        "title": "Occupancy by level",
-        "taken": "{taken} of {total} taken",
-        "ground": "Ground floor",
-        "basement": "Basement {number}",
-        "floor": "Floor {number}",
-        "empty": "No slots yet."
-      },
       "bookings": {
-        "title": "Recent bookings",
-        "empty": "No bookings yet.",
-        "deletedAccount": "Deleted account",
-        "columns": {
-          "id": "ID",
-          "customer": "Customer",
-          "vehicle": "Vehicle",
-          "slot": "Slot",
-          "start": "Start",
-          "amount": "Amount",
-          "status": "Status"
-        },
-        "status": {
-          "active": "Active",
-          "completed": "Completed",
-          "cancelled": "Cancelled",
-          "endedEarly": "Ended early"
-        }
+        "title": "Recent bookings"
       },
       "notFound": {
         "title": "Garage not found",
@@ -422,6 +444,81 @@
         "description": "The account may have been deleted.",
         "back": "Back to users"
       }
+    }
+  },
+  "levels": {
+    "title": "Occupancy by level",
+    "taken": "{taken} of {total} taken",
+    "ground": "Ground floor",
+    "basement": "Basement {number}",
+    "floor": "Floor {number}",
+    "empty": "No slots yet."
+  },
+  "bookings": {
+    "empty": "No bookings yet.",
+    "deletedAccount": "Deleted account",
+    "columns": {
+      "id": "ID",
+      "customer": "Customer",
+      "vehicle": "Vehicle",
+      "slot": "Slot",
+      "start": "Start",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "endedEarly": "Ended early"
+    }
+  },
+  "charts": {
+    "revenueTotal": "{amount} in total",
+    "day": "Day",
+    "revenue": "Revenue"
+  },
+  "garagePortal": {
+    "switcher": {
+      "label": "Garage"
+    },
+    "dashboard": {
+      "loading": "Loading the dashboard…",
+      "loadError": "Couldn't load the dashboard",
+      "garagesLoadError": "Couldn't load your garages",
+      "notFound": "This garage is no longer linked to your account.",
+      "noGarages": {
+        "title": "No garages yet",
+        "description": "When ParkEasy links a garage to your account, it shows up here."
+      },
+      "status": {
+        "pending": "Waiting for ParkEasy's approval: drivers can't find this garage in the app yet.",
+        "suspended": "Suspended by ParkEasy: drivers can't find or book this garage. Bookings already made continue."
+      },
+      "stats": {
+        "occupancy": "Occupancy",
+        "occupancyHint": "{taken} of {total} slots taken",
+        "revenueToday": "Revenue today",
+        "up": "Up {percent}% on yesterday",
+        "down": "Down {percent}% on yesterday",
+        "same": "Same as yesterday",
+        "noneYesterday": "Nothing yesterday to compare with",
+        "activeBookings": "Active bookings",
+        "endingSoon": "None ending within 30 min | 1 ending within 30 min | {count} ending within 30 min",
+        "averageStay": "Avg. stay",
+        "stayUp": "Up {percent}% on last week",
+        "stayDown": "Down {percent}% on last week",
+        "staySame": "Same as last week",
+        "noStays": "No finished stays this week",
+        "noStaysLastWeek": "Nothing last week to compare with"
+      },
+      "revenueChart": "Revenue · last 7 days",
+      "recentBookings": "Recent bookings"
+    },
+    "duration": {
+      "hoursMinutes": "{hours}h {minutes}m",
+      "hours": "{hours}h",
+      "minutes": "{minutes} min"
     }
   }
 }

@@ -4,19 +4,20 @@ import { useI18n } from 'vue-i18n'
 
 import { ApiError } from '@/shared/api/errors'
 import { formatInteger, formatOneDecimal } from '@/shared/lib/format'
+import { percent } from '@/shared/lib/levels'
 import { usePageTitle } from '@/shared/navigation/page-title'
+import BookingsTable from '@/shared/ui/BookingsTable.vue'
+import LevelOccupancyCard from '@/shared/ui/LevelOccupancyCard.vue'
 import StatCard from '@/shared/ui/StatCard.vue'
 
 import GarageFormModal from '../components/GarageFormModal.vue'
 import GarageHeaderCard from '../components/GarageHeaderCard.vue'
 import GarageSettingsCard from '../components/GarageSettingsCard.vue'
-import LevelOccupancyCard from '../components/LevelOccupancyCard.vue'
-import RecentBookingsTable from '../components/RecentBookingsTable.vue'
 import SuspendGarageDialog from '../components/SuspendGarageDialog.vue'
 import { useGarage } from '../composables/useGarage'
 import { useGarageStatusChange } from '../composables/useGarageStatusChange'
 import { needsConfirmation, type GarageAction } from '../model/garage-actions'
-import { percent, revenueChange } from '../model/garage-figures'
+import { revenueChange } from '../model/garage-figures'
 
 const { id } = defineProps<{ id: number }>()
 
@@ -156,7 +157,10 @@ function run(action: GarageAction) {
         <LevelOccupancyCard :levels="garage.slots.levels" />
       </div>
 
-      <RecentBookingsTable :bookings="garage.recent_bookings" />
+      <BookingsTable
+        :bookings="garage.recent_bookings"
+        :title="t('garages.detail.bookings.title')"
+      />
 
       <SuspendGarageDialog
         v-model:open="isConfirmOpen"

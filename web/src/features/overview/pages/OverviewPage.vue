@@ -4,10 +4,10 @@ import { useI18n } from 'vue-i18n'
 
 import { ApiError } from '@/shared/api/errors'
 import { formatInteger } from '@/shared/lib/format'
+import RevenueChart from '@/shared/ui/RevenueChart.vue'
 import StatCard from '@/shared/ui/StatCard.vue'
 
 import RecentSignupsTable from '../components/RecentSignupsTable.vue'
-import RevenueChart from '../components/RevenueChart.vue'
 import TopGaragesCard from '../components/TopGaragesCard.vue'
 import { useOverview } from '../composables/useOverview'
 import { bookingsTrend, revenueTrend, userGrowth, type Trend } from '../model/overview-figures'
@@ -127,7 +127,7 @@ const cards = computed(() => {
       </div>
 
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
-        <RevenueChart :days="overview.revenue_days" />
+        <RevenueChart :days="overview.revenue_days" :title="t('overview.revenueChart.title')" />
         <TopGaragesCard :garages="overview.top_garages" />
       </div>
 

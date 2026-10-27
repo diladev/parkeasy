@@ -1,22 +1,30 @@
 <script setup lang="ts">
+import { useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { occupancyColor, parseLevel, percent } from '../model/garage-figures'
-import type { LevelOccupancy } from '../model/garage.schemas'
+import { occupancyColor, parseLevel, percent } from '@/shared/lib/levels'
 
+export interface LevelOccupancy {
+  level: string
+  total: number
+  taken: number
+}
+
+/** How full each level is right now, top floor first (the API's order). */
 const { levels } = defineProps<{ levels: LevelOccupancy[] }>()
 
 const { t } = useI18n()
+const headingId = useId()
 
 function levelLabel(level: string): string {
   const parsed = parseLevel(level)
   switch (parsed.kind) {
     case 'ground':
-      return t('garages.detail.levels.ground')
+      return t('levels.ground')
     case 'basement':
-      return t('garages.detail.levels.basement', { number: parsed.number })
+      return t('levels.basement', { number: parsed.number })
     case 'floor':
-      return t('garages.detail.levels.floor', { number: parsed.number })
+      return t('levels.floor', { number: parsed.number })
     case 'other':
       return parsed.name
   }
@@ -24,9 +32,9 @@ function levelLabel(level: string): string {
 </script>
 
 <template>
-  <section class="rounded-[12px] border border-default bg-muted p-4" aria-labelledby="levels-title">
-    <h2 id="levels-title" class="text-sm font-medium text-highlighted">
-      {{ t('garages.detail.levels.title') }}
+  <section class="rounded-[12px] border border-default bg-muted p-4" :aria-labelledby="headingId">
+    <h2 :id="headingId" class="text-sm font-medium text-highlighted">
+      {{ t('levels.title') }}
     </h2>
 
     <ul v-if="levels.length > 0" class="mt-4 space-y-4">
@@ -37,7 +45,7 @@ function levelLabel(level: string): string {
             <span class="text-dimmed" dir="ltr">({{ level.level }})</span>
           </span>
           <span class="text-muted">
-            {{ t('garages.detail.levels.taken', { taken: level.taken, total: level.total }) }}
+            {{ t('levels.taken', { taken: level.taken, total: level.total }) }}
             · <span dir="ltr">{{ percent(level.taken, level.total) }}%</span>
           </span>
         </div>
@@ -49,6 +57,6 @@ function levelLabel(level: string): string {
         />
       </li>
     </ul>
-    <p v-else class="mt-4 text-sm text-muted">{{ t('garages.detail.levels.empty') }}</p>
+    <p v-else class="mt-4 text-sm text-muted">{{ t('levels.empty') }}</p>
   </section>
 </template>

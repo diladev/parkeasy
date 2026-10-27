@@ -1,28 +1,41 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { formatDateTime, formatInteger } from '@/shared/lib/format'
 
-import type { GarageBooking } from '../model/garage.schemas'
+/** A garage's booking as the API lists it: no phone or email. */
+export interface BookingRow {
+  id: number
+  status: 'active' | 'completed' | 'cancelled'
+  /** Completed before its booked end time. */
+  ended_early: boolean
+  start_time: Date
+  total_cost: number
+  customer: { id: number; name: string } | null
+  vehicle: { brand: string; model: string; license_plate: string } | null
+  slot: { level: string; slot_number: string } | null
+}
 
-const { bookings } = defineProps<{ bookings: GarageBooking[] }>()
+/** A garage's latest bookings, on its admin page and on the owner's dashboard. */
+const { bookings, title } = defineProps<{ bookings: BookingRow[]; title: string }>()
 
 const { t, locale } = useI18n()
+const headingId = useId()
 
-const columns = computed<TableColumn<GarageBooking>[]>(() => [
-  { accessorKey: 'id', header: t('garages.detail.bookings.columns.id') },
-  { id: 'customer', header: t('garages.detail.bookings.columns.customer') },
-  { id: 'vehicle', header: t('garages.detail.bookings.columns.vehicle') },
-  { id: 'slot', header: t('garages.detail.bookings.columns.slot') },
-  { accessorKey: 'start_time', header: t('garages.detail.bookings.columns.start') },
-  { accessorKey: 'total_cost', header: t('garages.detail.bookings.columns.amount') },
-  { accessorKey: 'status', header: t('garages.detail.bookings.columns.status') },
+const columns = computed<TableColumn<BookingRow>[]>(() => [
+  { accessorKey: 'id', header: t('bookings.columns.id') },
+  { id: 'customer', header: t('bookings.columns.customer') },
+  { id: 'vehicle', header: t('bookings.columns.vehicle') },
+  { id: 'slot', header: t('bookings.columns.slot') },
+  { accessorKey: 'start_time', header: t('bookings.columns.start') },
+  { accessorKey: 'total_cost', header: t('bookings.columns.amount') },
+  { accessorKey: 'status', header: t('bookings.columns.status') },
 ])
 
 /** Text and colour per booking state; an early end shows as its own state. */
-function statusOf(booking: GarageBooking) {
+function statusOf(booking: BookingRow) {
   if (booking.ended_early) return { key: 'endedEarly', color: 'neutral' } as const
   if (booking.status === 'active') return { key: 'active', color: 'success' } as const
   if (booking.status === 'cancelled') return { key: 'cancelled', color: 'error' } as const
@@ -31,14 +44,12 @@ function statusOf(booking: GarageBooking) {
 </script>
 
 <template>
-  <section aria-labelledby="recent-bookings-title">
-    <h2 id="recent-bookings-title" class="mb-3 text-sm font-medium text-highlighted">
-      {{ t('garages.detail.bookings.title') }}
-    </h2>
+  <section :aria-labelledby="headingId">
+    <h2 :id="headingId" class="mb-3 text-sm font-medium text-highlighted">{{ title }}</h2>
     <UTable
       :data="bookings"
       :columns
-      :empty="t('garages.detail.bookings.empty')"
+      :empty="t('bookings.empty')"
       class="rounded-[10px] border border-default bg-muted"
       :ui="{
         thead: 'bg-elevated',
@@ -53,7 +64,7 @@ function statusOf(booking: GarageBooking) {
         <span v-if="row.original.customer" dir="auto" class="text-highlighted">{{
           row.original.customer.name
         }}</span>
-        <span v-else>{{ t('garages.detail.bookings.deletedAccount') }}</span>
+        <span v-else>{{ t('bookings.deletedAccount') }}</span>
       </template>
       <template #vehicle-cell="{ row }">
         <!-- One text run: Vue drops the spaces between elements on separate lines. -->
@@ -82,7 +93,7 @@ function statusOf(booking: GarageBooking) {
         <UBadge
           :color="statusOf(row.original).color"
           variant="soft"
-          :label="t(`garages.detail.bookings.status.${statusOf(row.original).key}`)"
+          :label="t(`bookings.status.${statusOf(row.original).key}`)"
           class="rounded-[7px]"
         />
       </template>

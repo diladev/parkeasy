@@ -1,20 +1,26 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { formatInteger, formatWeekday } from '@/shared/lib/format'
 import { formatCompact, niceCeiling } from '@/shared/lib/numbers'
 
-import type { RevenueDay } from '../model/overview.schemas'
+export interface RevenueDay {
+  /** An Iraq calendar day, "2026-10-27". */
+  date: string
+  /** Whole dinars. */
+  amount: number
+}
 
 /**
- * One series, so one colour and no legend: the title names it. Columns grow
- * from one baseline; the exact amount is in the tooltip (hover or keyboard
- * focus) and in a table for screen readers.
+ * Revenue per day as columns. One series, so one colour and no legend: the
+ * title names it. Columns grow from one baseline; the exact amount is in the
+ * tooltip (hover or keyboard focus) and in a table for screen readers.
  */
-const { days } = defineProps<{ days: RevenueDay[] }>()
+const { days, title } = defineProps<{ days: RevenueDay[]; title: string }>()
 
 const { t, locale } = useI18n()
+const headingId = useId()
 
 const total = computed(() => days.reduce((sum, day) => sum + day.amount, 0))
 const top = computed(() => niceCeiling(Math.max(...days.map((day) => day.amount), 0)))
@@ -28,13 +34,11 @@ const labelOf = (day: RevenueDay) => `${formatWeekday(day.date, locale.value)}: 
 <template>
   <section
     class="flex flex-col rounded-[12px] border border-default bg-muted p-4"
-    aria-labelledby="revenue-chart-title"
+    :aria-labelledby="headingId"
   >
-    <h2 id="revenue-chart-title" class="text-sm font-medium text-highlighted">
-      {{ t('overview.revenueChart.title') }}
-    </h2>
+    <h2 :id="headingId" class="text-sm font-medium text-highlighted">{{ title }}</h2>
     <p class="mt-1 text-xs text-dimmed">
-      {{ t('overview.revenueChart.total', { amount: iqd(total) }) }}
+      {{ t('charts.revenueTotal', { amount: iqd(total) }) }}
     </p>
 
     <!-- The plot: a recessive grid, then the columns on top. -->
@@ -58,7 +62,7 @@ const labelOf = (day: RevenueDay) => `${formatWeekday(day.date, locale.value)}: 
               :class="tick === 0 ? 'border-accented' : 'border-default'"
             />
           </div>
-          <ul class="relative flex h-full items-end" :aria-label="t('overview.revenueChart.title')">
+          <ul class="relative flex h-full items-end" :aria-label="title">
             <li v-for="day in days" :key="day.date" class="flex h-full flex-1 justify-center">
               <UTooltip :text="labelOf(day)" :content="{ side: 'top' }">
                 <!-- The hit area is the whole day, not just the column. -->
@@ -90,13 +94,13 @@ const labelOf = (day: RevenueDay) => `${formatWeekday(day.date, locale.value)}: 
     <table class="sr-only">
       <caption>
         {{
-          t('overview.revenueChart.title')
+          title
         }}
       </caption>
       <thead>
         <tr>
-          <th scope="col">{{ t('overview.revenueChart.day') }}</th>
-          <th scope="col">{{ t('overview.revenueChart.revenue') }}</th>
+          <th scope="col">{{ t('charts.day') }}</th>
+          <th scope="col">{{ t('charts.revenue') }}</th>
         </tr>
       </thead>
       <tbody>
