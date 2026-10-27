@@ -1,6 +1,6 @@
 # 🅿️ ParkEasy
 
-**A full-stack parking platform for Iraqi cities.** Drivers find a garage near them, book a slot, extend or end their stay and pay from an in-app wallet. Admins approve garages, manage accounts and watch the numbers. Garage owners get their own portal (in progress).
+**A full-stack parking platform for Iraqi cities.** Drivers find a garage near them, book a slot, extend or end their stay and pay from an in-app wallet. Admins approve garages, manage accounts and watch the numbers. Garage owners get their own portal with a live dashboard (more pages in progress).
 
 [![Backend](https://github.com/diladev/parkeasy/actions/workflows/backend.yml/badge.svg)](https://github.com/diladev/parkeasy/actions/workflows/backend.yml)
 [![Web](https://github.com/diladev/parkeasy/actions/workflows/web.yml/badge.svg)](https://github.com/diladev/parkeasy/actions/workflows/web.yml)
@@ -19,7 +19,7 @@
 |---|---|---|
 | 📱 [`mobile/`](./mobile) | Flutter · Clean Architecture · BLoC · dartz · get_it · flutter_map | Drivers: find nearby garages on a map, scan a lot's QR sign, book, extend, end early, wallet top-ups, notifications, PDF receipts |
 | ⚙️ [`backend/`](./backend) | NestJS 11 · Sequelize · MySQL 8 · Passport JWT · nestjs-i18n · Swagger | One REST API for all apps, with errors and emails translated per request (English / Kurdish) |
-| 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (next), one app with English and right-to-left Kurdish |
+| 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (sign-in, password reset and dashboard so far), one app with English and right-to-left Kurdish |
 
 Everything was designed in Figma first (35 mobile screens and 10 dashboard screens) with one shared dark design system.
 
@@ -71,8 +71,8 @@ flowchart LR
 
 | App | What runs |
 |---|---|
-| Backend | ESLint + Prettier, build, 97 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
-| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 177 component and unit tests (Vitest + MSW), production build |
+| Backend | ESLint + Prettier, build, 100 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
+| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 208 component and unit tests (Vitest + MSW), production build |
 | Mobile | `flutter analyze`, `flutter test` |
 
 Dependabot keeps dependencies current, and pull requests are checked for newly added vulnerable packages.
@@ -98,7 +98,7 @@ npm run seed                     # demo garages, drivers, bookings and wallets
 npm run start:dev
 ```
 
-**3. Web app** (http://localhost:5173/admin)
+**3. Web app** (Admin Panel at http://localhost:5173/admin, Garage Portal at http://localhost:5173/garage)
 ```bash
 cd web
 npm ci
@@ -125,7 +125,8 @@ Every demo account's password is `Demo@1234`.
 | Driver | `lana@example.com` | Two vehicles, unread notifications |
 | Driver | `karwan@example.com` | A brand-new account (empty screens) |
 | Driver | `hemin@example.com` | A suspended account (sign-in refused) |
-| Garage owner | `sardar@example.com` | Owns City Center and Bakhtiari Plaza |
+| Garage owner | `sardar@example.com` | The Garage Portal: owns City Center and Bakhtiari Plaza |
+| Garage owner | `hana@example.com` | The Garage Portal with a garage still waiting for approval |
 
 ## Project structure
 
@@ -151,7 +152,7 @@ cd mobile  && flutter analyze && flutter test
 
 ## Roadmap
 
-- **Garage Portal:** owners sign in to see their garages, live slots, bookings and earnings, and edit lot settings.
+- **Garage Portal:** live slots, bookings, reports and lot settings pages (sign-in, password reset and the dashboard are done).
 - **Admin Panel:** transactions, reports and settings pages; global search and notifications.
 - **Mobile:** live GPS location and a payment-methods screen.
 - **Deployment:** Docker images for the API and web app (nginx with security headers) and a public demo.
