@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { bookingRowSchema, type BookingRow } from '@/shared/api/booking-row'
+
 import { paginated } from '@/shared/api/pagination'
 
 /*
@@ -55,24 +57,13 @@ export type GarageSaved = z.infer<typeof garageSavedSchema>
 
 // ------------------------------------------------------------------ detail
 
-export const BOOKING_STATUSES = ['active', 'completed', 'cancelled'] as const
-
 /** JSON dates arrive as ISO strings. */
 const isoDate = z.iso.datetime({ offset: true }).transform((value) => new Date(value))
 
-export const garageBookingSchema = z.object({
-  id: z.number().int(),
-  status: z.enum(BOOKING_STATUSES),
-  /** Completed before its booked end time. */
-  ended_early: z.boolean(),
-  start_time: isoDate,
-  end_time: isoDate,
-  total_cost: z.number(),
-  customer: z.object({ id: z.number().int(), name: z.string() }).nullable(),
-  vehicle: z.object({ brand: z.string(), model: z.string(), license_plate: z.string() }).nullable(),
-  slot: z.object({ level: z.string(), slot_number: z.string() }).nullable(),
-})
-export type GarageBooking = z.infer<typeof garageBookingSchema>
+// A garage's bookings use the shared row (shared/api/booking-row.ts), the
+// same one the owner's dashboard shows.
+export const garageBookingSchema = bookingRowSchema
+export type GarageBooking = BookingRow
 
 export const levelOccupancySchema = z.object({
   level: z.string(),

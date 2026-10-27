@@ -3,20 +3,8 @@ import type { TableColumn } from '@nuxt/ui'
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import type { BookingRow } from '@/shared/api/booking-row'
 import { formatDateTime, formatInteger } from '@/shared/lib/format'
-
-/** A garage's booking as the API lists it: no phone or email. */
-export interface BookingRow {
-  id: number
-  status: 'active' | 'completed' | 'cancelled'
-  /** Completed before its booked end time. */
-  ended_early: boolean
-  start_time: Date
-  total_cost: number
-  customer: { id: number; name: string } | null
-  vehicle: { brand: string; model: string; license_plate: string } | null
-  slot: { level: string; slot_number: string } | null
-}
 
 /** A garage's latest bookings, on its admin page and on the owner's dashboard. */
 const { bookings, title } = defineProps<{ bookings: BookingRow[]; title: string }>()
@@ -61,7 +49,11 @@ function statusOf(booking: BookingRow) {
         <span dir="ltr">#{{ row.original.id }}</span>
       </template>
       <template #customer-cell="{ row }">
-        <span v-if="row.original.customer" dir="auto" class="text-highlighted">{{
+        <span v-if="row.original.source === 'walk_in'" class="inline-flex items-center gap-1.5">
+          <UIcon name="i-lucide-footprints" class="size-3.5 text-dimmed" aria-hidden="true" />
+          {{ t('bookings.walkIn') }}
+        </span>
+        <span v-else-if="row.original.customer" dir="auto" class="text-highlighted">{{
           row.original.customer.name
         }}</span>
         <span v-else>{{ t('bookings.deletedAccount') }}</span>
@@ -74,6 +66,9 @@ function statusOf(booking: BookingRow) {
             row.original.vehicle.license_plate
           }}</span></template
         >
+        <span v-else-if="row.original.plate" dir="ltr" class="whitespace-nowrap">{{
+          row.original.plate
+        }}</span>
         <span v-else aria-hidden="true">—</span>
       </template>
       <template #slot-cell="{ row }">
@@ -85,7 +80,13 @@ function statusOf(booking: BookingRow) {
         <span class="whitespace-nowrap">{{ formatDateTime(row.original.start_time, locale) }}</span>
       </template>
       <template #total_cost-cell="{ row }">
-        <span class="font-medium whitespace-nowrap text-highlighted">
+        <!-- A walk-in still parked hasn't been charged yet: it pays at the exit. -->
+        <span
+          v-if="row.original.source === 'walk_in' && row.original.status === 'active'"
+          class="whitespace-nowrap"
+          >{{ t('bookings.paysAtExit') }}</span
+        >
+        <span v-else class="font-medium whitespace-nowrap text-highlighted">
           {{ formatInteger(row.original.total_cost) }} {{ t('common.iqd') }}
         </span>
       </template>

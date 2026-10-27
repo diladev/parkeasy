@@ -12,20 +12,15 @@ import GarageStatusNote from '../components/GarageStatusNote.vue'
 import SlotDetails from '../components/SlotDetails.vue'
 import SlotGrid from '../components/SlotGrid.vue'
 import { useGaragePage } from '../composables/useGaragePage'
-import { useLiveSlots, useSlotAction } from '../composables/useLiveSlots'
-import {
-  SLOT_STATUSES,
-  type LiveSlot,
-  type LiveSlots,
-  type SlotAction,
-} from '../model/portal.schemas'
+import { useLiveSlots, useSlotChange, type SlotChange } from '../composables/useLiveSlots'
+import { SLOT_STATUSES, type LiveSlot, type LiveSlots } from '../model/portal.schemas'
 import { countByStatus, SLOT_TONE } from '../model/slots'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const page = useGaragePage(useLiveSlots)
-const slotAction = useSlotAction(() => page.current.value?.id ?? null)
+const slotChange = useSlotChange(() => page.current.value?.id ?? null)
 
 // The level tab and the selected slot live in the URL (?level=B1&slot=12), so
 // a reload or a shared link opens the same view.
@@ -63,8 +58,8 @@ async function select(slot: LiveSlot) {
   }
 }
 
-function run(slot: LiveSlot, action: SlotAction) {
-  slotAction.mutate({ slotId: slot.id, action })
+function run(change: SlotChange, done: () => void) {
+  slotChange.mutate(change, { onSuccess: done })
 }
 
 const updatedAt = computed(() => formatTime(new Date(page.query.dataUpdatedAt.value)))
@@ -149,9 +144,9 @@ watch(
             />
             <SlotDetails
               :selected="selectedOf(data, levelOf(data))"
-              :busy="slotAction.isPending.value"
+              :busy="slotChange.isPending.value"
               class="lg:sticky lg:top-4"
-              @action="(action) => run(selectedOf(data, levelOf(data))!, action)"
+              @change="run"
             />
           </div>
         </template>

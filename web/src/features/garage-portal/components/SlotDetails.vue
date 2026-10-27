@@ -1,28 +1,106 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import type { FormSubmitEvent } from '@nuxt/ui'
+import { computed, nextTick, reactive, ref, useId, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { formatDateTime, formatInteger, formatTime } from '@/shared/lib/format'
 import { levelLabel } from '@/shared/lib/level-label'
 
-import type { LiveSlot, SlotAction } from '../model/portal.schemas'
-import { SLOT_TONE, slotActionFor } from '../model/slots'
+import type { SlotChange } from '../composables/useLiveSlots'
+import { splitMinutes } from '../model/dashboard-figures'
+import type { LiveSlot } from '../model/portal.schemas'
+import {
+  createPlateSchema,
+  minutesSince,
+  situationOf,
+  SLOT_TONE,
+  slotActionFor,
+} from '../model/slots'
+import WalkInDialog from './WalkInDialog.vue'
 
-/** The selected slot: who holds it, and the one thing the owner can do with it. */
+/** The selected slot: who holds it, and what the owner can do with it. */
 const { selected: slot, busy = false } = defineProps<{
   selected: LiveSlot | null
   busy?: boolean
 }>()
-const emit = defineEmits<{ action: [action: SlotAction] }>()
+/** `done` is called once the server accepted the change. */
+const emit = defineEmits<{ change: [change: SlotChange, done: () => void] }>()
 
 const { t, locale } = useI18n()
 const headingId = useId()
 
+const situation = computed(() => (slot ? situationOf(slot) : null))
 const option = computed(() => (slot ? slotActionFor(slot) : null))
 
-/** Only the wallet exists today; a future method shows as the API names it. */
+const iqd = (value: number) => `${formatInteger(value)} ${t('common.iqd')}`
+/** Only the wallet exists for app bookings today; anything else shows as the API names it. */
 const paidWith = (method: string) =>
   method === 'wallet' ? t('garagePortal.slots.details.paidWith.wallet') : method
+
+function duration(minutes: number): string {
+  const parts = splitMinutes(minutes)
+  if (parts.hours === 0) return t('garagePortal.duration.minutes', parts)
+  if (parts.minutes === 0) return t('garagePortal.duration.hours', parts)
+  return t('garagePortal.duration.hoursMinutes', parts)
+}
+
+// ------------------------------------------------------------- walk-in form
+
+const isStarting = ref(false)
+const plateState = reactive({ plate: '' })
+const plateSchema = computed(() => createPlateSchema(t('garagePortal.slots.walkIn.plateInvalid')))
+const plateField = useTemplateRef<{ inputRef?: HTMLInputElement }>('plateInput')
+
+async function openStart() {
+  plateState.plate = ''
+  isStarting.value = true
+  await nextTick()
+  plateField.value?.inputRef?.focus()
+}
+
+function onStart(event: FormSubmitEvent<{ plate: string }>) {
+  if (!slot) return
+  emit('change', { kind: 'walk-in', slotId: slot.id, plate: event.data.plate }, () => {
+    isStarting.value = false
+  })
+}
+
+// ------------------------------------------------------------- end / remove
+
+const dialog = ref<'end' | 'remove' | null>(null)
+const isDialogOpen = computed({
+  get: () => dialog.value !== null,
+  set: (open) => {
+    if (!open) dialog.value = null
+  },
+})
+
+// Another slot selected, or this one changed under us: start over.
+watch(
+  () => [slot?.id, slot?.status],
+  () => {
+    isStarting.value = false
+    dialog.value = null
+  },
+)
+
+function end(method: 'cash' | 'card') {
+  if (!slot?.booking) return
+  emit(
+    'change',
+    { kind: 'end-walk-in', bookingId: slot.booking.id, paymentMethod: method },
+    () => (dialog.value = null),
+  )
+}
+
+function remove() {
+  if (!slot?.booking) return
+  emit(
+    'change',
+    { kind: 'remove-walk-in', bookingId: slot.booking.id },
+    () => (dialog.value = null),
+  )
+}
 </script>
 
 <template>
@@ -53,7 +131,8 @@ const paidWith = (method: string) =>
         </span>
       </div>
 
-      <dl v-if="slot.booking" class="mt-4 space-y-3 text-sm">
+      <!-- A driver's app booking. -->
+      <dl v-if="situation === 'booked' && slot.booking" class="mt-4 space-y-3 text-sm">
         <div class="flex justify-between gap-4">
           <dt class="text-muted">{{ t('garagePortal.slots.details.customer') }}</dt>
           <dd dir="auto" class="text-end text-highlighted">
@@ -78,7 +157,7 @@ const paidWith = (method: string) =>
             {{ formatDateTime(slot.booking.start_time, locale) }}
           </dd>
         </div>
-        <div class="flex justify-between gap-4">
+        <div v-if="slot.booking.end_time" class="flex justify-between gap-4">
           <dt class="text-muted">{{ t('garagePortal.slots.details.ends') }}</dt>
           <dd class="text-end text-highlighted">
             <span dir="ltr">{{ formatTime(slot.booking.end_time) }}</span>
@@ -87,25 +166,123 @@ const paidWith = (method: string) =>
         <div class="flex justify-between gap-4">
           <dt class="text-muted">{{ t('garagePortal.slots.details.amount') }}</dt>
           <dd class="text-end text-highlighted">
-            {{ formatInteger(slot.booking.total_cost) }} {{ t('common.iqd') }} ·
+            {{ iqd(slot.booking.total_cost) }} ·
             {{ paidWith(slot.booking.payment_method) }}
           </dd>
         </div>
       </dl>
 
+      <!-- A car parked without the app. -->
+      <dl v-else-if="situation === 'walk-in' && slot.booking" class="mt-4 space-y-3 text-sm">
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">{{ t('garagePortal.slots.details.plate') }}</dt>
+          <dd dir="ltr" class="text-end font-medium text-highlighted">{{ slot.booking.plate }}</dd>
+        </div>
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted">{{ t('garagePortal.slots.details.parkedSince') }}</dt>
+          <dd class="text-end text-highlighted">
+            <span dir="ltr">{{ formatTime(slot.booking.start_time) }}</span>
+            <span class="text-muted"> · {{ duration(minutesSince(slot.booking.start_time)) }}</span>
+          </dd>
+        </div>
+        <div v-if="slot.booking.charge_now" class="flex justify-between gap-4">
+          <dt class="text-muted">{{ t('garagePortal.slots.details.feeSoFar') }}</dt>
+          <dd class="text-end text-highlighted">
+            {{ iqd(slot.booking.charge_now.amount) }}
+            <span class="block text-xs text-muted">{{
+              t('garagePortal.slots.details.feeRule', {
+                hours: slot.booking.charge_now.hours,
+                price: iqd(slot.booking.price_per_hour),
+              })
+            }}</span>
+          </dd>
+        </div>
+      </dl>
+
       <p class="mt-4 text-sm text-muted">
-        {{ t(`garagePortal.slots.notes.${slot.booking ? 'reserved' : slot.status}`) }}
+        {{ t(`garagePortal.slots.notes.${situation}`) }}
       </p>
 
+      <!-- Free: start a walk-in. -->
+      <template v-if="situation === 'free'">
+        <UForm
+          v-if="isStarting"
+          :schema="plateSchema"
+          :state="plateState"
+          class="mt-4 space-y-3"
+          @submit="onStart"
+        >
+          <UFormField
+            :label="t('garagePortal.slots.walkIn.plate')"
+            name="plate"
+            :help="t('garagePortal.slots.walkIn.plateHelp')"
+          >
+            <UInput
+              ref="plateInput"
+              v-model="plateState.plate"
+              dir="ltr"
+              autocomplete="off"
+              :placeholder="t('garagePortal.slots.walkIn.platePlaceholder')"
+              class="w-full"
+            />
+          </UFormField>
+          <div class="flex gap-2">
+            <UButton type="submit" class="flex-1 justify-center" :loading="busy">
+              {{ t('garagePortal.slots.walkIn.submit') }}
+            </UButton>
+            <UButton color="neutral" variant="outline" :disabled="busy" @click="isStarting = false">
+              {{ t('garagePortal.slots.walkIn.cancel') }}
+            </UButton>
+          </div>
+        </UForm>
+        <UButton v-else block class="mt-4" icon="i-lucide-car" :disabled="busy" @click="openStart">
+          {{ t('garagePortal.slots.walkIn.start') }}
+        </UButton>
+      </template>
+
+      <!-- A walk-in: end and charge, or remove a mistake. -->
+      <template v-if="situation === 'walk-in' && slot.booking">
+        <UButton
+          block
+          class="mt-4"
+          icon="i-lucide-receipt"
+          :disabled="busy"
+          @click="dialog = 'end'"
+        >
+          {{ t('garagePortal.slots.walkIn.end') }}
+        </UButton>
+        <UButton
+          block
+          class="mt-2"
+          color="neutral"
+          variant="link"
+          size="sm"
+          :disabled="busy"
+          @click="dialog = 'remove'"
+        >
+          {{ t('garagePortal.slots.walkIn.remove') }}
+        </UButton>
+        <WalkInDialog
+          v-model:open="isDialogOpen"
+          :mode="dialog ?? 'end'"
+          :plate="slot.booking.plate ?? ''"
+          :amount="slot.booking.charge_now?.amount ?? 0"
+          :price-per-hour="slot.booking.price_per_hour"
+          :busy
+          @end="end"
+          @remove="remove"
+        />
+      </template>
+
       <UButton
-        v-if="option"
+        v-if="option && !isStarting"
         block
-        class="mt-4"
+        :class="situation === 'free' ? 'mt-2' : 'mt-4'"
         :color="option.action === 'block' ? 'neutral' : 'primary'"
         :variant="option.action === 'block' ? 'outline' : 'solid'"
         :icon="option.action === 'block' ? 'i-lucide-construction' : 'i-lucide-circle-check'"
         :loading="busy"
-        @click="emit('action', option.action)"
+        @click="emit('change', { kind: option.action, slotId: slot.id }, () => undefined)"
       >
         {{ t(`garagePortal.slots.actions.${option.label}`) }}
       </UButton>

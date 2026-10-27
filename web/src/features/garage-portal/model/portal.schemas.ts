@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { BOOKING_SOURCES, bookingRowSchema } from '@/shared/api/booking-row'
+
 /*
  * Matches backend/src/garage-portal/garage-portal.service.ts (OwnedGarage,
  * GarageDashboard). Parsed at runtime, so a backend change fails loudly here.
@@ -31,21 +33,7 @@ export const dashboardSchema = z.object({
   levels: z.array(
     z.object({ level: z.string(), total: z.number().int(), taken: z.number().int() }),
   ),
-  recent_bookings: z.array(
-    z.object({
-      id: z.number().int(),
-      status: z.enum(['active', 'completed', 'cancelled']),
-      ended_early: z.boolean(),
-      start_time: isoDate,
-      end_time: isoDate,
-      total_cost: z.number(),
-      customer: z.object({ id: z.number().int(), name: z.string() }).nullable(),
-      vehicle: z
-        .object({ brand: z.string(), model: z.string(), license_plate: z.string() })
-        .nullable(),
-      slot: z.object({ level: z.string(), slot_number: z.string() }).nullable(),
-    }),
-  ),
+  recent_bookings: z.array(bookingRowSchema),
 })
 export type GarageDashboard = z.infer<typeof dashboardSchema>
 
@@ -61,14 +49,21 @@ export const liveSlotSchema = z.object({
   booking: z
     .object({
       id: z.number().int(),
+      /** 'walk_in': parked without the app, charged at the exit. */
+      source: z.enum(BOOKING_SOURCES),
       start_time: isoDate,
-      end_time: isoDate,
+      /** The booked end; null for a walk-in. */
+      end_time: isoDate.nullable(),
       total_cost: z.number(),
       payment_method: z.string(),
+      price_per_hour: z.number(),
       customer: z.object({ id: z.number().int(), name: z.string() }).nullable(),
       vehicle: z
         .object({ brand: z.string(), model: z.string(), license_plate: z.string() })
         .nullable(),
+      plate: z.string().nullable(),
+      /** A walk-in: what it would pay if it left now. */
+      charge_now: z.object({ hours: z.number().int(), amount: z.number() }).nullable(),
     })
     .nullable(),
 })
@@ -83,5 +78,9 @@ export const liveSlotsSchema = z.object({
 export type LiveSlots = z.infer<typeof liveSlotsSchema>
 
 export const slotChangeSchema = z.object({ message: z.string(), slot: liveSlotSchema })
+
+/** How a walk-in pays when it leaves. */
+export const WALK_IN_PAYMENT_METHODS = ['cash', 'card'] as const
+export type WalkInPaymentMethod = (typeof WALK_IN_PAYMENT_METHODS)[number]
 
 export type SlotAction = 'block' | 'release'

@@ -75,6 +75,9 @@ describe('DashboardPage', () => {
     expect(text).toContain('Avg. stay 2h 15m Down 10% on last week')
     expect(text).toContain('Aram Kamal')
     expect(text).toContain('Deleted account')
+    // A car parked without the app: its plate, and no amount until it leaves.
+    expect(text).toContain('Walk-in 22 SUL 909 G · A05')
+    expect(text).toContain('Pays at exit')
     expect(localStorage.getItem('parkeasy.garage-portal.garage')).toBe('5')
 
     // Back the next time, the dashboard opens on the same garage.

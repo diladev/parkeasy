@@ -82,6 +82,7 @@ function baseDetail(row: GarageRow) {
       ? [
           {
             id: 10,
+            source: 'app',
             status: 'active',
             ended_early: false,
             start_time: '2026-10-26T09:43:00.000Z',
@@ -89,10 +90,12 @@ function baseDetail(row: GarageRow) {
             total_cost: 4500,
             customer: { id: 8, name: 'Lana Rashid' },
             vehicle: { brand: 'Toyota', model: 'Hilux', license_plate: '22 SUL 61902' },
+            plate: null,
             slot: { level: 'B2', slot_number: 'A01' },
           },
           {
             id: 4,
+            source: 'app',
             status: 'completed',
             ended_early: true,
             start_time: '2026-10-25T07:00:00.000Z',
@@ -100,6 +103,7 @@ function baseDetail(row: GarageRow) {
             total_cost: 3000,
             customer: null,
             vehicle: null,
+            plate: null,
             slot: { level: 'G', slot_number: 'A05' },
           },
         ]

@@ -77,7 +77,13 @@ describe('LiveSlotsPage', () => {
   it('shows who holds a booked slot, and offers nothing to change', async () => {
     const app = await openSlots()
     await pressTab('Ground floor')
-    expect(tiles()).toEqual(['A01 Free', 'A02 Reserved', 'A03 Occupied', 'A04 Free'])
+    expect(tiles()).toEqual([
+      'A01 Free',
+      'A02 Reserved',
+      'A03 Occupied',
+      'A04 Free',
+      'A05 Occupied',
+    ])
 
     await choose('A02')
     expect(app.router.currentRoute.value.query).toEqual({ level: 'G', slot: '54' })
@@ -182,5 +188,98 @@ describe('LiveSlotsPage', () => {
     expect(clean(document.querySelector('h1')?.textContent)).toBe('شوێنەکان بە ڕاستەوخۆ')
     expect(tiles()).toContain('A02 حیجزکراو')
     expect(details()).toContain('3,000 د.ع · جزدان')
+  })
+})
+
+describe('LiveSlotsPage · walk-ins', () => {
+  const input = (label: string) => {
+    const labelEl = [...document.querySelectorAll('label')].find(
+      (l) => clean(l.textContent) === label,
+    )
+    const found = labelEl && document.getElementById(labelEl.htmlFor)
+    if (!(found instanceof HTMLInputElement)) throw new Error(`No input labelled "${label}"`)
+    return found
+  }
+  async function type(label: string, value: string) {
+    const field = input(label)
+    field.value = value
+    field.dispatchEvent(new Event('input'))
+    await flushPromises()
+  }
+  const dialog = () => document.querySelector('[role="dialog"]')
+
+  it('records a car that parked without the app', async () => {
+    let sent: unknown
+    server.use(
+      mock.post('/api/garage/garages/:id/slots/:slotId/walk-in', async ({ request }) => {
+        sent = await request.clone().json()
+        return undefined
+      }),
+    )
+    await openSlots('/garage/slots?level=G&slot=53')
+    expect(details()).toContain('or record a car that parked here without it')
+
+    button('Car parked here').click()
+    await flushPromises()
+    // Focus goes straight to the plate field.
+    expect(document.activeElement).toBe(input('License plate'))
+
+    await type('License plate', '!')
+    document.querySelector('[data-slot-details] form')?.dispatchEvent(new Event('submit'))
+    await flushPromises()
+    expect(details()).toContain('Use letters, numbers, spaces and dashes (2–15 characters).')
+    expect(sent).toBeUndefined()
+
+    await type('License plate', '  22  sul 777 ')
+    document.querySelector('[data-slot-details] form')?.dispatchEvent(new Event('submit'))
+    await vi.waitFor(() => expect(words(tile('A01'))).toBe('A01 Occupied'))
+    expect(sent).toEqual({ plate: '22 SUL 777' })
+    expect(clean(document.body.textContent)).toContain('Walk-in started on G · A01 for 22 SUL 777.')
+    expect(details()).toContain('Plate 22 SUL 777')
+  })
+
+  it('shows the plate and the fee so far, and charges it at the exit', async () => {
+    let sent: unknown
+    server.use(
+      mock.post('/api/garage/garages/:id/walk-ins/:bookingId/end', async ({ request }) => {
+        sent = await request.clone().json()
+        return undefined
+      }),
+    )
+    await openSlots('/garage/slots?level=G&slot=57')
+    const text = details()
+    expect(text).toContain('Plate 22 SUL 4471')
+    expect(text).toContain('Fee so far 3,000 IQD 2 h × 1,500 IQD')
+    expect(text).toContain('Parked without the app. It pays at the exit.')
+    // A walk-in can't be "marked free": it's ended and charged instead.
+    expect(document.querySelector('[data-slot-details]')?.textContent).not.toContain('Mark as free')
+
+    button('End & charge').click()
+    await flushPromises()
+    expect(words(dialog())).toContain('End the stay of 22 SUL 4471?')
+    expect(words(dialog())).toContain('To pay 3,000 IQD')
+    const cardLabel = [...document.querySelectorAll('label')].find(
+      (l) => clean(l.textContent) === 'Card',
+    )!
+    const card = document.getElementById(cardLabel.htmlFor)!
+    card.click()
+    await flushPromises()
+    button('End & charge 3,000 IQD').click()
+
+    await vi.waitFor(() => expect(words(tile('A05'))).toBe('A05 Free'))
+    expect(sent).toEqual({ payment_method: 'card' })
+    expect(clean(document.body.textContent)).toContain(
+      '22 SUL 4471 left G · A05: 3,000 IQD, paid by card. The slot is free.',
+    )
+    await vi.waitFor(() => expect(dialog()).toBeNull())
+  })
+
+  it('removes a walk-in entered by mistake', async () => {
+    await openSlots('/garage/slots?level=G&slot=57')
+    button('Entered by mistake? Remove it').click()
+    await flushPromises()
+    expect(words(dialog())).toContain('Only for a car entered by mistake.')
+    button('Remove').click()
+    await vi.waitFor(() => expect(words(tile('A05'))).toBe('A05 Free'))
   })
 })

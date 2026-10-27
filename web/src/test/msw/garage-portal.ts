@@ -47,7 +47,21 @@ export function dashboardBody(id: number, now = new Date()) {
     recent_bookings: busy
       ? [
           {
+            id: 415,
+            source: 'walk_in',
+            status: 'active',
+            ended_early: false,
+            start_time: minutesAgo(10),
+            end_time: null,
+            total_cost: 0,
+            customer: null,
+            vehicle: null,
+            plate: '22 SUL 909',
+            slot: { level: 'G', slot_number: 'A05' },
+          },
+          {
             id: 412,
+            source: 'app',
             status: 'active',
             ended_early: false,
             start_time: minutesAgo(40),
@@ -55,10 +69,12 @@ export function dashboardBody(id: number, now = new Date()) {
             total_cost: 1500,
             customer: { id: 2, name: 'Aram Kamal' },
             vehicle: { brand: 'Toyota', model: 'Corolla', license_plate: '22 A 51234' },
+            plate: null,
             slot: { level: 'G', slot_number: 'A04' },
           },
           {
             id: 409,
+            source: 'app',
             status: 'completed',
             ended_early: true,
             start_time: minutesAgo(300),
@@ -66,6 +82,7 @@ export function dashboardBody(id: number, now = new Date()) {
             total_cost: 4500,
             customer: null,
             vehicle: null,
+            plate: null,
             slot: { level: 'B1', slot_number: 'A01' },
           },
         ]
@@ -95,6 +112,43 @@ export const garagePortalHandlers = [
       garage,
       levels: [...new Set(slots.map((slot) => slot.level))],
       slots,
+    })
+  }),
+  http.post('/api/garage/garages/:id/slots/:slotId/walk-in', async ({ params, request }) => {
+    const slot = garagePortalDb.slots(Number(params.id)).find((s) => s.id === Number(params.slotId))
+    if (!slot) return notFound('Parking slot not found.')
+    if (slot.status !== 'free') return conflict("This slot isn't free any more. Pick another one.")
+    const { plate } = (await request.json()) as { plate: string }
+    slot.status = 'occupied'
+    slot.booking = walkIn(500 + slot.id, plate, new Date())
+    return HttpResponse.json({
+      message: `Walk-in started on ${slot.level} · ${slot.slot_number} for ${plate}.`,
+      slot,
+    })
+  }),
+  http.post('/api/garage/garages/:id/walk-ins/:bookingId/:action', async ({ params, request }) => {
+    const slot = garagePortalDb
+      .slots(Number(params.id))
+      .find((s) => s.booking?.id === Number(params.bookingId))
+    if (!slot?.booking) return notFound('Walk-in not found.')
+    const { plate, charge_now: charge } = slot.booking as {
+      plate: string
+      charge_now: { amount: number }
+    }
+    const name = `${slot.level} · ${slot.slot_number}`
+    slot.status = 'free'
+    slot.booking = null
+    if (params.action === 'remove') {
+      return HttpResponse.json({
+        message: `The walk-in on ${name} was removed without a charge. The slot is free.`,
+        slot,
+      })
+    }
+    const { payment_method: method } = (await request.json()) as { payment_method: string }
+    const amount = charge.amount.toLocaleString('en-US')
+    return HttpResponse.json({
+      message: `${plate} left ${name}: ${amount} IQD, paid by ${method}. The slot is free.`,
+      slot,
     })
   }),
   http.post('/api/garage/garages/:id/slots/:slotId/:action', ({ params }) => {
@@ -162,17 +216,47 @@ function seedSlots(garageId: number): MockSlot[] {
       status: 'reserved',
       booking: {
         id: 412,
+        source: 'app',
         start_time: '2026-10-27T09:15:00.000Z',
         end_time: '2026-10-27T11:15:00.000Z',
         total_cost: 3000,
         payment_method: 'wallet',
+        price_per_hour: 1500,
         customer: { id: 2, name: 'Aram Kamal' },
         vehicle: { brand: 'Toyota', model: 'Camry', license_plate: '22 SUL 48213' },
+        plate: null,
+        charge_now: null,
       },
     },
+    // A car with no record (from before walk-ins existed).
     { ...free(55, 'G', 'A03'), status: 'occupied' },
     free(56, 'G', 'A04'),
+    // A walk-in parked 70 minutes ago: 2 started hours so far.
+    {
+      ...free(57, 'G', 'A05'),
+      status: 'occupied',
+      booking: walkIn(420, '22 SUL 4471', new Date(Date.now() - 70 * 60_000), {
+        hours: 2,
+        amount: 3000,
+      }),
+    },
   ]
+}
+
+function walkIn(id: number, plate: string, start: Date, charge = { hours: 1, amount: 1500 }) {
+  return {
+    id,
+    source: 'walk_in',
+    start_time: start.toISOString(),
+    end_time: null,
+    total_cost: 0,
+    payment_method: 'cash',
+    price_per_hour: 1500,
+    customer: null,
+    vehicle: null,
+    plate,
+    charge_now: charge,
+  }
 }
 
 /** In-memory slots, so block and release show up on the next fetch; reset after each test. */

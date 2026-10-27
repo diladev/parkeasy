@@ -472,7 +472,9 @@
       "completed": "Completed",
       "cancelled": "Cancelled",
       "endedEarly": "Ended early"
-    }
+    },
+    "walkIn": "Walk-in",
+    "paysAtExit": "Pays at exit"
   },
   "charts": {
     "revenueTotal": "{amount} in total",
@@ -547,18 +549,44 @@
         "amount": "Amount",
         "paidWith": {
           "wallet": "Wallet"
-        }
+        },
+        "plate": "Plate",
+        "parkedSince": "Parked since",
+        "feeSoFar": "Fee so far",
+        "feeRule": "{hours} h × {price}"
       },
       "notes": {
-        "free": "Drivers can book it in the app.",
-        "reserved": "Booked in the app. It frees up by itself when the booking ends.",
+        "free": "Drivers can book it in the app, or record a car that parked here without it.",
         "occupied": "A car is parked here without a booking.",
-        "blocked": "Out of service: drivers can't book it until you put it back."
+        "blocked": "Out of service: drivers can't book it until you put it back.",
+        "booked": "Booked in the app. It frees up by itself when the booking ends.",
+        "walk-in": "Parked without the app. It pays at the exit."
       },
       "actions": {
         "block": "Block for maintenance",
         "unblock": "Put back in service",
         "markFree": "Mark as free"
+      },
+      "walkIn": {
+        "start": "Car parked here",
+        "plate": "License plate",
+        "plateHelp": "For a car without the app. It pays when it leaves.",
+        "platePlaceholder": "22 SUL 12345",
+        "plateInvalid": "Use letters, numbers, spaces and dashes (2–15 characters).",
+        "submit": "Start",
+        "cancel": "Cancel",
+        "end": "End & charge",
+        "remove": "Entered by mistake? Remove it",
+        "endTitle": "End the stay of {plate}?",
+        "endDescription": "Every started hour is charged at {price} an hour.",
+        "toPay": "To pay",
+        "paidBy": "Paid by",
+        "cash": "Cash",
+        "card": "Card",
+        "confirmEnd": "End & charge {amount}",
+        "removeTitle": "Remove {plate}?",
+        "removeDescription": "Only for a car entered by mistake. Nothing is charged and the slot becomes free.",
+        "confirmRemove": "Remove"
       }
     }
   }

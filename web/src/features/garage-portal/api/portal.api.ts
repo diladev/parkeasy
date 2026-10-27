@@ -10,6 +10,7 @@ import {
   type LiveSlots,
   type OwnedGarage,
   type SlotAction,
+  type WalkInPaymentMethod,
 } from '../model/portal.schemas'
 
 const BASE = '/garage/garages'
@@ -41,4 +42,31 @@ export const portalApi = {
     action: SlotAction,
   ): Promise<{ message: string; slot: LiveSlot }> =>
     http.post(`${BASE}/${garageId}/slots/${slotId}/${action}`, null, slotChangeSchema),
+
+  /** A car parked without the app: the slot becomes occupied for this plate. */
+  startWalkIn: (
+    garageId: number,
+    slotId: number,
+    plate: string,
+  ): Promise<{ message: string; slot: LiveSlot }> =>
+    http.post(`${BASE}/${garageId}/slots/${slotId}/walk-in`, { plate }, slotChangeSchema),
+
+  /** The walk-in left: the server charges every started hour and frees the slot. */
+  endWalkIn: (
+    garageId: number,
+    bookingId: number,
+    paymentMethod: WalkInPaymentMethod,
+  ): Promise<{ message: string; slot: LiveSlot }> =>
+    http.post(
+      `${BASE}/${garageId}/walk-ins/${bookingId}/end`,
+      { payment_method: paymentMethod },
+      slotChangeSchema,
+    ),
+
+  /** Entered by mistake: removed without a charge. */
+  removeWalkIn: (
+    garageId: number,
+    bookingId: number,
+  ): Promise<{ message: string; slot: LiveSlot }> =>
+    http.post(`${BASE}/${garageId}/walk-ins/${bookingId}/remove`, null, slotChangeSchema),
 }
