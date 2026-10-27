@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll } from 'vitest'
 
 import { tokenStore } from '@/shared/auth/token-store'
 
+import { garagePortalDb } from './msw/garage-portal'
 import { garagesDb } from './msw/garages'
 import { usersDb } from './msw/users'
 import { server } from './msw/server'
@@ -16,6 +17,7 @@ afterEach(() => {
   server.resetHandlers()
   garagesDb.reset()
   usersDb.reset()
+  garagePortalDb.reset()
   tokenStore.clear()
 })
 afterAll(() => server.close())

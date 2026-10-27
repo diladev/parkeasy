@@ -48,3 +48,40 @@ export const dashboardSchema = z.object({
   ),
 })
 export type GarageDashboard = z.infer<typeof dashboardSchema>
+
+/** backend/src/garage-portal/garage-slots.service.ts (LiveSlot). */
+export const SLOT_STATUSES = ['free', 'reserved', 'occupied', 'blocked'] as const
+export type SlotStatus = (typeof SLOT_STATUSES)[number]
+
+export const liveSlotSchema = z.object({
+  id: z.number().int(),
+  level: z.string(),
+  slot_number: z.string(),
+  status: z.enum(SLOT_STATUSES),
+  booking: z
+    .object({
+      id: z.number().int(),
+      start_time: isoDate,
+      end_time: isoDate,
+      total_cost: z.number(),
+      payment_method: z.string(),
+      customer: z.object({ id: z.number().int(), name: z.string() }).nullable(),
+      vehicle: z
+        .object({ brand: z.string(), model: z.string(), license_plate: z.string() })
+        .nullable(),
+    })
+    .nullable(),
+})
+export type LiveSlot = z.infer<typeof liveSlotSchema>
+
+export const liveSlotsSchema = z.object({
+  garage: ownedGarageSchema,
+  /** Top floor first. */
+  levels: z.array(z.string()),
+  slots: z.array(liveSlotSchema),
+})
+export type LiveSlots = z.infer<typeof liveSlotsSchema>
+
+export const slotChangeSchema = z.object({ message: z.string(), slot: liveSlotSchema })
+
+export type SlotAction = 'block' | 'release'

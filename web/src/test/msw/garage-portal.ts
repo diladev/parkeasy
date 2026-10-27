@@ -85,4 +85,106 @@ export const garagePortalHandlers = [
     }
     return HttpResponse.json(dashboardBody(id))
   }),
+
+  http.get('/api/garage/garages/:id/slots', ({ params }) => {
+    const id = Number(params.id)
+    const garage = OWNED_GARAGES.find((owned) => owned.id === id)
+    if (!garage) return notFound()
+    const slots = garagePortalDb.slots(id)
+    return HttpResponse.json({
+      garage,
+      levels: [...new Set(slots.map((slot) => slot.level))],
+      slots,
+    })
+  }),
+  http.post('/api/garage/garages/:id/slots/:slotId/:action', ({ params }) => {
+    const slot = garagePortalDb.slots(Number(params.id)).find((s) => s.id === Number(params.slotId))
+    if (!slot) return notFound('Parking slot not found.')
+    const action = params.action as 'block' | 'release'
+    const name = `${slot.level} · ${slot.slot_number}`
+    // The same rules as backend/src/garage-portal/slot-actions.ts.
+    if (slot.booking) {
+      return conflict(
+        'This slot has an active booking. It frees up by itself when the booking ends.',
+      )
+    }
+    if (action === 'block') {
+      if (slot.status === 'occupied') {
+        return conflict(
+          'A car is parked in this slot. Mark it as free once the car has left, then take it out of service.',
+        )
+      }
+      slot.status = 'blocked'
+      return HttpResponse.json({
+        message: `Slot ${name} is out of service. Drivers can't book it until you put it back.`,
+        slot,
+      })
+    }
+    slot.status = 'free'
+    return HttpResponse.json({ message: `Slot ${name} is free. Drivers can book it again.`, slot })
+  }),
 ]
+
+function notFound(message = 'Parking lot not found.') {
+  return HttpResponse.json({ statusCode: 404, message }, { status: 404 })
+}
+function conflict(message: string) {
+  return HttpResponse.json({ statusCode: 409, message }, { status: 409 })
+}
+
+type MockSlot = {
+  id: number
+  level: string
+  slot_number: string
+  status: 'free' | 'reserved' | 'occupied' | 'blocked'
+  booking: Record<string, unknown> | null
+}
+
+/**
+ * City Center (5): F1 and G, with a booking, a walk-in car and a blocked slot.
+ * Bakhtiari (3): one small level.
+ */
+function seedSlots(garageId: number): MockSlot[] {
+  const free = (id: number, level: string, n: string): MockSlot => ({
+    id,
+    level,
+    slot_number: n,
+    status: 'free',
+    booking: null,
+  })
+  if (garageId === 3) return [free(31, 'G', 'A01'), free(32, 'G', 'A02')]
+  return [
+    free(51, 'F1', 'A01'),
+    { ...free(52, 'F1', 'A02'), status: 'blocked' },
+    free(53, 'G', 'A01'),
+    {
+      ...free(54, 'G', 'A02'),
+      status: 'reserved',
+      booking: {
+        id: 412,
+        start_time: '2026-10-27T09:15:00.000Z',
+        end_time: '2026-10-27T11:15:00.000Z',
+        total_cost: 3000,
+        payment_method: 'wallet',
+        customer: { id: 2, name: 'Aram Kamal' },
+        vehicle: { brand: 'Toyota', model: 'Camry', license_plate: '22 SUL 48213' },
+      },
+    },
+    { ...free(55, 'G', 'A03'), status: 'occupied' },
+    free(56, 'G', 'A04'),
+  ]
+}
+
+/** In-memory slots, so block and release show up on the next fetch; reset after each test. */
+export const garagePortalDb = (() => {
+  let store = new Map<number, MockSlot[]>()
+  return {
+    slots(garageId: number): MockSlot[] {
+      if (!store.has(garageId)) store.set(garageId, seedSlots(garageId))
+      return store.get(garageId)!
+    },
+    reset() {
+      store = new Map()
+    },
+  }
+})()
