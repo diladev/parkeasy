@@ -17,6 +17,7 @@
     "year": "Year",
     "color": "Color",
     "license_plate": "License plate",
+    "plate": "License plate",
     "type": "Type",
     "page": "Page",
     "pageSize": "Page size",

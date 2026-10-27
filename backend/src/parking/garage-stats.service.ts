@@ -4,6 +4,8 @@ import { col, fn, Op } from 'sequelize';
 
 import {
   Booking,
+  endedEarly,
+  type BookingSource,
   type BookingStatus,
 } from 'src/booking/entities/booking.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -24,14 +26,20 @@ export interface LevelOccupancy {
 /** One booking in a garage's list. No phone or email: only what the page shows. */
 export interface GarageBookingRow {
   id: number;
+  /** 'walk_in': no customer or vehicle, a plate instead. */
+  source: BookingSource;
   status: BookingStatus;
   /** Completed before its booked end time (the driver ended parking early). */
   ended_early: boolean;
   start_time: Date;
-  end_time: Date;
+  /** null while a walk-in is still parked. */
+  end_time: Date | null;
+  /** A walk-in: 0 until it ends and is charged. */
   total_cost: number;
   customer: { id: number; name: string } | null;
   vehicle: { brand: string; model: string; license_plate: string } | null;
+  /** A walk-in's plate; null for app bookings (their vehicle has one). */
+  plate: string | null;
   slot: { level: string; slot_number: string } | null;
 }
 
@@ -144,11 +152,9 @@ export class GarageStatsService {
 
     return bookings.map((booking) => ({
       id: booking.id,
+      source: booking.source,
       status: booking.status,
-      ended_early:
-        booking.status === 'completed' &&
-        booking.ended_at !== null &&
-        booking.ended_at.getTime() < booking.end_time.getTime(),
+      ended_early: endedEarly(booking),
       start_time: booking.start_time,
       end_time: booking.end_time,
       total_cost: booking.total_cost,
@@ -162,6 +168,7 @@ export class GarageStatsService {
             license_plate: booking.vehicle.license_plate,
           }
         : null,
+      plate: booking.plate,
       slot: booking.parking_slot
         ? {
             level: booking.parking_slot.level,
@@ -172,8 +179,9 @@ export class GarageStatsService {
   }
 
   /**
-   * Bookings running now, and how many of them end within `soonMinutes`, so
-   * the owner knows which slots free up shortly.
+   * Bookings running now (walk-ins too), and how many of them end within
+   * `soonMinutes`, so the owner knows which slots free up shortly. A walk-in
+   * has no booked end, so it never counts as ending soon.
    */
   async activeBookings(
     lotId: number,
@@ -186,7 +194,7 @@ export class GarageStatsService {
         where: {
           parking_lot_id: lotId,
           status: 'active',
-          end_time: { [Op.gt]: now },
+          [Op.or]: [{ end_time: { [Op.gt]: now } }, { end_time: null }],
         },
       }),
       this.bookingModel.count({
@@ -224,11 +232,13 @@ export class GarageStatsService {
 
 /** Mean of (ended_at or end_time) - start_time, in whole minutes; null for none. */
 export function averageMinutes(
-  stays: { start_time: Date; end_time: Date; ended_at: Date | null }[],
+  stays: { start_time: Date; end_time: Date | null; ended_at: Date | null }[],
 ): number | null {
   if (stays.length === 0) return null;
   const total = stays.reduce((sum, stay) => {
-    const end = new Date(stay.ended_at ?? stay.end_time).getTime();
+    const end = new Date(
+      stay.ended_at ?? stay.end_time ?? stay.start_time,
+    ).getTime();
     return sum + (end - new Date(stay.start_time).getTime());
   }, 0);
   return Math.round(total / stays.length / 60_000);

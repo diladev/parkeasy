@@ -11,6 +11,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { ROLES, type Role } from 'src/auth/permissions';
 import {
   Booking,
+  endedEarly,
   type BookingStatus,
 } from 'src/booking/entities/booking.entity';
 import type { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
@@ -462,10 +463,7 @@ export class AdminUsersService {
     return bookings.map((booking) => ({
       id: booking.id,
       status: booking.status,
-      ended_early:
-        booking.status === 'completed' &&
-        booking.ended_at !== null &&
-        booking.ended_at.getTime() < booking.end_time.getTime(),
+      ended_early: endedEarly(booking),
       start_time: booking.start_time,
       duration_hours: booking.duration_hours,
       total_cost: booking.total_cost,

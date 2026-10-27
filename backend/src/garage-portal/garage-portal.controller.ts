@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Header,
@@ -19,6 +20,7 @@ import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guar
 import { PERMISSIONS } from 'src/auth/permissions';
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
+import { EndWalkInDto, StartWalkInDto } from './dtos/walk-in.dto';
 import { GaragePortalService } from './garage-portal.service';
 import { GarageSlotsService } from './garage-slots.service';
 
@@ -93,5 +95,48 @@ export class GaragePortalController {
     @Param('slotId', ParseIdPipe) slotId: number,
   ) {
     return this.slots.changeSlot(owner.id, id, slotId, 'release');
+  }
+
+  @Post(':id/slots/:slotId/walk-in')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'A car parked without the app: mark the free slot occupied for its plate and start the clock.',
+  })
+  startWalkIn(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Param('slotId', ParseIdPipe) slotId: number,
+    @Body() dto: StartWalkInDto,
+  ) {
+    return this.slots.startWalkIn(owner.id, id, slotId, dto.plate);
+  }
+
+  @Post(':id/walk-ins/:bookingId/end')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'The walk-in left: charge every started hour, record cash or card, free the slot.',
+  })
+  endWalkIn(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Param('bookingId', ParseIdPipe) bookingId: number,
+    @Body() dto: EndWalkInDto,
+  ) {
+    return this.slots.endWalkIn(owner.id, id, bookingId, dto.payment_method);
+  }
+
+  @Post(':id/walk-ins/:bookingId/remove')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Remove a walk-in entered by mistake, without a charge.',
+  })
+  removeWalkIn(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Param('bookingId', ParseIdPipe) bookingId: number,
+  ) {
+    return this.slots.removeWalkIn(owner.id, id, bookingId);
   }
 }

@@ -41,6 +41,10 @@ export interface AdminOverview {
   }[];
 }
 
+/**
+ * The platform's numbers. Bookings here are app bookings only: walk-ins are
+ * the garages' own cash business, shown on each garage's page instead.
+ */
 @Injectable()
 export class AdminOverviewService {
   constructor(
@@ -85,6 +89,7 @@ export class AdminOverviewService {
       this.bookingModel.findAll({
         attributes: ['start_time', 'total_cost', 'parking_lot_id'],
         where: {
+          source: 'app',
           status: { [Op.in]: PAID_BOOKINGS },
           start_time: { [Op.gte]: chartStart, [Op.lt]: addDays(today, 1) },
         },
@@ -124,6 +129,7 @@ export class AdminOverviewService {
   private countBookingsBetween(from: Date, to: Date): Promise<number> {
     return this.bookingModel.count({
       where: {
+        source: 'app',
         status: { [Op.ne]: 'cancelled' },
         start_time: { [Op.gte]: from, [Op.lt]: to },
       },
@@ -134,6 +140,7 @@ export class AdminOverviewService {
     if (to <= from) return 0;
     const total = await this.bookingModel.sum('total_cost', {
       where: {
+        source: 'app',
         status: { [Op.in]: PAID_BOOKINGS },
         start_time: { [Op.gte]: from, [Op.lt]: to },
       },

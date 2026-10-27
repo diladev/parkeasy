@@ -28,7 +28,11 @@ import { UsersService } from 'src/users/users.service';
 import { WalletService } from 'src/wallet/wallet.service';
 import { BookingQueryDto, CreateBookingDto, ExtendBookingDto } from './dto';
 import { MAX_BOOKING_HOURS } from './dto/create-booking.dto';
-import { Booking } from './entities/booking.entity';
+import {
+  appBooking,
+  Booking,
+  type AppBooking,
+} from './entities/booking.entity';
 import { BookingEndingAlert } from './entities/booking-ending-alert.entity';
 import { canCancel, cancellableUntil } from './cancellation';
 
@@ -123,13 +127,15 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     const expired = await this.bookingModel.findAll({
       where: {
         status: 'active',
+        // Walk-ins have no booked end: the garage ends them at the exit.
+        source: 'app',
         end_time: { [Op.lte]: new Date() },
         ...(userId !== undefined && { user_id: userId }),
       },
       include: [{ model: ParkingLot, attributes: ['name'], paranoid: false }],
     });
 
-    for (const booking of expired) {
+    for (const booking of expired.map(appBooking)) {
       await this.sequelize.transaction(async (transaction) => {
         // Only if it's still active: another request may have just cancelled it.
         const [completed] = await this.bookingModel.update(
@@ -179,6 +185,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     const soon = await this.bookingModel.findAll({
       where: {
         status: 'active',
+        source: 'app',
         end_time: {
           [Op.gt]: now,
           [Op.lte]: new Date(now.getTime() + ENDING_SOON_MINUTES * 60_000),
@@ -187,7 +194,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
       include: [{ model: ParkingLot, attributes: ['name'], paranoid: false }],
     });
 
-    for (const booking of soon) {
+    for (const booking of soon.map(appBooking)) {
       if (
         !(await this.notificationSettings.isEnabled(
           booking.user_id,
@@ -234,7 +241,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         { model: User, attributes: ['name', 'email'] },
       ],
     });
-    if (!booking?.user) return;
+    if (!booking?.user || booking.user_id === null) return;
     if (
       !(await this.notificationSettings.isEnabled(
         booking.user_id,
@@ -264,11 +271,11 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
           .filter(Boolean)
           .join(' · '),
         entry: time(booking.start_time),
-        exit: time(booking.ended_at ?? booking.end_time),
+        exit: time(booking.ended_at ?? booking.end_time ?? booking.start_time),
         subtotal: formatDinars(receipt.subtotal),
         refunded: receipt.refunded > 0 ? formatDinars(receipt.refunded) : null,
         total: formatDinars(receipt.total),
-        paidWith: receipt.payment_method,
+        paidWith: receipt.payment_method === 'wallet' ? 'wallet' : 'card',
       },
     );
   }
@@ -650,7 +657,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     userId: number,
     bookingId: number,
     transaction: Transaction,
-  ): Promise<Booking> {
+  ): Promise<AppBooking> {
     const booking = await this.bookingModel.findOne({
       where: { id: bookingId, user_id: userId },
       transaction,
@@ -661,6 +668,6 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     if (booking.status !== 'active') {
       throw new ConflictException(this.t('BOOKING_NOT_ACTIVE'));
     }
-    return booking;
+    return appBooking(booking);
   }
 }
