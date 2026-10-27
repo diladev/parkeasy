@@ -7,12 +7,8 @@ import {
   Booking,
   type BookingStatus,
 } from 'src/booking/entities/booking.entity';
-import {
-  addDays,
-  iraqDateKey,
-  iraqDayStart,
-  iraqMonthStart,
-} from 'src/common/iraq-time';
+import { dailyRevenue } from 'src/common/daily-revenue';
+import { addDays, iraqDayStart, iraqMonthStart } from 'src/common/iraq-time';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { User } from 'src/users/entities/user.entity';
 
@@ -171,23 +167,4 @@ export class AdminOverviewService {
       return lot ? [{ id, name: lot.name, city: lot.city, revenue }] : [];
     });
   }
-}
-
-/** Sums bookings per Iraq day, with a 0 for days that had none. */
-export function dailyRevenue(
-  bookings: Pick<Booking, 'start_time' | 'total_cost'>[],
-  firstDay: Date,
-  days: number,
-): { date: string; amount: number }[] {
-  const amounts = new Map<string, number>();
-  for (let day = 0; day < days; day++) {
-    amounts.set(iraqDateKey(addDays(firstDay, day)), 0);
-  }
-  for (const booking of bookings) {
-    const key = iraqDateKey(new Date(booking.start_time));
-    if (amounts.has(key)) {
-      amounts.set(key, (amounts.get(key) ?? 0) + Number(booking.total_cost));
-    }
-  }
-  return [...amounts.entries()].map(([date, amount]) => ({ date, amount }));
 }

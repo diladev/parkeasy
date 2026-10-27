@@ -1,4 +1,4 @@
-import { dailyRevenue } from './admin-overview.service';
+import { dailyRevenue } from './daily-revenue';
 
 describe('dailyRevenue', () => {
   // 21 Oct 2026, midnight in Iraq.
