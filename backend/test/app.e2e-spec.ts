@@ -205,6 +205,46 @@ describe('ParkEasy API (e2e)', () => {
         .get(`/garage/garages/${cityCenter.id}/dashboard`)
         .set('Authorization', `Bearer ${rawand}`)
         .expect(404);
+      await api()
+        .get(`/garage/garages/${cityCenter.id}/slots`)
+        .set('Authorization', `Bearer ${rawand}`)
+        .expect(404);
+    });
+
+    it("blocks a free slot, puts it back, and never touches a driver's booking", async () => {
+      const sardar = await signIn('sardar@example.com', 'garage');
+      const auth = { Authorization: `Bearer ${sardar}` };
+      const list = await api().get('/garage/garages').set(auth).expect(200);
+      const cityCenter = (list.body as { id: number; name: string }[]).find(
+        (garage) => garage.name === 'City Center Parking',
+      )!;
+      const base = `/garage/garages/${cityCenter.id}/slots`;
+
+      type Slot = { id: number; status: string; booking: unknown };
+      const live = await api().get(base).set(auth).expect(200);
+      const slots = (live.body as { slots: Slot[] }).slots;
+      const free = slots.find((slot) => slot.status === 'free')!;
+      const booked = slots.find((slot) => slot.booking !== null)!;
+      expect(booked.status).toBe('reserved');
+      expect(JSON.stringify(live.body)).not.toMatch(/email|phone/);
+
+      const blocked = await api()
+        .post(`${base}/${free.id}/block`)
+        .set(auth)
+        .expect(200);
+      expect(blocked.body).toMatchObject({ slot: { status: 'blocked' } });
+      // Out of service: drivers see it taken, and can't book it.
+      const driverView = await api()
+        .get(`/parking/${cityCenter.id}/slots`)
+        .set(auth)
+        .expect(200);
+      const seen = (driverView.body as Slot[]).find((s) => s.id === free.id);
+      expect(seen?.status).toBe('blocked');
+
+      await api().post(`${base}/${free.id}/release`).set(auth).expect(200);
+
+      await api().post(`${base}/${booked.id}/release`).set(auth).expect(409);
+      await api().post(`${base}/${booked.id}/block`).set(auth).expect(409);
     });
   });
 });

@@ -112,7 +112,8 @@ export class GaragePortalService {
     };
   }
 
-  private async ownedLot(ownerId: number, lotId: number): Promise<ParkingLot> {
+  /** The owner's garage, or the same 404 as for one that doesn't exist. */
+  async ownedLot(ownerId: number, lotId: number): Promise<ParkingLot> {
     const lot = await this.lotModel.findOne({
       where: { id: lotId, owner_id: ownerId, is_available: true },
     });
@@ -124,7 +125,7 @@ export class GaragePortalService {
     return lot;
   }
 
-  private toOwned(lot: ParkingLot): OwnedGarage {
+  toOwned(lot: ParkingLot): OwnedGarage {
     return { id: lot.id, name: lot.name, city: lot.city, status: lot.status };
   }
 }

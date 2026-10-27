@@ -1,4 +1,13 @@
-import { Controller, Get, Header, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
@@ -11,6 +20,7 @@ import { PERMISSIONS } from 'src/auth/permissions';
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import { GaragePortalService } from './garage-portal.service';
+import { GarageSlotsService } from './garage-slots.service';
 
 /** The Garage Portal. Garage owners only, and only their own garages. */
 @ApiTags('Garage Portal')
@@ -19,7 +29,10 @@ import { GaragePortalService } from './garage-portal.service';
 @RequirePermissions([PERMISSIONS.GARAGE_ACCESS])
 @Controller('garage/garages')
 export class GaragePortalController {
-  constructor(private readonly portal: GaragePortalService) {}
+  constructor(
+    private readonly portal: GaragePortalService,
+    private readonly slots: GarageSlotsService,
+  ) {}
 
   @Get()
   @Header('Cache-Control', 'no-store')
@@ -39,5 +52,46 @@ export class GaragePortalController {
     @Param('id', ParseIdPipe) id: number,
   ) {
     return this.portal.dashboard(owner.id, id);
+  }
+
+  @Get(':id/slots')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary:
+      'Every slot of one owned garage with its status, and the booking holding it.',
+  })
+  liveSlots(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+  ) {
+    return this.slots.liveSlots(owner.id, id);
+  }
+
+  @Post(':id/slots/:slotId/block')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Take a free slot out of service. Refused while it is booked or a car is parked.',
+  })
+  blockSlot(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Param('slotId', ParseIdPipe) slotId: number,
+  ) {
+    return this.slots.changeSlot(owner.id, id, slotId, 'block');
+  }
+
+  @Post(':id/slots/:slotId/release')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Make a blocked slot, or one a car parked in without a booking, free again. Refused while it is booked.',
+  })
+  releaseSlot(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Param('slotId', ParseIdPipe) slotId: number,
+  ) {
+    return this.slots.changeSlot(owner.id, id, slotId, 'release');
   }
 }
