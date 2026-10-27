@@ -46,8 +46,8 @@ describe('AdminLoginPage', () => {
     // The admin layout and page are lazy chunks: wait for them to load.
     await vi.waitFor(() => {
       expect(app.router.currentRoute.value.name).toBe('admin.overview')
-      // The name is wrapped in Unicode isolates so it reads correctly in Kurdish.
-      expect(document.body.textContent).toContain('Welcome back, \u2068Dilan K.\u2069')
+      expect(document.querySelector('h1')?.textContent).toContain('Platform overview')
+      expect(document.body.textContent).toContain('Dilan K.')
     })
   })
 

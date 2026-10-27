@@ -57,9 +57,57 @@
   },
   "overview": {
     "title": "Platform overview",
-    "welcome": "Welcome back, {name}",
-    "comingSoonTitle": "Statistics are on the way",
-    "comingSoonDescription": "Users, garages, bookings and revenue will show here once the overview reports are connected."
+    "loading": "Loading the overview…",
+    "loadError": "Couldn't load the overview",
+    "stats": {
+      "users": "Total users",
+      "usersGrowth": "Up {percent}% this month",
+      "usersNew": "{count} new this month",
+      "noNewUsers": "No new users this month",
+      "garages": "Garages",
+      "pending": "{count} pending approval",
+      "nonePending": "None waiting for approval",
+      "bookingsToday": "Today's bookings",
+      "revenueMonth": "Revenue · this month",
+      "up": {
+        "yesterday": "Up {percent}% on yesterday",
+        "lastMonth": "Up {percent}% on last month so far"
+      },
+      "down": {
+        "yesterday": "Down {percent}% on yesterday",
+        "lastMonth": "Down {percent}% on last month so far"
+      },
+      "same": {
+        "yesterday": "Same as yesterday",
+        "lastMonth": "Same as last month so far"
+      },
+      "noneYesterday": "None yesterday to compare with",
+      "noneLastMonth": "Nothing last month to compare with"
+    },
+    "revenueChart": {
+      "title": "Platform revenue · last 7 days",
+      "total": "{amount} in total",
+      "day": "Day",
+      "revenue": "Revenue"
+    },
+    "topGarages": {
+      "title": "Top garages · last 7 days",
+      "empty": "No paid bookings in the last 7 days."
+    },
+    "signups": {
+      "title": "Recent sign-ups",
+      "all": "All users",
+      "empty": "No accounts yet.",
+      "today": "Today · {time}",
+      "yesterday": "Yesterday · {time}",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "signedUp": "Signed up",
+        "status": "Status"
+      }
+    }
   },
   "common": {
     "iqd": "IQD",

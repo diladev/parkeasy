@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 
 import { garageHandlers } from './garages'
+import { overviewHandlers } from './overview'
 import { userHandlers } from './users'
 
 /** Mirrors the NestJS auth routes (backend/src/auth/auth.controller.ts) behind /api. */
@@ -56,6 +57,7 @@ export const handlers = [
   http.post(`${API}/logout`, () => HttpResponse.json({ message: 'Signed out.' })),
   ...garageHandlers,
   ...userHandlers,
+  ...overviewHandlers,
 ]
 
 export { nestError }
