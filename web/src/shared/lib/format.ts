@@ -20,8 +20,10 @@ export function formatOneDecimal(value: number): string {
 const IRAQ = 'Asia/Baghdad'
 
 /**
- * Kurdish (Sorani) month names as used in Iraq. Browsers often ship without
- * Kurdish date data (Chrome falls back to English), so they are built in here.
+ * Kurdish (Sorani) month names as used in Iraq: the CLDR list, which Rudaw
+ * also uses, except that December keeps the double و of January (CLDR writes
+ * کانونی). Browsers often ship without Kurdish date data (Chrome falls back to
+ * English), so they are built in here. The mobile app uses the same list.
  */
 const KURDISH_MONTHS = [
   'کانوونی دووەم',
@@ -30,7 +32,7 @@ const KURDISH_MONTHS = [
   'نیسان',
   'ئایار',
   'حوزەیران',
-  'تەممووز',
+  'تەمووز',
   'ئاب',
   'ئەیلوول',
   'تشرینی یەکەم',
