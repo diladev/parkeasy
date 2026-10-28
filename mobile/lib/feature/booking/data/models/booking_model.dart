@@ -1,3 +1,4 @@
+import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
@@ -17,6 +18,7 @@ class BookingModel extends Booking {
     required super.endTime,
     required super.durationHours,
     required super.pricePerHour,
+    super.priceRules,
     required super.totalCost,
     required super.cancellableUntil,
     super.endedAt,
@@ -52,6 +54,7 @@ class BookingModel extends Booking {
       endTime: time('end_time')!,
       durationHours: (map['duration_hours'] as num? ?? 0).toInt(),
       pricePerHour: (map['price_per_hour'] as num? ?? 0).round(),
+      priceRules: PriceRules.tryParse(map['price_rules']),
       totalCost: (map['total_cost'] as num? ?? 0).round(),
       // Bookings from before the window was stored got the default one.
       cancellableUntil:

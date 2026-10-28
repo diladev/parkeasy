@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_draft.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
@@ -8,6 +9,7 @@ enum PaymentStatus { loading, ready, failure, paying, paid }
 class PaymentState extends Equatable {
   const PaymentState({
     required this.draft,
+    required this.startsAt,
     this.status = PaymentStatus.loading,
     this.durationHours = 1,
     this.balance = 0,
@@ -19,6 +21,10 @@ class PaymentState extends Equatable {
   });
 
   final BookingDraft draft;
+
+  /// When the booking would start: now, as of the last change. The price
+  /// depends on it (special prices and caps go by the day).
+  final DateTime startsAt;
   final PaymentStatus status;
   final int durationHours;
 
@@ -38,10 +44,17 @@ class PaymentState extends Equatable {
   /// New for every error, so the screen shows two identical errors in a row.
   final int errorSerial;
 
-  int get total => draft.pricePerHour * durationHours;
+  /// What the chosen hours cost, by the lot's rules (daily cap, special prices).
+  PriceQuote get quote => draft.rules.priceStay(
+    startsAt,
+    startsAt.add(Duration(hours: durationHours)),
+  );
+
+  int get total => quote.amount;
   bool get canAfford => balance >= total;
 
   PaymentState copyWith({
+    DateTime? startsAt,
     PaymentStatus? status,
     int? durationHours,
     int? balance,
@@ -53,6 +66,7 @@ class PaymentState extends Equatable {
   }) {
     return PaymentState(
       draft: draft,
+      startsAt: startsAt ?? this.startsAt,
       status: status ?? this.status,
       durationHours: durationHours ?? this.durationHours,
       balance: balance ?? this.balance,
@@ -67,6 +81,7 @@ class PaymentState extends Equatable {
   @override
   List<Object?> get props => [
     draft,
+    startsAt,
     status,
     durationHours,
     balance,

@@ -14,6 +14,7 @@ import 'package:mobile/feature/parking/presentation/cubit/parking_details_cubit.
 import 'package:mobile/feature/parking/presentation/cubit/parking_details_state.dart';
 import 'package:mobile/feature/parking/presentation/widgets/booking_bar.dart';
 import 'package:mobile/feature/parking/presentation/widgets/lot_feature_tags.dart';
+import 'package:mobile/feature/parking/presentation/widgets/lot_price_info.dart';
 import 'package:mobile/feature/parking/presentation/widgets/lot_stat_tile.dart';
 import 'package:mobile/feature/parking/presentation/widgets/parking_details_header.dart';
 import 'package:mobile/feature/parking/presentation/widgets/slot_picker.dart';
@@ -125,6 +126,7 @@ class _LotDetails extends StatelessWidget {
         slotNumber: slot.slotNumber,
         level: slot.level,
         pricePerHour: lot.pricePerHour,
+        priceRules: lot.priceRules,
         freeCancellationMinutes: lot.freeCancellationMinutes,
       ),
     );
@@ -134,6 +136,9 @@ class _LotDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ParkingDetailsCubit>();
     final features = _features;
+    final now = DateTime.now();
+    // A special price today (Eid, Newroz...) replaces the normal one.
+    final pricePerHour = lot.priceRules.priceAt(now).pricePerHour;
 
     return RefreshIndicator(
       color: AppColors.teal,
@@ -171,7 +176,7 @@ class _LotDetails extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: LotStatTile(
-                        value: Formatters.dinars(lot.pricePerHour),
+                        value: Formatters.dinars(pricePerHour),
                         label: 'IQD / hour',
                       ),
                     ),
@@ -185,6 +190,7 @@ class _LotDetails extends StatelessWidget {
                     ),
                   ],
                 ),
+                LotPriceInfo(rules: lot.priceRules, now: now),
                 const SizedBox(height: 14),
                 if (features.isNotEmpty) ...[
                   LotFeatureTags(labels: features),
@@ -203,7 +209,7 @@ class _LotDetails extends StatelessWidget {
           ),
           Divider(height: 1, thickness: 1, color: context.palette.border),
           BookingBar(
-            pricePerHour: lot.pricePerHour,
+            pricePerHour: pricePerHour,
             selectedSlot: state.selectedSlot,
             onBook: () => _book(context),
           ),

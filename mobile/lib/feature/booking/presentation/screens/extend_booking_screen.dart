@@ -8,6 +8,7 @@ import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/presentation/cubit/extend_booking_cubit.dart';
+import 'package:mobile/feature/booking/presentation/widgets/price_note.dart';
 
 /// Adds hours to an active booking, paid from the wallet.
 ///
@@ -121,7 +122,12 @@ class _ExtendForm extends StatelessWidget {
           newEnd: Formatters.time(state.newEndTime),
           charge: '+ $charge',
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        PriceNote(
+          capSaving: state.capSaving,
+          specialPrices: state.specialPrices,
+        ),
+        const SizedBox(height: 8),
         _WalletCard(balance: state.balance, canAfford: state.canAfford),
         const SizedBox(height: 18),
         AppButton(

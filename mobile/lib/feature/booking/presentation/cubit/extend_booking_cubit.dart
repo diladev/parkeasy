@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/extend_booking.dart';
 import 'package:mobile/feature/booking/domain/usecases/get_wallet_balance.dart';
@@ -28,8 +29,25 @@ class ExtendBookingState extends Equatable {
   /// The API's limit for one booking, extensions included.
   static const int maxTotalHours = 24;
 
-  int get extraCost => booking.pricePerHour * extraHours;
   DateTime get newEndTime => booking.endTime.add(Duration(hours: extraHours));
+
+  /// Charged by the rules the booking was made with: hours on a day already
+  /// at its daily cap add nothing (the server works it out the same way).
+  int get extraCost => booking.rules.extensionCost(
+    booking.startTime,
+    booking.endTime,
+    newEndTime,
+  );
+
+  /// What the daily cap takes off the extra hours.
+  int get capSaving {
+    final full = booking.rules.uncappedCost(booking.endTime, extraHours);
+    return full > extraCost ? full - extraCost : 0;
+  }
+
+  /// Special prices (Eid, Newroz...) the extra hours fall on.
+  List<DayPrice> get specialPrices =>
+      booking.rules.priceStay(booking.endTime, newEndTime).specialPrices;
   bool get canAfford => balance >= extraCost;
 
   /// Whether [hours] more still fits in the longest allowed booking.

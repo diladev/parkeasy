@@ -14,11 +14,16 @@ class PaymentCubit extends Cubit<PaymentState> {
     this._getVehicles,
     this._createBooking, {
     required BookingDraft draft,
-  }) : super(PaymentState(draft: draft));
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now,
+       super(PaymentState(draft: draft, startsAt: (clock ?? DateTime.now)()));
 
   final GetWalletBalance _getWalletBalance;
   final GetVehicles _getVehicles;
   final CreateBooking _createBooking;
+
+  /// Tests pass a fixed time; the price depends on the day.
+  final DateTime Function() _clock;
 
   /// The API's limit for one booking.
   static const int maxHours = 24;
@@ -49,6 +54,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     emit(
       PaymentState(
         draft: state.draft,
+        startsAt: _clock(),
         status: PaymentStatus.ready,
         durationHours: state.durationHours,
         balance: balance.getOrElse(() => 0),
@@ -62,7 +68,7 @@ class PaymentCubit extends Cubit<PaymentState> {
   void changeDuration(int delta) {
     final hours = (state.durationHours + delta).clamp(1, maxHours);
     if (hours != state.durationHours) {
-      emit(state.copyWith(durationHours: hours));
+      emit(state.copyWith(durationHours: hours, startsAt: _clock()));
     }
   }
 

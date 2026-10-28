@@ -1,3 +1,4 @@
+import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/parking/data/models/parking_slot_model.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_lot_details.dart';
@@ -10,6 +11,8 @@ class ParkingLotDetailsModel extends ParkingLotDetails {
     required super.latitude,
     required super.longitude,
     required super.pricePerHour,
+    super.dailyCap,
+    super.priceOverrides,
     super.freeCancellationMinutes,
     required super.rating,
     required super.isOpen24h,
@@ -43,6 +46,10 @@ class ParkingLotDetailsModel extends ParkingLotDetails {
       latitude: number('latitude'),
       longitude: number('longitude'),
       pricePerHour: number('price_per_hour').round(),
+      dailyCap: (map['daily_cap'] as num?)?.round(),
+      priceOverrides: (map['price_overrides'] as List<dynamic>? ?? const [])
+          .map((rule) => PriceOverride.fromMap(rule as DataMap))
+          .toList(),
       freeCancellationMinutes: (map['free_cancellation_minutes'] as num? ?? 10)
           .toInt(),
       rating: number('rating'),

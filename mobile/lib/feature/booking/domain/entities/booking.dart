@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
 /// A booking with everything the booking screens show.
@@ -17,6 +18,7 @@ class Booking extends Equatable {
     required this.endTime,
     required this.durationHours,
     required this.pricePerHour,
+    this.priceRules,
     required this.totalCost,
     required this.cancellableUntil,
     this.endedAt,
@@ -40,6 +42,14 @@ class Booking extends Equatable {
 
   /// The lot's price when the booking was made.
   final int pricePerHour;
+
+  /// Every price rule the booking keeps (hourly, daily cap, special prices),
+  /// saved when it was made; null for older bookings.
+  final PriceRules? priceRules;
+
+  /// What an extension is charged by: the saved rules, or the plain hourly
+  /// price for bookings made before rules were saved (the server does the same).
+  PriceRules get rules => priceRules ?? PriceRules(pricePerHour: pricePerHour);
   final int totalCost;
 
   /// The end of the free cancellation window. Until then the booking can be
@@ -104,6 +114,7 @@ class Booking extends Equatable {
     endTime,
     durationHours,
     pricePerHour,
+    priceRules,
     totalCost,
     cancellableUntil,
     endedAt,

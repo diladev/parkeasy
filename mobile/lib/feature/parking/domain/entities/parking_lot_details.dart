@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_slot.dart';
 
 /// Everything the lot details screen shows: the lot, its features and its slots.
@@ -10,6 +11,8 @@ class ParkingLotDetails extends Equatable {
     required this.latitude,
     required this.longitude,
     required this.pricePerHour,
+    this.dailyCap,
+    this.priceOverrides = const [],
     this.freeCancellationMinutes = 10,
     required this.rating,
     required this.isOpen24h,
@@ -31,6 +34,19 @@ class ParkingLotDetails extends Equatable {
   final double latitude;
   final double longitude;
   final int pricePerHour;
+
+  /// The most one calendar day costs; null for no cap.
+  final int? dailyCap;
+
+  /// Special prices that haven't ended (Eid, Newroz...), soonest first.
+  final List<PriceOverride> priceOverrides;
+
+  /// Everything a stay here is charged by.
+  PriceRules get priceRules => PriceRules(
+    pricePerHour: pricePerHour,
+    dailyCap: dailyCap,
+    overrides: priceOverrides,
+  );
 
   /// How long after a booking here starts it can still be cancelled with a
   /// full refund. The server's default is 10.
@@ -66,6 +82,8 @@ class ParkingLotDetails extends Equatable {
     latitude,
     longitude,
     pricePerHour,
+    dailyCap,
+    priceOverrides,
     freeCancellationMinutes,
     rating,
     isOpen24h,

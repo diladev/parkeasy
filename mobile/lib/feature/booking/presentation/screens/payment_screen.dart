@@ -13,6 +13,7 @@ import 'package:mobile/feature/booking/presentation/cubit/payment_state.dart';
 import 'package:mobile/feature/booking/presentation/widgets/booking_summary_card.dart';
 import 'package:mobile/feature/booking/presentation/widgets/duration_stepper.dart';
 import 'package:mobile/feature/booking/presentation/widgets/payment_method_tile.dart';
+import 'package:mobile/feature/booking/presentation/widgets/price_note.dart';
 import 'package:mobile/feature/booking/presentation/widgets/vehicle_picker.dart';
 
 /// Step 2 of booking: check the summary, choose the hours and pay.
@@ -104,7 +105,8 @@ class _PaymentForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<PaymentCubit>();
-    final total = Formatters.money(state.total);
+    final quote = state.quote;
+    final total = Formatters.money(quote.amount);
     final isPaying = state.status == PaymentStatus.paying;
 
     return ListView(
@@ -155,6 +157,12 @@ class _PaymentForm extends StatelessWidget {
           total: total,
         ),
         const SizedBox(height: 10),
+        PriceNote(
+          capSaving: quote.capSaving,
+          specialPrices: quote.specialPrices,
+        ),
+        if (quote.isCapped || quote.specialPrices.isNotEmpty)
+          const SizedBox(height: 4),
         _CancellationPolicy(minutes: state.draft.freeCancellationMinutes),
         const SizedBox(height: 20),
         const _SectionLabel('PAYMENT METHOD'),
