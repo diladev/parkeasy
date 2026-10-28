@@ -33,7 +33,9 @@ import 'package:mobile/feature/profile/presentation/screens/profile_screen.dart'
 import 'package:mobile/feature/profile/presentation/screens/vehicle_form_screen.dart';
 import 'package:mobile/feature/shell/main_shell.dart';
 import 'package:mobile/feature/stub/stub_screen.dart';
+import 'package:mobile/feature/support/presentation/screens/help_support_screen.dart';
 import 'package:mobile/feature/wallet/domain/entities/top_up.dart';
+import 'package:mobile/feature/wallet/presentation/screens/payment_methods_screen.dart';
 import 'package:mobile/feature/wallet/presentation/screens/top_up_payment_screen.dart';
 import 'package:mobile/feature/wallet/presentation/screens/wallet_screen.dart';
 
@@ -61,7 +63,6 @@ class AppRouter {
   static const String vehicleSetup = '/vehicle-setup';
 
   static const String home = '/home';
-  static const String map = '/map';
   static const String searchResults = '/search-results';
   static const String parkingDetails = '/parking-details';
   static const String scanQr = '/scan-qr';
@@ -72,7 +73,6 @@ class AppRouter {
   static const String myBookings = '/my-bookings';
   static const String bookingDetail = '/booking-detail';
   static const String extendParking = '/extend-parking';
-  static const String cancelConfirmation = '/cancel-confirmation';
   static const String cancellationSuccess = '/cancellation-success';
   static const String parkingEnded = '/parking-ended';
   static const String bookingReceipt = '/booking-receipt';
@@ -90,6 +90,47 @@ class AppRouter {
   static const String changePassword = '/change-password';
   static const String deleteAccount = '/delete-account';
   static const String notificationsInbox = '/notifications-inbox';
+
+  /// Every route above. A test opens each one and fails if it lands on the
+  /// "not built yet" stub, so a screen can't quietly drop out of the app
+  /// again (Help & support once did). Add new routes here too.
+  static const List<String> routes = [
+    initial,
+    login,
+    register,
+    forgotPassword,
+    otp,
+    resetPassword,
+    resetPasswordSuccess,
+    locationPermission,
+    vehicleSetup,
+    home,
+    searchResults,
+    parkingDetails,
+    scanQr,
+    favorites,
+    payment,
+    bookingConfirmation,
+    myBookings,
+    bookingDetail,
+    extendParking,
+    cancellationSuccess,
+    parkingEnded,
+    bookingReceipt,
+    directions,
+    profile,
+    editProfile,
+    paymentMethods,
+    wallet,
+    topUpPayment,
+    myVehicles,
+    vehicleForm,
+    notificationSettings,
+    helpSupport,
+    changePassword,
+    deleteAccount,
+    notificationsInbox,
+  ];
 
   // ─── Route generator ────────────────────────────────────────────────────────
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -189,6 +230,8 @@ class AppRouter {
         return _route(const ChangePasswordScreen(), settings);
       case deleteAccount:
         return _route(const DeleteAccountScreen(), settings);
+      case helpSupport:
+        return _route(const HelpSupportScreen(), settings);
       case myVehicles:
         return _route(const MyVehiclesScreen(), settings);
       case vehicleForm:
@@ -201,12 +244,15 @@ class AppRouter {
       // Wallet
       case wallet:
         return _route(const WalletScreen(), settings);
+      case paymentMethods:
+        return _route(const PaymentMethodsScreen(), settings);
       case topUpPayment:
         final topUp = settings.arguments as TopUp;
         // Typed <bool>: toTopUpPayment awaits whether it was paid.
         return _route<bool>(TopUpPaymentScreen(topUp: topUp), settings);
 
-      // All remaining screens are stubs — will be replaced as features are built
+      // A name no screen answers to. Every route in [routes] has its own case
+      // (test/core/router/app_router_test.dart checks that).
       default:
         return _route(
           StubScreen(routeName: settings.name ?? 'unknown'),
@@ -261,8 +307,6 @@ class AppRouter {
   /// sign-up form of an account that already exists.
   static void toVehicleSetup(BuildContext context) =>
       Navigator.pushNamedAndRemoveUntil(context, vehicleSetup, (_) => false);
-
-  static void toMap(BuildContext context) => Navigator.pushNamed(context, map);
 
   /// [openFilters] opens the Filters sheet on arrival.
   static void toSearchResults(
