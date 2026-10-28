@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -22,9 +23,11 @@ import { PERMISSIONS } from 'src/auth/permissions';
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import { GarageBookingsQueryDto } from './dtos/garage-bookings-query.dto';
+import { LotSettingsDto } from './dtos/lot-settings.dto';
 import { EndWalkInDto, StartWalkInDto } from './dtos/walk-in.dto';
 import { GarageBookingsService } from './garage-bookings.service';
 import { GaragePortalService } from './garage-portal.service';
+import { GarageSettingsService } from './garage-settings.service';
 import { GarageSlotsService } from './garage-slots.service';
 
 /** The Garage Portal. Garage owners only, and only their own garages. */
@@ -38,6 +41,7 @@ export class GaragePortalController {
     private readonly portal: GaragePortalService,
     private readonly slots: GarageSlotsService,
     private readonly bookings: GarageBookingsService,
+    private readonly lotSettings: GarageSettingsService,
   ) {}
 
   @Get()
@@ -72,6 +76,32 @@ export class GaragePortalController {
     @Query() query: GarageBookingsQueryDto,
   ) {
     return this.bookings.list(owner.id, id, query);
+  }
+
+  @Get(':id/settings')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary:
+      'Details, prices (hourly, daily cap, special days), opening hours and amenities of one owned garage.',
+  })
+  settings(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+  ) {
+    return this.lotSettings.settings(owner.id, id);
+  }
+
+  @Put(':id/settings')
+  @ApiOperation({
+    summary:
+      'Save the Lot Settings page. New bookings and walk-ins use the new prices; running ones keep theirs.',
+  })
+  saveSettings(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Body() dto: LotSettingsDto,
+  ) {
+    return this.lotSettings.save(owner.id, id, dto);
   }
 
   @Get(':id/slots')

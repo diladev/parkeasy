@@ -292,6 +292,131 @@ describe('ParkEasy API (e2e)', () => {
         .expect(404);
     });
 
+    it('saves lot settings, checks the price rules, and prices new stays by them', async () => {
+      const sardar = await signIn('sardar@example.com', 'garage');
+      const auth = { Authorization: `Bearer ${sardar}` };
+      const list = await api().get('/garage/garages').set(auth).expect(200);
+      const cityCenter = (list.body as { id: number; name: string }[]).find(
+        (garage) => garage.name === 'City Center Parking',
+      )!;
+      const url = `/garage/garages/${cityCenter.id}/settings`;
+
+      type Override = {
+        label: string;
+        start_date: string;
+        end_date: string;
+        price_per_hour: number;
+        daily_cap: number | null;
+      };
+      type Settings = Record<string, unknown> & {
+        price_per_hour: number;
+        daily_cap: number | null;
+        total_slots: number;
+        price_overrides: (Override & { id: number })[];
+        today: string;
+      };
+      const before = (await api().get(url).set(auth).expect(200))
+        .body as Settings;
+      expect(before).toMatchObject({
+        name: 'City Center Parking',
+        price_per_hour: 1500,
+        daily_cap: 9000,
+      });
+      expect(before.price_overrides.map((rule) => rule.label)).toEqual([
+        'Weekend market',
+        'Newroz',
+      ]);
+      const {
+        id: _id,
+        status: _status,
+        total_slots: _slots,
+        today,
+        ...body
+      } = before;
+      const asSent = (rules: Override[]) => ({
+        ...body,
+        price_overrides: rules,
+      });
+      const saved = before.price_overrides.map(
+        ({ id: _ruleId, ...rule }) => rule,
+      );
+
+      // A cap below one hour's price, and two special prices on the same day.
+      const lowCap = await api()
+        .put(url)
+        .set(auth)
+        .send({ ...asSent(saved), daily_cap: 1000 })
+        .expect(400);
+      expect((lowCap.body as { message: string }).message).toBe(
+        "The daily cap can't be lower than one hour's price.",
+      );
+      await api()
+        .put(url)
+        .set(auth)
+        .send(asSent([...saved, { ...saved[0], label: 'Twice' }]))
+        .expect(400);
+      await api()
+        .put(url)
+        .set(auth)
+        .send(asSent([{ ...saved[0], start_date: '2026-13-01' }]))
+        .expect(400);
+
+      // Today and tomorrow cost 3,000 an hour, at most 5,000 a day.
+      const tomorrow = new Date(Date.parse(today) + 86_400_000)
+        .toISOString()
+        .slice(0, 10);
+      const match = {
+        label: 'Match day',
+        start_date: today,
+        end_date: tomorrow,
+        price_per_hour: 3000,
+        daily_cap: 5000,
+      };
+      const ok = await api()
+        .put(url)
+        .set(auth)
+        .send(asSent([match, ...saved]))
+        .expect(200);
+      expect(ok.body).toMatchObject({
+        message: expect.stringContaining('Settings saved') as string,
+        settings: { price_overrides: [match, ...saved] },
+      });
+
+      // A driver's quote follows it, day by day.
+      const driver = await signIn('karwan@example.com');
+      const quote = (
+        await api()
+          .get(`/parking/${cityCenter.id}/quote?hours=4`)
+          .set('Authorization', `Bearer ${driver}`)
+          .expect(200)
+      ).body as {
+        hours: number;
+        amount: number;
+        days: { hours: number; amount: number; label: string | null }[];
+      };
+      expect(quote.hours).toBe(4);
+      for (const day of quote.days) {
+        expect(day.label).toBe('Match day');
+        expect(day.amount).toBe(Math.min(day.hours * 3000, 5000));
+      }
+      expect(quote.amount).toBe(
+        quote.days.reduce((sum, day) => sum + day.amount, 0),
+      );
+      await api()
+        .get(`/parking/${cityCenter.id}/quote?hours=0`)
+        .set('Authorization', `Bearer ${driver}`)
+        .expect(400);
+
+      // Another owner can't see or change it; then put everything back.
+      const rawand = await signIn('rawand@example.com', 'garage');
+      await api()
+        .put(url)
+        .set('Authorization', `Bearer ${rawand}`)
+        .send(asSent(saved))
+        .expect(404);
+      await api().put(url).set(auth).send(asSent(saved)).expect(200);
+    });
+
     it('starts a walk-in on a free slot, charges it at the exit and frees the slot', async () => {
       const sardar = await signIn('sardar@example.com', 'garage');
       const auth = { Authorization: `Bearer ${sardar}` };
