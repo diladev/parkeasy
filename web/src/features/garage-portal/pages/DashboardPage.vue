@@ -125,7 +125,17 @@ function cards(data: GarageDashboard) {
         <BookingsTable
           :bookings="data.recent_bookings"
           :title="t('garagePortal.dashboard.recentBookings')"
-        />
+        >
+          <template #actions>
+            <ULink
+              :to="{ name: 'garage.bookings' }"
+              class="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              {{ t('garagePortal.bookings.viewAll') }}
+              <UIcon name="i-lucide-arrow-right" class="size-4 rtl:rotate-180" aria-hidden="true" />
+            </ULink>
+          </template>
+        </BookingsTable>
       </template>
 
       <template #loading>

@@ -88,6 +88,7 @@ function baseDetail(row: GarageRow) {
             start_time: '2026-10-26T09:43:00.000Z',
             end_time: '2026-10-26T12:43:00.000Z',
             total_cost: 4500,
+            duration_hours: 3,
             customer: { id: 8, name: 'Lana Rashid' },
             vehicle: { brand: 'Toyota', model: 'Hilux', license_plate: '22 SUL 61902' },
             plate: null,
@@ -101,6 +102,7 @@ function baseDetail(row: GarageRow) {
             start_time: '2026-10-25T07:00:00.000Z',
             end_time: '2026-10-25T10:00:00.000Z',
             total_cost: 3000,
+            duration_hours: 2,
             customer: null,
             vehicle: null,
             plate: null,
@@ -208,7 +210,8 @@ export const garageHandlers = [
       meta: {
         totalItems: filtered.length,
         itemsPerPage: pageSize,
-        totalPages: Math.max(1, Math.ceil(filtered.length / pageSize)),
+        // Like the backend: 0 pages when nothing matched.
+        totalPages: Math.ceil(filtered.length / pageSize),
         currentPage: page,
       },
       links: {},

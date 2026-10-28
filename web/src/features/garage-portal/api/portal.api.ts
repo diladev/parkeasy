@@ -1,4 +1,8 @@
+import { bookingRowSchema, type BookingRow } from '@/shared/api/booking-row'
 import { http } from '@/shared/api/http'
+import { paginated, type PaginationMeta } from '@/shared/api/pagination'
+
+import { toBookingApiParams, type BookingListParams } from '../model/bookings-params'
 
 import {
   dashboardSchema,
@@ -21,7 +25,11 @@ export const portalKeys = {
   garages: () => [...portalKeys.all, 'garages'] as const,
   dashboard: (id: number) => [...portalKeys.all, 'dashboard', id] as const,
   slots: (id: number) => [...portalKeys.all, 'slots', id] as const,
+  bookings: (id: number, params: BookingListParams) =>
+    [...portalKeys.all, 'bookings', id, params] as const,
 }
+
+const bookingPageSchema = paginated(bookingRowSchema)
 
 export const portalApi = {
   /** The signed-in owner's garages. */
@@ -30,6 +38,17 @@ export const portalApi = {
 
   dashboard: (id: number, signal?: AbortSignal): Promise<GarageDashboard> =>
     http.get(`${BASE}/${id}/dashboard`, dashboardSchema, { signal }),
+
+  /** One page of the garage's app bookings and walk-ins, newest first. */
+  bookings: (
+    id: number,
+    params: BookingListParams,
+    signal?: AbortSignal,
+  ): Promise<{ data: BookingRow[]; meta: PaginationMeta }> =>
+    http.get(`${BASE}/${id}/bookings`, bookingPageSchema, {
+      params: toBookingApiParams(params),
+      signal,
+    }),
 
   /** Every slot with its status, and the booking holding it. */
   slots: (id: number, signal?: AbortSignal): Promise<LiveSlots> =>

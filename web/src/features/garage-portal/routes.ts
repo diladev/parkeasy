@@ -14,4 +14,10 @@ export const garagePortalRoutes: RouteRecordRaw[] = [
     component: () => import('./pages/LiveSlotsPage.vue'),
     meta: { title: 'nav.liveSlots', icon: 'i-lucide-layout-grid', menuOrder: 20 },
   },
+  {
+    path: 'bookings',
+    name: 'garage.bookings',
+    component: () => import('./pages/GarageBookingsPage.vue'),
+    meta: { title: 'nav.bookings', icon: 'i-lucide-calendar-check', menuOrder: 30 },
+  },
 ]

@@ -54,6 +54,7 @@ export function dashboardBody(id: number, now = new Date()) {
             start_time: minutesAgo(10),
             end_time: null,
             total_cost: 0,
+            duration_hours: 0,
             customer: null,
             vehicle: null,
             plate: '22 SUL 909',
@@ -67,6 +68,7 @@ export function dashboardBody(id: number, now = new Date()) {
             start_time: minutesAgo(40),
             end_time: minutesAgo(-20),
             total_cost: 1500,
+            duration_hours: 1,
             customer: { id: 2, name: 'Aram Kamal' },
             vehicle: { brand: 'Toyota', model: 'Corolla', license_plate: '22 A 51234' },
             plate: null,
@@ -80,6 +82,7 @@ export function dashboardBody(id: number, now = new Date()) {
             start_time: minutesAgo(300),
             end_time: minutesAgo(120),
             total_cost: 4500,
+            duration_hours: 3,
             customer: null,
             vehicle: null,
             plate: null,
@@ -90,7 +93,73 @@ export function dashboardBody(id: number, now = new Date()) {
   }
 }
 
+/**
+ * City Center's booking history for the Bookings page: 23 rows, newest first,
+ * mixing app bookings and walk-ins of every status.
+ */
+export function bookingHistory(now = new Date()) {
+  const hoursAgo = (hours: number) => new Date(now.getTime() - hours * 3_600_000).toISOString()
+  const customers = ['Aram Kamal', 'Lana Rashid', 'Shilan Ahmed']
+  return Array.from({ length: 23 }, (_, index) => {
+    const id = 500 - index
+    const walkIn = index % 3 === 1
+    const status = index < 3 ? 'active' : index % 5 === 4 ? 'cancelled' : 'completed'
+    const active = status === 'active'
+    return {
+      id,
+      source: walkIn ? 'walk_in' : 'app',
+      status,
+      ended_early: false,
+      start_time: hoursAgo(index * 20 + 1),
+      end_time: walkIn && active ? null : hoursAgo(index * 20 - 1),
+      total_cost: walkIn && active ? 0 : 3000,
+      duration_hours: walkIn && active ? 0 : 2,
+      customer: walkIn ? null : { id: 10 + (index % 3), name: customers[index % 3]! },
+      vehicle: walkIn
+        ? null
+        : { brand: 'Toyota', model: 'Corolla', license_plate: `22 SUL ${1000 + index}` },
+      plate: walkIn ? `21 ERB ${2000 + index}` : null,
+      slot: { level: 'G', slot_number: `A${String((index % 8) + 1).padStart(2, '0')}` },
+    }
+  })
+}
+
 export const garagePortalHandlers = [
+  http.get('/api/garage/garages/:id/bookings', ({ params, request }) => {
+    if (!OWNED_GARAGES.some((garage) => garage.id === Number(params.id))) return notFound()
+    const url = new URL(request.url)
+    const get = (key: string) => url.searchParams.get(key)
+    const page = Number(get('page') ?? 1)
+    const pageSize = Number(get('pageSize') ?? 10)
+    const q = (get('q') ?? '').toLowerCase()
+    const compact = q.replace(/\s+/g, '')
+    const now = Date.now()
+    const days = { today: 1, '7d': 7, '30d': 30 }[get('period') ?? '']
+    const rows = (Number(params.id) === 5 ? bookingHistory() : []).filter(
+      (row) =>
+        (!get('status') || row.status === get('status')) &&
+        (!get('source') || row.source === get('source')) &&
+        (!days || now - new Date(row.start_time).getTime() < days * 86_400_000) &&
+        (!q ||
+          row.customer?.name.toLowerCase().includes(q) ||
+          [row.vehicle?.license_plate, row.plate].some((plate) =>
+            plate?.toLowerCase().replace(/\s+/g, '').includes(compact),
+          ) ||
+          `#${row.id}` === q ||
+          String(row.id) === q),
+    )
+    return HttpResponse.json({
+      data: rows.slice((page - 1) * pageSize, page * pageSize),
+      meta: {
+        totalItems: rows.length,
+        itemsPerPage: pageSize,
+        // Like the backend: 0 pages when nothing matched.
+        totalPages: Math.ceil(rows.length / pageSize),
+        currentPage: page,
+      },
+      links: {},
+    })
+  }),
   http.get('/api/garage/garages', () => HttpResponse.json(OWNED_GARAGES)),
   http.get('/api/garage/garages/:id/dashboard', ({ params }) => {
     const id = Number(params.id)

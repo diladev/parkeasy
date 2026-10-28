@@ -179,7 +179,7 @@ describe('LiveSlotsPage', () => {
     const links = [...document.querySelectorAll('[id^="dashboard-sidebar"] a')].map((a) =>
       clean(a.textContent),
     )
-    expect(links).toEqual(['Dashboard', 'Live Slots'])
+    expect(links).toEqual(['Dashboard', 'Live Slots', 'Bookings'])
   })
 
   it('reads in Kurdish, right to left', async () => {

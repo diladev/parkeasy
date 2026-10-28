@@ -12,7 +12,8 @@
     "garages": "Garages",
     "users": "Users",
     "dashboard": "Dashboard",
-    "liveSlots": "Live Slots"
+    "liveSlots": "Live Slots",
+    "bookings": "Bookings"
   },
   "roles": {
     "admin": "Administrator",
@@ -465,7 +466,8 @@
       "slot": "Slot",
       "start": "Start",
       "amount": "Amount",
-      "status": "Status"
+      "status": "Status",
+      "duration": "Duration"
     },
     "status": {
       "active": "Active",
@@ -474,7 +476,8 @@
       "endedEarly": "Ended early"
     },
     "walkIn": "Walk-in",
-    "paysAtExit": "Pays at exit"
+    "paysAtExit": "Pays at exit",
+    "hours": "{hours}h"
   },
   "charts": {
     "revenueTotal": "{amount} in total",
@@ -588,6 +591,36 @@
         "removeDescription": "Only for a car entered by mistake. Nothing is charged and the slot becomes free.",
         "confirmRemove": "Remove"
       }
+    },
+    "bookings": {
+      "loading": "Loading bookings…",
+      "loadError": "Couldn't load the bookings",
+      "searchLabel": "Search bookings",
+      "searchPlaceholder": "Customer, plate or #number…",
+      "statusLabel": "Filter by status",
+      "status": {
+        "all": "All",
+        "active": "Active",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "source": {
+        "label": "Booked through",
+        "all": "All sources",
+        "app": "App bookings",
+        "walk_in": "Walk-ins"
+      },
+      "period": {
+        "label": "Started",
+        "all": "Any time",
+        "today": "Today",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days"
+      },
+      "showing": "Showing {from}–{to} of {total} bookings",
+      "noMatch": "No bookings match these filters.",
+      "clearFilters": "Clear filters",
+      "viewAll": "View all"
     }
   }
 }

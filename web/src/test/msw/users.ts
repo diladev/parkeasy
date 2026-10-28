@@ -216,7 +216,8 @@ export const userHandlers = [
       meta: {
         totalItems: filtered.length,
         itemsPerPage: pageSize,
-        totalPages: Math.max(1, Math.ceil(filtered.length / pageSize)),
+        // Like the backend: 0 pages when nothing matched.
+        totalPages: Math.ceil(filtered.length / pageSize),
         currentPage: page,
       },
       links: {},

@@ -23,6 +23,8 @@ export const bookingRowSchema = z.object({
   end_time: isoDate.nullable(),
   /** A walk-in: 0 until it leaves and pays. */
   total_cost: z.number(),
+  /** Hours paid for (booked, or a walk-in's charged hours); 0 while a walk-in is parked. */
+  duration_hours: z.number().int(),
   customer: z.object({ id: z.number().int(), name: z.string() }).nullable(),
   vehicle: z.object({ brand: z.string(), model: z.string(), license_plate: z.string() }).nullable(),
   /** A walk-in's plate. */
