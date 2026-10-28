@@ -1,5 +1,6 @@
-# Weekly pull requests for outdated or vulnerable dependencies (free on GitHub).
-# Minor and patch updates come grouped, one pull request per app.
+# Weekly pull requests for outdated dependencies (free on GitHub).
+# Minor and patch updates come grouped, one pull request per app. Major
+# versions are skipped: they can break things and are upgraded by hand.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -9,6 +10,9 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: npm
     directory: /web
@@ -17,6 +21,9 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: pub
     directory: /mobile
@@ -25,6 +32,9 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
