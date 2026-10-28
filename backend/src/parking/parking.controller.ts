@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Patch,
   Post,
@@ -27,6 +28,7 @@ import {
   CreateParkingSlotDto,
   CreateParkingSlotsDto,
   NearbyQueryDto,
+  QuoteQueryDto,
   SearchQueryDto,
   SlotsQueryDto,
   UpdateParkingLotDto,
@@ -96,6 +98,15 @@ export class ParkingController {
     @Param('id', ParseIdPipe) id: number,
   ) {
     return this.parkingService.removeFavorite(user.id, id);
+  }
+
+  /** The price before booking: the same rules the booking will be charged by. */
+  @Get(':id/quote')
+  @UseGuards(UserAccessTokenAuthGuard)
+  @ApiBearerAuth()
+  @Header('Cache-Control', 'no-store')
+  quote(@Param('id', ParseIdPipe) id: number, @Query() query: QuoteQueryDto) {
+    return this.parkingService.quote(id, query.hours);
   }
 
   @Get(':id/slots')

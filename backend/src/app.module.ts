@@ -28,6 +28,7 @@ import { User } from './users/entities/user.entity';
 import { Vehicle } from './users/entities/vehicle.entity';
 import { ParkingLot } from './parking/entities/parking-lot.entity';
 import { ParkingSlot } from './parking/entities/parking-slot.entity';
+import { PriceOverride } from './parking/entities/price-override.entity';
 import { FavoriteLot } from './parking/entities/favorite-lot.entity';
 import { Wallet } from './wallet/entities/wallet.entity';
 import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
@@ -100,6 +101,7 @@ import { Payment } from './payments/entities/payment.entity';
             NotificationSettings,
             Payment,
             BookingEndingAlert,
+            PriceOverride,
           ],
           autoLoadModels: true,
           synchronize: true,

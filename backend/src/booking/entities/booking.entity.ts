@@ -8,6 +8,7 @@ import {
 } from 'sequelize-typescript';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
+import type { PriceRules } from 'src/parking/pricing';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
 
@@ -89,6 +90,25 @@ export class Booking extends Model {
    */
   @Column({ type: DataType.INTEGER, allowNull: false })
   declare price_per_hour: number;
+
+  /**
+   * Every price rule the stay is charged by (hourly price, daily cap, date
+   * overrides), saved when it starts so extensions and walk-in exits keep
+   * them. null for bookings made before rules were saved: they pay the plain
+   * hourly price (see bookingRules in parking/pricing.ts).
+   */
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+    get(this: Booking) {
+      const raw = this.getDataValue('price_rules') as string | null;
+      return raw ? (JSON.parse(raw) as PriceRules) : null;
+    },
+    set(this: Booking, rules: PriceRules | null) {
+      this.setDataValue('price_rules', rules ? JSON.stringify(rules) : null);
+    },
+  })
+  declare price_rules: PriceRules | null;
 
   /** A walk-in: 0 while parked, the fee once it ends. */
   @Column({ type: DataType.INTEGER, allowNull: false })

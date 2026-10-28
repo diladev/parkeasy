@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   Logger,
@@ -29,6 +30,7 @@ import {
 } from './dtos';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { ParkingSlot } from './entities/parking-slot.entity';
+import { capBelowPrice } from './price-settings';
 import {
   GARAGE_STATUSES,
   nextGarageStatus,
@@ -80,6 +82,7 @@ export interface AdminGarageDetail {
   latitude: number;
   longitude: number;
   price_per_hour: number;
+  daily_cap: number | null;
   is_open_24h: boolean;
   opening_time: string;
   closing_time: string;
@@ -242,6 +245,7 @@ export class AdminGaragesService {
       latitude: lot.latitude,
       longitude: lot.longitude,
       price_per_hour: lot.price_per_hour,
+      daily_cap: lot.daily_cap,
       is_open_24h: lot.is_open_24h,
       opening_time: lot.opening_time,
       closing_time: lot.closing_time,
@@ -276,6 +280,11 @@ export class AdminGaragesService {
     adminId: number,
   ): Promise<AdminGarageSaved> {
     const { levels, owner, ...details } = dto;
+    if (capBelowPrice(details.price_per_hour, details.daily_cap)) {
+      throw new BadRequestException(
+        this.translationService.translate('message.DAILY_CAP_BELOW_PRICE'),
+      );
+    }
 
     try {
       const { id, newOwner } = await this.sequelize.transaction(

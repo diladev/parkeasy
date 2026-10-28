@@ -35,7 +35,9 @@ import {
 import { FavoriteLot } from 'src/parking/entities/favorite-lot.entity';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
-import { walkInCharge } from 'src/parking/pricing';
+import { PriceOverride } from 'src/parking/entities/price-override.entity';
+import { priceStay, type PriceRules } from 'src/parking/pricing';
+import { addDays, iraqDateKey } from 'src/common/iraq-time';
 import type { GarageStatus } from 'src/parking/garage-status';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -101,6 +103,16 @@ interface LotSeed {
   latitude: number;
   longitude: number;
   price_per_hour: number;
+  /** The most one day costs; no cap when not set. */
+  daily_cap?: number;
+  /** Special prices: `from` days from today, for `days` days. */
+  price_overrides?: {
+    label: string;
+    from: number | 'newroz';
+    days: number;
+    price_per_hour: number;
+    daily_cap: number | null;
+  }[];
   /** Minutes a booking can be cancelled for free; 10 when not set. */
   free_cancellation_minutes?: number;
   rating: number;
@@ -129,6 +141,23 @@ const LOTS = {
     latitude: 35.5571,
     longitude: 45.4356,
     price_per_hour: 1500,
+    daily_cap: 9000,
+    price_overrides: [
+      {
+        label: 'Weekend market',
+        from: 9,
+        days: 2,
+        price_per_hour: 2000,
+        daily_cap: 12000,
+      },
+      {
+        label: 'Newroz',
+        from: 'newroz',
+        days: 3,
+        price_per_hour: 2500,
+        daily_cap: 15000,
+      },
+    ],
     // Longer than the default, so right after seeding Lana's booking can
     // still be cancelled while Aram's can only be ended.
     free_cancellation_minutes: 30,
@@ -149,6 +178,7 @@ const LOTS = {
     latitude: 35.5608,
     longitude: 45.4295,
     price_per_hour: 1000,
+    daily_cap: 6000,
     rating: 4.2,
     hours: ['08:00', '22:00'],
     has_ev_charging: true,
@@ -162,6 +192,7 @@ const LOTS = {
     latitude: 35.5536,
     longitude: 45.4148,
     price_per_hour: 2000,
+    daily_cap: 12000,
     free_cancellation_minutes: 15,
     rating: 4.8,
     hours: ['07:00', '23:00'],
@@ -632,6 +663,7 @@ class DemoData {
         latitude: seed.latitude,
         longitude: seed.longitude,
         price_per_hour: seed.price_per_hour,
+        daily_cap: seed.daily_cap ?? null,
         free_cancellation_minutes:
           seed.free_cancellation_minutes ?? DEFAULT_FREE_CANCELLATION_MINUTES,
         rating: seed.rating,
@@ -666,12 +698,47 @@ class DemoData {
     );
     const slots = await ParkingSlot.bulkCreate(rows, { transaction });
 
+    for (const override of seed.price_overrides ?? []) {
+      const first =
+        override.from === 'newroz'
+          ? this.nextNewroz()
+          : addDays(new Date(this.now), override.from);
+      await PriceOverride.create(
+        {
+          parking_lot_id: lot.id,
+          label: override.label,
+          start_date: iraqDateKey(first),
+          end_date: iraqDateKey(addDays(first, override.days - 1)),
+          price_per_hour: override.price_per_hour,
+          daily_cap: override.daily_cap,
+        },
+        { transaction },
+      );
+    }
+
     this.lots.set(key, {
       lot,
       slots: new Map(
         slots.map((slot) => [`${slot.level}:${slot.slot_number}`, slot]),
       ),
     });
+  }
+
+  /** Noon on the next 20 March (Iraq time): the first day of Newroz. */
+  private nextNewroz(): Date {
+    const year = new Date(this.now + IRAQ_UTC_OFFSET).getUTCFullYear();
+    const newroz = (y: number) =>
+      new Date(Date.UTC(y, 2, 20, 12) - IRAQ_UTC_OFFSET);
+    return newroz(year).getTime() > this.now ? newroz(year) : newroz(year + 1);
+  }
+
+  /** What a lot charged when the seed's bookings started: no date overrides in the past. */
+  private static rules(lot: ParkingLot): PriceRules {
+    return {
+      price_per_hour: lot.price_per_hour,
+      daily_cap: lot.daily_cap,
+      overrides: [],
+    };
   }
 
   private async createUser(
@@ -794,10 +861,15 @@ class DemoData {
     const extraHours = options.extraHours ?? 0;
     const totalHours = hours + extraHours;
     const price = lot.price_per_hour;
-    const firstPayment = price * hours;
-    const extensionPayment = price * extraHours;
+    const rules = DemoData.rules(lot);
     const start = this.at(startOffset);
     const end = new Date(start.getTime() + totalHours * HOUR);
+    const firstPayment = priceStay(
+      rules,
+      start,
+      new Date(start.getTime() + hours * HOUR),
+    ).amount;
+    const extensionPayment = priceStay(rules, start, end).amount - firstPayment;
     const endedAt =
       options.endedAfterMinutes === undefined
         ? null
@@ -811,6 +883,7 @@ class DemoData {
         vehicle_id: vehicle.id,
         duration_hours: totalHours,
         price_per_hour: price,
+        price_rules: rules,
         total_cost: firstPayment + extensionPayment,
         payment_method: payment,
         status: outcome,
@@ -942,7 +1015,8 @@ class DemoData {
     const end = ended
       ? this.at(startOffset + ended.afterMinutes * MINUTE)
       : null;
-    const charge = end ? walkInCharge(lot.price_per_hour, start, end) : null;
+    const rules = DemoData.rules(lot);
+    const charge = end ? priceStay(rules, start, end) : null;
 
     await Booking.create(
       {
@@ -959,6 +1033,7 @@ class DemoData {
         cancellable_until: start,
         duration_hours: charge?.hours ?? 0,
         price_per_hour: lot.price_per_hour,
+        price_rules: rules,
         total_cost: charge?.amount ?? 0,
         payment_method: ended?.payment ?? 'cash',
         createdAt: start,

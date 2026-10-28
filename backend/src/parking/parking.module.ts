@@ -11,11 +11,18 @@ import { ParkingController } from './parking.controller';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { ParkingSlot } from './entities/parking-slot.entity';
 import { FavoriteLot } from './entities/favorite-lot.entity';
+import { PriceOverride } from './entities/price-override.entity';
 
 @Module({
   imports: [
     // Booking is read for the admin list's 30-day revenue.
-    SequelizeModule.forFeature([ParkingLot, ParkingSlot, FavoriteLot, Booking]),
+    SequelizeModule.forFeature([
+      ParkingLot,
+      ParkingSlot,
+      FavoriteLot,
+      PriceOverride,
+      Booking,
+    ]),
     // PermissionsGuard (admin routes) reads the user's role through UsersService.
     UsersModule,
   ],

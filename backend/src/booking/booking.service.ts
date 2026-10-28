@@ -21,6 +21,7 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
 import { isOpenDuring } from 'src/parking/opening-hours';
+import { bookingRules, extensionCost, priceStay } from 'src/parking/pricing';
 import { ParkingService } from 'src/parking/parking.service';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
@@ -330,7 +331,13 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         transaction,
       );
 
-      const totalCost = lot.price_per_hour * dto.duration_hours;
+      // Saved with the booking: an extension is charged by the same rules.
+      const rules = await this.parkingService.priceRules(
+        lot,
+        start,
+        transaction,
+      );
+      const totalCost = priceStay(rules, start, end).amount;
       const booking = await this.bookingModel.create(
         {
           user_id: userId,
@@ -339,6 +346,7 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
           vehicle_id: vehicle.id,
           duration_hours: dto.duration_hours,
           price_per_hour: lot.price_per_hour,
+          price_rules: rules,
           total_cost: totalCost,
           payment_method: dto.payment_method,
           status: 'active',
@@ -440,7 +448,10 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  /** Adds hours at the price the booking was made with. */
+  /**
+   * Adds hours, charged by the price rules the booking was made with. Hours on
+   * a day already at its daily cap add nothing.
+   */
   async extendBooking(
     userId: number,
     bookingId: number,
@@ -479,8 +490,13 @@ export class BookingService implements OnModuleInit, OnModuleDestroy {
         );
       }
 
-      const extraCost = booking.price_per_hour * dto.extra_hours;
-      if (dto.payment_method === 'wallet') {
+      const extraCost = extensionCost(
+        bookingRules(booking),
+        booking.start_time,
+        booking.end_time,
+        newEnd,
+      );
+      if (dto.payment_method === 'wallet' && extraCost > 0) {
         await this.walletService.debit(
           userId,
           extraCost,

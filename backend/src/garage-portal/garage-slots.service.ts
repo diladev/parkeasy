@@ -19,7 +19,8 @@ import {
   type SlotStatus,
 } from 'src/parking/entities/parking-slot.entity';
 import { compareLevels } from 'src/parking/levels';
-import { walkInCharge } from 'src/parking/pricing';
+import { ParkingService } from 'src/parking/parking.service';
+import { bookingRules, priceStay, type PriceQuote } from 'src/parking/pricing';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
 import { GaragePortalService, type OwnedGarage } from './garage-portal.service';
@@ -44,8 +45,8 @@ export interface SlotBooking {
   vehicle: { brand: string; model: string; license_plate: string } | null;
   /** A walk-in's plate. */
   plate: string | null;
-  /** A walk-in: what it would pay if it left now. null for app bookings (paid ahead). */
-  charge_now: { hours: number; amount: number } | null;
+  /** A walk-in: what it would pay if it left now, day by day. null for app bookings (paid ahead). */
+  charge_now: PriceQuote | null;
 }
 
 export interface LiveSlot {
@@ -75,6 +76,7 @@ export class GarageSlotsService {
     @InjectModel(Booking) private readonly bookingModel: typeof Booking,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly portal: GaragePortalService,
+    private readonly parking: ParkingService,
     private readonly translationService: TranslationService,
   ) {}
 
@@ -173,7 +175,8 @@ export class GarageSlotsService {
 
   /**
    * A car parked without the app: the slot becomes occupied and the clock
-   * starts at the garage's current hourly price. The slot must be free, checked
+   * starts at the garage's current prices (hourly, daily cap, special days),
+   * which it keeps until it leaves. The slot must be free, checked
    * in the UPDATE itself, so a driver booking it at the same moment wins or loses
    * cleanly.
    */
@@ -187,6 +190,7 @@ export class GarageSlotsService {
     const lot = await this.portal.ownedLot(ownerId, lotId);
 
     await this.sequelize.transaction(async (transaction) => {
+      const rules = await this.parking.priceRules(lot, now, transaction);
       const [taken] = await this.slotModel.update(
         { status: 'occupied' },
         {
@@ -213,6 +217,7 @@ export class GarageSlotsService {
           cancellable_until: now,
           duration_hours: 0,
           price_per_hour: lot.price_per_hour,
+          price_rules: rules,
           total_cost: 0,
           payment_method: 'cash',
         },
@@ -227,7 +232,10 @@ export class GarageSlotsService {
     };
   }
 
-  /** The car left: charge every started hour, record how it paid, free the slot. */
+  /**
+   * The car left: charge every started hour by the prices it came in with,
+   * record how it paid, free the slot.
+   */
   async endWalkIn(
     ownerId: number,
     lotId: number,
@@ -237,11 +245,11 @@ export class GarageSlotsService {
   ): Promise<{
     message: string;
     slot: LiveSlot;
-    charge: { hours: number; amount: number };
+    charge: PriceQuote;
   }> {
     const lot = await this.portal.ownedLot(ownerId, lotId);
     const walkIn = await this.activeWalkIn(lot.id, bookingId);
-    const charge = walkInCharge(walkIn.price_per_hour, walkIn.start_time, now);
+    const charge = priceStay(bookingRules(walkIn), walkIn.start_time, now);
 
     await this.closeWalkIn(
       walkIn,
@@ -420,7 +428,7 @@ export class GarageSlotsService {
             plate: booking.plate,
             charge_now:
               booking.source === 'walk_in'
-                ? walkInCharge(booking.price_per_hour, booking.start_time, now)
+                ? priceStay(bookingRules(booking), booking.start_time, now)
                 : null,
           }
         : null,

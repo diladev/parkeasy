@@ -107,6 +107,18 @@ export class CreateParkingLotDto {
 
   @ApiPropertyOptional({
     description:
+      "The most a car pays for one calendar day (Iraq time), in whole Iraqi dinars. At least one hour's price; null or left out for no cap.",
+    example: 9000,
+    nullable: true,
+    type: Number,
+  })
+  @IsOptional()
+  @IsInt({ message: i18nValidationMessage('validation.IS_MONEY') })
+  @Min(0, { message: i18nValidationMessage('validation.MIN') })
+  daily_cap?: number | null;
+
+  @ApiPropertyOptional({
+    description:
       'How many minutes after a booking starts it can still be cancelled with a full refund. 0 means never.',
     example: DEFAULT_FREE_CANCELLATION_MINUTES,
     default: DEFAULT_FREE_CANCELLATION_MINUTES,

@@ -4,6 +4,8 @@ import type { Sequelize } from 'sequelize-typescript';
 import type { Booking } from 'src/booking/entities/booking.entity';
 import type { TranslationService } from 'src/i18n/translation.service';
 import type { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
+import type { ParkingService } from 'src/parking/parking.service';
+import { rulesFrom } from 'src/parking/pricing';
 import type { GaragePortalService } from './garage-portal.service';
 import { GarageSlotsService } from './garage-slots.service';
 
@@ -30,6 +32,7 @@ describe('GarageSlotsService', () => {
     name: 'City Center Parking',
     city: 'Sulaymaniyah',
     price_per_hour: 1500,
+    daily_cap: 9000,
   };
   const NOW = new Date('2026-10-27T10:00:00Z');
   let slots: Slot[];
@@ -133,11 +136,17 @@ describe('GarageSlotsService', () => {
         options?.args ? `${key}:${Object.values(options.args).join('|')}` : key,
     } as unknown as TranslationService;
 
+    const parking = {
+      priceRules: (lot: typeof LOT, from: Date) =>
+        Promise.resolve(rulesFrom(lot, [], from)),
+    } as unknown as ParkingService;
+
     service = new GarageSlotsService(
       slotModel,
       bookingModel,
       sequelize,
       portal,
+      parking,
       translations,
     );
   });
@@ -171,6 +180,28 @@ describe('GarageSlotsService', () => {
       plate: '22 SUL 555',
       customer: null,
       charge_now: { hours: 2, amount: 3000 },
+    });
+  });
+
+  it('stops the fee at the daily cap the walk-in came in with', async () => {
+    // Parked since 08:00 Iraq time with a 1,200 cap: 10 hours would be 15,000.
+    Object.assign(bookings[1], {
+      start_time: new Date('2026-10-27T05:00:00Z'),
+      price_rules: {
+        price_per_hour: 1500,
+        daily_cap: 1200 * 10,
+        overrides: [],
+      },
+    });
+    const live = await service.liveSlots(
+      6,
+      5,
+      new Date('2026-10-27T14:30:00Z'),
+    );
+    expect(live.slots[2].booking?.charge_now).toMatchObject({
+      hours: 10,
+      amount: 12000,
+      days: [{ date: '2026-10-27', hours: 10, capped: true }],
     });
   });
 
@@ -253,6 +284,7 @@ describe('GarageSlotsService', () => {
         user_id: null,
         vehicle_id: null,
         price_per_hour: 1500,
+        price_rules: { price_per_hour: 1500, daily_cap: 9000, overrides: [] },
         total_cost: 0,
       });
     });
@@ -271,7 +303,7 @@ describe('GarageSlotsService', () => {
 
     it('charges every started hour at the exit and frees the slot', async () => {
       const ended = await service.endWalkIn(6, 5, 41, 'card', NOW);
-      expect(ended.charge).toEqual({ hours: 2, amount: 3000 });
+      expect(ended.charge).toMatchObject({ hours: 2, amount: 3000 });
       expect(ended.message).toBe(
         'message.WALK_IN_ENDED:22 SUL 555|G · A03|3,000 IQD|message.PAID_CARD',
       );

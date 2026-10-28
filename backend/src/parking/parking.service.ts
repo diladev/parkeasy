@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -10,11 +11,21 @@ import { Sequelize } from 'sequelize-typescript';
 import { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { ArrayPagination } from 'src/common/pagination/pagination';
+import { iraqDateKey } from 'src/common/iraq-time';
 import { TranslationService } from 'src/i18n/translation.service';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { FavoriteLot } from './entities/favorite-lot.entity';
+import { PriceOverride } from './entities/price-override.entity';
 import { OUT_OF_SERVICE, ParkingSlot } from './entities/parking-slot.entity';
 import { boundingBox, distanceKm } from './geo';
+import { capBelowPrice } from './price-settings';
+import {
+  priceStay,
+  rulesFrom,
+  type PriceOverrideRule,
+  type PriceQuote,
+  type PriceRules,
+} from './pricing';
 import {
   CreateParkingLotDto,
   CreateParkingSlotDto,
@@ -58,6 +69,8 @@ export class ParkingService {
     private readonly parkingSlotModel: typeof ParkingSlot,
     @InjectModel(FavoriteLot)
     private readonly favoriteModel: typeof FavoriteLot,
+    @InjectModel(PriceOverride)
+    private readonly overrideModel: typeof PriceOverride,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly translationService: TranslationService,
   ) {}
@@ -129,20 +142,46 @@ export class ParkingService {
     return { ...page, data: page.data.map((lot) => this.present(lot, counts)) };
   }
 
-  /** One lot with its slots, for the lot details screen, and whether [userId] saved it. */
+  /**
+   * One lot with its slots, for the lot details screen, whether [userId]
+   * saved it, and the special prices coming up (today's first).
+   */
   async getLotDetails(
     id: number,
     userId: number,
-  ): Promise<ParkingLotView & { slots: ParkingSlot[]; is_favorite: boolean }> {
+  ): Promise<
+    ParkingLotView & {
+      slots: ParkingSlot[];
+      is_favorite: boolean;
+      price_overrides: PriceOverrideRule[];
+    }
+  > {
     const lot = await this.getBookableLot(id);
-    const [slots, counts, favorite] = await Promise.all([
+    const [slots, counts, favorite, overrides] = await Promise.all([
       this.findSlots(id),
       this.countSlots([id]),
       this.favoriteModel.count({
         where: { user_id: userId, parking_lot_id: id },
       }),
+      this.upcomingOverrides(id),
     ]);
-    return { ...this.present(lot, counts), slots, is_favorite: favorite > 0 };
+    return {
+      ...this.present(lot, counts),
+      slots,
+      is_favorite: favorite > 0,
+      price_overrides: rulesFrom(lot, overrides, new Date()).overrides,
+    };
+  }
+
+  /** What booking `hours` hours from now would cost, day by day (see pricing.ts). */
+  async quote(
+    id: number,
+    hours: number,
+    now = new Date(),
+  ): Promise<PriceQuote> {
+    const lot = await this.getBookableLot(id);
+    const rules = await this.priceRules(lot, now);
+    return priceStay(rules, now, new Date(now.getTime() + hours * 3_600_000));
   }
 
   // ------------------------------------------------------------- favorites
@@ -223,6 +262,38 @@ export class ParkingService {
     return lot;
   }
 
+  /**
+   * The price rules a stay starting at `from` is charged by. Bookings and
+   * walk-ins save them, so later price changes don't affect them.
+   */
+  async priceRules(
+    lot: ParkingLot,
+    from: Date,
+    transaction?: Transaction,
+  ): Promise<PriceRules> {
+    return rulesFrom(
+      lot,
+      await this.upcomingOverrides(lot.id, from, transaction),
+      from,
+    );
+  }
+
+  /** A lot's date overrides that haven't ended by `from`, soonest first. */
+  upcomingOverrides(
+    lotId: number,
+    from = new Date(),
+    transaction?: Transaction,
+  ): Promise<PriceOverride[]> {
+    return this.overrideModel.findAll({
+      where: {
+        parking_lot_id: lotId,
+        end_date: { [Op.gte]: iraqDateKey(from) },
+      },
+      order: [['start_date', 'ASC']],
+      transaction,
+    });
+  }
+
   /** Any lot, even a removed one (for bookings that already exist). */
   async getLot(id: number, transaction?: Transaction): Promise<ParkingLot> {
     const lot = await this.parkingLotModel.findByPk(id, {
@@ -277,13 +348,25 @@ export class ParkingService {
   // ------------------------------------------- management (admins, see controller)
 
   /** An admin adds it, so it is approved straight away. */
-  createLot(dto: CreateParkingLotDto): Promise<ParkingLot> {
+  async createLot(dto: CreateParkingLotDto): Promise<ParkingLot> {
+    this.checkDailyCap(dto.price_per_hour, dto.daily_cap);
     return this.parkingLotModel.create({ ...dto, status: 'approved' });
   }
 
   async updateLot(id: number, dto: UpdateParkingLotDto): Promise<ParkingLot> {
     const lot = await this.getManagedLot(id);
+    this.checkDailyCap(
+      dto.price_per_hour ?? lot.price_per_hour,
+      dto.daily_cap === undefined ? lot.daily_cap : dto.daily_cap,
+    );
     return lot.update(dto);
+  }
+
+  /** A daily cap below one hour's price is refused (see price-settings.ts). */
+  checkDailyCap(price: number, cap: number | null | undefined): void {
+    if (capBelowPrice(price, cap)) {
+      throw new BadRequestException(this.t('DAILY_CAP_BELOW_PRICE'));
+    }
   }
 
   /** Removes a lot from the app. Refused while any of its slots has an active booking. */

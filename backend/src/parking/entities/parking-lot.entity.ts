@@ -9,6 +9,7 @@ import {
 } from 'sequelize-typescript';
 import { DEFAULT_FREE_CANCELLATION_MINUTES } from 'src/booking/cancellation';
 import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
+import { PriceOverride } from 'src/parking/entities/price-override.entity';
 import type { GarageStatus } from 'src/parking/garage-status';
 import { User } from 'src/users/entities/user.entity';
 
@@ -46,6 +47,13 @@ export class ParkingLot extends Model {
   /** Whole Iraqi dinars (see common/money.ts). */
   @Column({ type: DataType.INTEGER, allowNull: false })
   declare price_per_hour: number;
+
+  /**
+   * The most a car pays for one calendar day (midnight to midnight, Iraq
+   * time); null for no cap. Date overrides can set their own (see pricing.ts).
+   */
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  declare daily_cap: number | null;
 
   /**
    * How long after a booking starts it can still be cancelled with a full
@@ -102,4 +110,7 @@ export class ParkingLot extends Model {
 
   @HasMany(() => ParkingSlot)
   declare slots: ParkingSlot[];
+
+  @HasMany(() => PriceOverride)
+  declare price_overrides: PriceOverride[];
 }

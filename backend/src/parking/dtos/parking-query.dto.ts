@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -12,6 +13,7 @@ import {
 } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
+import { MAX_BOOKING_HOURS } from 'src/booking/dto/create-booking.dto';
 import { PaginationQueryDto } from 'src/common/pagination/dto/pagination-query.dto';
 import { Trim, UpperCaseTrim } from 'src/common/transformers/normalize';
 import { LEVEL_PATTERN } from './create-parking-slot.dto';
@@ -70,4 +72,19 @@ export class SlotsQueryDto {
     message: i18nValidationMessage('validation.LEVEL_PATTERN'),
   })
   level?: string;
+}
+
+/** GET /parking/:id/quote?hours=3 */
+export class QuoteQueryDto {
+  @ApiProperty({
+    description: 'How long the booking would be, from now.',
+    example: 3,
+    minimum: 1,
+    maximum: MAX_BOOKING_HOURS,
+  })
+  @Type(() => Number)
+  @IsInt({ message: i18nValidationMessage('validation.IS_INT') })
+  @Min(1, { message: i18nValidationMessage('validation.MIN') })
+  @Max(MAX_BOOKING_HOURS, { message: i18nValidationMessage('validation.MAX') })
+  hours!: number;
 }
