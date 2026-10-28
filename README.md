@@ -1,6 +1,6 @@
 # 🅿️ ParkEasy
 
-**A full-stack parking platform for Iraqi cities.** Drivers find a garage near them, book a slot, extend or end their stay and pay from an in-app wallet. Admins approve garages, manage accounts and watch the numbers. Garage owners get their own portal: a live dashboard, every slot at a glance, walk-in cars charged at the exit, and a searchable history of every booking (more pages in progress).
+**A full-stack parking platform for Iraqi cities.** Drivers find a garage near them, book a slot, extend or end their stay and pay from an in-app wallet. Admins approve garages, manage accounts and watch the numbers. Garage owners get their own portal: a live dashboard, every slot at a glance, walk-in cars charged at the exit, a searchable history of every booking, and lot settings with an hourly price, a daily cap and special prices for holidays (reports still to come).
 
 [![Backend](https://github.com/diladev/parkeasy/actions/workflows/backend.yml/badge.svg)](https://github.com/diladev/parkeasy/actions/workflows/backend.yml)
 [![Web](https://github.com/diladev/parkeasy/actions/workflows/web.yml/badge.svg)](https://github.com/diladev/parkeasy/actions/workflows/web.yml)
@@ -19,7 +19,7 @@
 |---|---|---|
 | 📱 [`mobile/`](./mobile) | Flutter · Clean Architecture · BLoC · dartz · get_it · flutter_map | Drivers: find nearby garages on a map, scan a lot's QR sign, book, extend, end early, wallet top-ups, notifications, PDF receipts |
 | ⚙️ [`backend/`](./backend) | NestJS 11 · Sequelize · MySQL 8 · Passport JWT · nestjs-i18n · Swagger | One REST API for all apps, with errors and emails translated per request (English / Kurdish) |
-| 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (sign-in, password reset, dashboard, live slots, walk-ins and bookings so far), one app with English and right-to-left Kurdish |
+| 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (sign-in, password reset, dashboard, live slots, walk-ins, bookings and lot settings so far), one app with English and right-to-left Kurdish |
 
 Everything was designed in Figma first (35 mobile screens and 10 dashboard screens) with one shared dark design system.
 
@@ -61,6 +61,7 @@ flowchart LR
 - Multi-step writes run in transactions: a booking with its payment, or a garage with its levels, slots and owner account.
 - Status changes use conditional updates, so two admins acting at once can't both "win" with stale data.
 - Times are handled in Iraq time (UTC+3), not the server's clock.
+- One pricing engine for app bookings, extensions and walk-ins: every started hour at that day's price, at most the day's cap, with special prices for days like Eid or Newroz. Each booking saves the rules it started with, so a price change later never changes what a parked car pays.
 
 **Kurdish and accessibility**
 - Kurdish (Sorani) is supported end to end: the API translates errors and emails from the `x-lang` header, and the web and mobile apps switch to right-to-left.
@@ -71,8 +72,8 @@ flowchart LR
 
 | App | What runs |
 |---|---|
-| Backend | ESLint + Prettier, build, 123 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
-| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 247 component and unit tests (Vitest + MSW), production build |
+| Backend | ESLint + Prettier, build, 139 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
+| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 272 component and unit tests (Vitest + MSW), production build |
 | Mobile | `flutter analyze`, `flutter test` |
 
 Dependabot keeps dependencies current, and pull requests are checked for newly added vulnerable packages.
@@ -152,7 +153,7 @@ cd mobile  && flutter analyze && flutter test
 
 ## Roadmap
 
-- **Garage Portal:** reports and lot settings with an hourly rate, a daily cap and holiday prices (sign-in, password reset, the dashboard, live slots, walk-ins and bookings are done).
+- **Garage Portal:** reports (sign-in, password reset, the dashboard, live slots, walk-ins, bookings and lot settings are done).
 - **Admin Panel:** transactions, reports and settings pages; global search and notifications.
-- **Mobile:** live GPS location and a payment-methods screen.
+- **Mobile:** prices from the quote endpoint (daily cap and special prices) before booking, Kurdish localization, live GPS location and a payment-methods screen.
 - **Deployment:** Docker images for the API and web app (nginx with security headers) and a public demo.
