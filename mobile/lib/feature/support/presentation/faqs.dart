@@ -19,8 +19,17 @@ const List<Faq> kFaqs = [
   Faq(
     'Can I extend my parking time?',
     'Yes. While a booking is active, open it and tap Extend. The extra hours '
-        'are paid from your wallet at the same rate, up to 24 hours in total, '
-        'as long as the lot is open.',
+        'are paid from your wallet at the prices you booked with, up to 24 '
+        'hours in total, as long as the lot is open. Hours on a day that '
+        "already reached the lot's daily cap cost nothing.",
+  ),
+  Faq(
+    'How are prices worked out?',
+    "Every started hour is charged at the lot's hourly price. Some lots "
+        'have a daily cap: however long you stay, one day never costs more. '
+        'On special days, like Eid or Newroz, a lot can set a different '
+        'price; the lot page shows it. Payment always shows the exact total '
+        'before you pay.',
   ),
   Faq(
     'What if the spot is already taken?',
@@ -31,7 +40,8 @@ const List<Faq> kFaqs = [
   ),
   Faq(
     'How does the QR code work?',
-    'Gate QR codes are coming soon. Until then, show your booking details '
-        'to the attendant at the gate.',
+    'Each garage has a ParkEasy QR code at its entrance. Tap the scan '
+        'button on the home screen and point the camera at it: the garage '
+        'opens, ready to pick a slot and book.',
   ),
 ];
