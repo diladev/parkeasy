@@ -15,6 +15,7 @@ import {
   type BookingStatus,
 } from 'src/booking/entities/booking.entity';
 import type { PaginationResult } from 'src/common/pagination/interfaces/pagination-result.interface';
+import { escapeLike } from 'src/common/like';
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { TranslationService } from 'src/i18n/translation.service';
 import { ParkingLot } from 'src/parking/entities/parking-lot.entity';
@@ -110,9 +111,6 @@ const SUCCESS_MESSAGE: Record<UserAction, string> = {
   suspend: 'USER_SUSPENDED',
   restore: 'USER_RESTORED',
 };
-
-/** "50%_off" -> "50\%\_off", so LIKE treats the admin's text literally. */
-const escapeLike = (text: string) => text.replace(/[\\%_]/g, '\\$&');
 
 /** "2026-10-26" in Iraq time, for the CSV. */
 const iraqDate = (date: Date) =>
