@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { col, fn, Op } from 'sequelize';
+import { col, fn, Op, type Includeable } from 'sequelize';
 
 import {
   Booking,
@@ -36,11 +36,64 @@ export interface GarageBookingRow {
   end_time: Date | null;
   /** A walk-in: 0 until it ends and is charged. */
   total_cost: number;
+  /** Hours paid for: booked (and extended) hours, or a walk-in's charged hours; 0 while parked. */
+  duration_hours: number;
   customer: { id: number; name: string } | null;
   vehicle: { brand: string; model: string; license_plate: string } | null;
   /** A walk-in's plate; null for app bookings (their vehicle has one). */
   plate: string | null;
   slot: { level: string; slot_number: string } | null;
+}
+
+/**
+ * What a GarageBookingRow needs joined: names only, kept even if deleted
+ * since. A new array each time: Sequelize may change include options it's given.
+ */
+export const bookingRowIncludes = (): Includeable[] => [
+  { model: User, attributes: ['id', 'name'], required: false, paranoid: false },
+  {
+    model: Vehicle,
+    attributes: ['brand', 'model', 'license_plate'],
+    required: false,
+    paranoid: false,
+  },
+  {
+    model: ParkingSlot,
+    attributes: ['level', 'slot_number'],
+    required: false,
+    paranoid: false,
+  },
+];
+
+/** A booking loaded with bookingRowIncludes(), as a garage's lists show it. */
+export function toBookingRow(booking: Booking): GarageBookingRow {
+  return {
+    id: booking.id,
+    source: booking.source,
+    status: booking.status,
+    ended_early: endedEarly(booking),
+    start_time: booking.start_time,
+    end_time: booking.end_time,
+    total_cost: booking.total_cost,
+    duration_hours: booking.duration_hours,
+    customer: booking.user
+      ? { id: booking.user.id, name: booking.user.name }
+      : null,
+    vehicle: booking.vehicle
+      ? {
+          brand: booking.vehicle.brand,
+          model: booking.vehicle.model,
+          license_plate: booking.vehicle.license_plate,
+        }
+      : null,
+    plate: booking.plate,
+    slot: booking.parking_slot
+      ? {
+          level: booking.parking_slot.level,
+          slot_number: booking.parking_slot.slot_number,
+        }
+      : null,
+  };
 }
 
 /**
@@ -123,59 +176,14 @@ export class GarageStatsService {
   ): Promise<GarageBookingRow[]> {
     const bookings = await this.bookingModel.findAll({
       where: { parking_lot_id: lotId },
-      include: [
-        {
-          model: User,
-          attributes: ['id', 'name'],
-          required: false,
-          paranoid: false,
-        },
-        {
-          model: Vehicle,
-          attributes: ['brand', 'model', 'license_plate'],
-          required: false,
-          paranoid: false,
-        },
-        {
-          model: ParkingSlot,
-          attributes: ['level', 'slot_number'],
-          required: false,
-          paranoid: false,
-        },
-      ],
+      include: bookingRowIncludes(),
       order: [
         ['start_time', 'DESC'],
         ['id', 'DESC'],
       ],
       limit,
     });
-
-    return bookings.map((booking) => ({
-      id: booking.id,
-      source: booking.source,
-      status: booking.status,
-      ended_early: endedEarly(booking),
-      start_time: booking.start_time,
-      end_time: booking.end_time,
-      total_cost: booking.total_cost,
-      customer: booking.user
-        ? { id: booking.user.id, name: booking.user.name }
-        : null,
-      vehicle: booking.vehicle
-        ? {
-            brand: booking.vehicle.brand,
-            model: booking.vehicle.model,
-            license_plate: booking.vehicle.license_plate,
-          }
-        : null,
-      plate: booking.plate,
-      slot: booking.parking_slot
-        ? {
-            level: booking.parking_slot.level,
-            slot_number: booking.parking_slot.slot_number,
-          }
-        : null,
-    }));
+    return bookings.map(toBookingRow);
   }
 
   /**

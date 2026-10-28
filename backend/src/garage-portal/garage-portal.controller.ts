@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -20,7 +21,9 @@ import { UserAccessTokenAuthGuard } from 'src/auth/guards/user-access-token.guar
 import { PERMISSIONS } from 'src/auth/permissions';
 import type { AuthenticatedUser } from 'src/auth/types/auth.types';
 import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
+import { GarageBookingsQueryDto } from './dtos/garage-bookings-query.dto';
 import { EndWalkInDto, StartWalkInDto } from './dtos/walk-in.dto';
+import { GarageBookingsService } from './garage-bookings.service';
 import { GaragePortalService } from './garage-portal.service';
 import { GarageSlotsService } from './garage-slots.service';
 
@@ -34,6 +37,7 @@ export class GaragePortalController {
   constructor(
     private readonly portal: GaragePortalService,
     private readonly slots: GarageSlotsService,
+    private readonly bookings: GarageBookingsService,
   ) {}
 
   @Get()
@@ -54,6 +58,20 @@ export class GaragePortalController {
     @Param('id', ParseIdPipe) id: number,
   ) {
     return this.portal.dashboard(owner.id, id);
+  }
+
+  @Get(':id/bookings')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary:
+      "One owned garage's app bookings and walk-ins, newest first: search, status, source, period and pages.",
+  })
+  listBookings(
+    @CurrentUser() owner: AuthenticatedUser,
+    @Param('id', ParseIdPipe) id: number,
+    @Query() query: GarageBookingsQueryDto,
+  ) {
+    return this.bookings.list(owner.id, id, query);
   }
 
   @Get(':id/slots')

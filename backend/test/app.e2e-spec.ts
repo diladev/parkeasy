@@ -250,6 +250,48 @@ describe('ParkEasy API (e2e)', () => {
       await api().post(`${base}/${booked.id}/block`).set(auth).expect(409);
     });
 
+    it("lists a garage's app bookings and walk-ins, with search and filters", async () => {
+      const sardar = await signIn('sardar@example.com', 'garage');
+      const auth = { Authorization: `Bearer ${sardar}` };
+      const list = await api().get('/garage/garages').set(auth).expect(200);
+      const cityCenter = (list.body as { id: number; name: string }[]).find(
+        (garage) => garage.name === 'City Center Parking',
+      )!;
+      const base = `/garage/garages/${cityCenter.id}/bookings`;
+      type Page = {
+        data: { source: string; customer: { name: string } | null }[];
+        meta: { totalItems: number };
+      };
+
+      const all = (await api().get(base).set(auth).expect(200)).body as Page;
+      const sources = new Set(all.data.map((row) => row.source));
+      expect(sources).toEqual(new Set(['app', 'walk_in']));
+
+      const walkIns = (
+        await api().get(`${base}?source=walk_in`).set(auth).expect(200)
+      ).body as Page;
+      expect(walkIns.data.every((row) => row.source === 'walk_in')).toBe(true);
+      expect(walkIns.meta.totalItems).toBeLessThan(all.meta.totalItems);
+
+      // A name, and a plate typed without its spaces.
+      const aram = (await api().get(`${base}?q=aram`).set(auth).expect(200))
+        .body as Page;
+      expect(aram.data.map((row) => row.customer?.name)).toContain(
+        'Aram Hassan',
+      );
+      const plate = (
+        await api().get(`${base}?q=22sul48213`).set(auth).expect(200)
+      ).body as Page;
+      expect(plate.meta.totalItems).toBeGreaterThan(0);
+
+      await api().get(`${base}?status=nope`).set(auth).expect(400);
+      const rawand = await signIn('rawand@example.com', 'garage');
+      await api()
+        .get(base)
+        .set('Authorization', `Bearer ${rawand}`)
+        .expect(404);
+    });
+
     it('starts a walk-in on a free slot, charges it at the exit and frees the slot', async () => {
       const sardar = await signIn('sardar@example.com', 'garage');
       const auth = { Authorization: `Bearer ${sardar}` };

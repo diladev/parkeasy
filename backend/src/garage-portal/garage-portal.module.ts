@@ -7,6 +7,7 @@ import { ParkingSlot } from 'src/parking/entities/parking-slot.entity';
 import { ParkingModule } from 'src/parking/parking.module';
 import { UsersModule } from 'src/users/users.module';
 import { GaragePortalController } from './garage-portal.controller';
+import { GarageBookingsService } from './garage-bookings.service';
 import { GaragePortalService } from './garage-portal.service';
 import { GarageSlotsService } from './garage-slots.service';
 
@@ -19,6 +20,6 @@ import { GarageSlotsService } from './garage-slots.service';
     UsersModule,
   ],
   controllers: [GaragePortalController],
-  providers: [GaragePortalService, GarageSlotsService],
+  providers: [GaragePortalService, GarageSlotsService, GarageBookingsService],
 })
 export class GaragePortalModule {}
