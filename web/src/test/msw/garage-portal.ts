@@ -161,6 +161,38 @@ export const garagePortalHandlers = [
     })
   }),
   http.get('/api/garage/garages', () => HttpResponse.json(OWNED_GARAGES)),
+  http.get('/api/garage/garages/:id/settings', ({ params }) => {
+    const settings = settingsDb.get(Number(params.id))
+    return settings ? HttpResponse.json(settings) : notFound()
+  }),
+  http.put('/api/garage/garages/:id/settings', async ({ params, request }) => {
+    const id = Number(params.id)
+    const before = settingsDb.get(id)
+    if (!before) return notFound()
+    const body = (await request.json()) as Record<string, unknown> & {
+      price_per_hour: number
+      daily_cap: number | null
+      price_overrides: Record<string, unknown>[]
+    }
+    settingsDb.requests.push(body)
+    if (body.daily_cap !== null && body.daily_cap < body.price_per_hour) {
+      return HttpResponse.json(
+        { statusCode: 400, message: "The daily cap can't be lower than one hour's price." },
+        { status: 400 },
+      )
+    }
+    const saved = {
+      ...before,
+      ...body,
+      price_overrides: body.price_overrides.map((rule, index) => ({ id: 100 + index, ...rule })),
+    }
+    settingsDb.set(id, saved)
+    return HttpResponse.json({
+      message:
+        'Settings saved. New bookings and walk-ins pay the new prices; cars already parked keep theirs.',
+      settings: saved,
+    })
+  }),
   http.get('/api/garage/garages/:id/dashboard', ({ params }) => {
     const id = Number(params.id)
     if (!OWNED_GARAGES.some((garage) => garage.id === id)) {
@@ -304,15 +336,34 @@ function seedSlots(garageId: number): MockSlot[] {
     {
       ...free(57, 'G', 'A05'),
       status: 'occupied',
-      booking: walkIn(420, '22 SUL 4471', new Date(Date.now() - 70 * 60_000), {
-        hours: 2,
-        amount: 3000,
-      }),
+      booking: walkIn(420, '22 SUL 4471', new Date(Date.now() - 70 * 60_000), quote(2)),
     },
   ]
 }
 
-function walkIn(id: number, plate: string, start: Date, charge = { hours: 1, amount: 1500 }) {
+/** A fee so far on one day (backend PriceQuote): `hours` at `price`, at most `cap`. */
+export function quote(hours: number, price = 1500, cap: number | null = 9000) {
+  const full = hours * price
+  const capped = cap !== null && full > cap
+  const amount = capped ? cap : full
+  return {
+    hours,
+    amount,
+    days: [
+      {
+        date: new Date().toISOString().slice(0, 10),
+        hours,
+        price_per_hour: price,
+        daily_cap: cap,
+        label: null,
+        amount,
+        capped,
+      },
+    ],
+  }
+}
+
+function walkIn(id: number, plate: string, start: Date, charge = quote(1)) {
   return {
     id,
     source: 'walk_in',
@@ -338,6 +389,88 @@ export const garagePortalDb = (() => {
     },
     reset() {
       store = new Map()
+    },
+  }
+})()
+
+/** The Iraq calendar day `days` from now, as the API sends dates. */
+export function iraqDay(days = 0, now = new Date()): string {
+  return new Date(now.getTime() + 3 * 3_600_000 + days * 86_400_000).toISOString().slice(0, 10)
+}
+
+/** GET /garage/garages/:id/settings for the two garages (backend LotSettings). */
+function seedSettings(id: number) {
+  const garage = OWNED_GARAGES.find((owned) => owned.id === id)!
+  const base = {
+    ...garage,
+    address: 'Salim Street, Sulaymaniyah',
+    is_open_24h: true,
+    opening_time: '00:00',
+    closing_time: '00:00',
+    has_cctv: true,
+    has_ev_charging: false,
+    is_covered: true,
+    is_accessible: true,
+    free_cancellation_minutes: 30,
+    today: iraqDay(),
+  }
+  if (id === 3) {
+    return {
+      ...base,
+      address: 'Bakhtiari, Sulaymaniyah',
+      is_open_24h: false,
+      opening_time: '07:00',
+      closing_time: '23:00',
+      price_per_hour: 2000,
+      daily_cap: null,
+      free_cancellation_minutes: 15,
+      total_slots: 32,
+      price_overrides: [],
+    }
+  }
+  return {
+    ...base,
+    price_per_hour: 1500,
+    daily_cap: 9000,
+    total_slots: 30,
+    price_overrides: [
+      {
+        id: 1,
+        label: 'Derby day',
+        start_date: iraqDay(),
+        end_date: iraqDay(),
+        price_per_hour: 2500,
+        daily_cap: null,
+      },
+      {
+        id: 2,
+        label: 'Weekend market',
+        start_date: iraqDay(9),
+        end_date: iraqDay(10),
+        price_per_hour: 2000,
+        daily_cap: 12000,
+      },
+    ],
+  }
+}
+
+/** Lot settings per garage, and every PUT body received; reset after each test. */
+export const settingsDb = (() => {
+  let store = new Map<number, Record<string, unknown>>()
+  const requests: Record<string, unknown>[] = []
+  return {
+    requests,
+    get(id: number): Record<string, unknown> | undefined {
+      if (!OWNED_GARAGES.some((garage) => garage.id === id)) return undefined
+      if (!store.has(id)) store.set(id, seedSettings(id))
+      return store.get(id)
+    },
+    set(id: number, settings: Record<string, unknown>) {
+      store.set(id, settings)
+    },
+    reset() {
+      store = new Map()
+      requests.length = 0
     },
   }
 })()

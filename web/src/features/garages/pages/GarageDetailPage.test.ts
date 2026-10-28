@@ -71,6 +71,7 @@ describe('GarageDetailPage', () => {
 
     const settings = section('Lot settings')
     expect(settings).toContain('1,500 IQD')
+    expect(settings).toMatch(/Daily cap\s*9,000 IQD/)
     expect(settings).toContain('Open 24 hours')
     expect(settings).toContain('30 min after the start')
     expect(settings).toContain('CCTV')

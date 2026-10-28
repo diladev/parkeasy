@@ -37,6 +37,28 @@ export const dashboardSchema = z.object({
 })
 export type GarageDashboard = z.infer<typeof dashboardSchema>
 
+/**
+ * What a stay costs, day by day (backend/src/parking/pricing.ts): every
+ * started hour at that day's price, at most the day's cap.
+ */
+export const priceQuoteSchema = z.object({
+  hours: z.number().int(),
+  amount: z.number(),
+  days: z.array(
+    z.object({
+      date: z.iso.date(),
+      hours: z.number().int(),
+      price_per_hour: z.number(),
+      daily_cap: z.number().nullable(),
+      /** The special price it comes from; null for the normal price. */
+      label: z.string().nullable(),
+      amount: z.number(),
+      capped: z.boolean(),
+    }),
+  ),
+})
+export type PriceQuote = z.infer<typeof priceQuoteSchema>
+
 /** backend/src/garage-portal/garage-slots.service.ts (LiveSlot). */
 export const SLOT_STATUSES = ['free', 'reserved', 'occupied', 'blocked'] as const
 export type SlotStatus = (typeof SLOT_STATUSES)[number]
@@ -63,7 +85,7 @@ export const liveSlotSchema = z.object({
         .nullable(),
       plate: z.string().nullable(),
       /** A walk-in: what it would pay if it left now. */
-      charge_now: z.object({ hours: z.number().int(), amount: z.number() }).nullable(),
+      charge_now: priceQuoteSchema.nullable(),
     })
     .nullable(),
 })
@@ -84,3 +106,43 @@ export const WALK_IN_PAYMENT_METHODS = ['cash', 'card'] as const
 export type WalkInPaymentMethod = (typeof WALK_IN_PAYMENT_METHODS)[number]
 
 export type SlotAction = 'block' | 'release'
+
+/** backend/src/garage-portal/garage-settings.service.ts (LotSettings). */
+export const priceOverrideSchema = z.object({
+  id: z.number().int(),
+  label: z.string(),
+  start_date: z.iso.date(),
+  end_date: z.iso.date(),
+  price_per_hour: z.number().int(),
+  daily_cap: z.number().int().nullable(),
+})
+export type PriceOverride = z.infer<typeof priceOverrideSchema>
+
+export const lotSettingsSchema = z.object({
+  id: z.number().int(),
+  status: ownedGarageSchema.shape.status,
+  name: z.string(),
+  address: z.string(),
+  city: z.string(),
+  is_open_24h: z.boolean(),
+  opening_time: z.string(),
+  closing_time: z.string(),
+  price_per_hour: z.number().int(),
+  daily_cap: z.number().int().nullable(),
+  free_cancellation_minutes: z.number().int(),
+  has_cctv: z.boolean(),
+  has_ev_charging: z.boolean(),
+  is_covered: z.boolean(),
+  is_accessible: z.boolean(),
+  total_slots: z.number().int(),
+  /** Special prices that haven't ended, soonest first. */
+  price_overrides: z.array(priceOverrideSchema),
+  /** The server's Iraq calendar day: dates are checked against it. */
+  today: z.iso.date(),
+})
+export type LotSettings = z.infer<typeof lotSettingsSchema>
+
+export const lotSettingsSavedSchema = z.object({
+  message: z.string(),
+  settings: lotSettingsSchema,
+})

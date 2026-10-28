@@ -3,12 +3,12 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import { computed, nextTick, reactive, ref, useId, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { formatDateTime, formatInteger, formatTime } from '@/shared/lib/format'
+import { formatDateTime, formatDay, formatInteger, formatTime } from '@/shared/lib/format'
 import { levelLabel } from '@/shared/lib/level-label'
 
 import type { SlotChange } from '../composables/useLiveSlots'
 import { splitMinutes } from '../model/dashboard-figures'
-import type { LiveSlot } from '../model/portal.schemas'
+import type { LiveSlot, PriceQuote } from '../model/portal.schemas'
 import {
   createPlateSchema,
   minutesSince,
@@ -36,6 +36,29 @@ const iqd = (value: number) => `${formatInteger(value)} ${t('common.iqd')}`
 /** Only the wallet exists for app bookings today; anything else shows as the API names it. */
 const paidWith = (method: string) =>
   method === 'wallet' ? t('garagePortal.slots.details.paidWith.wallet') : method
+
+/**
+ * How the fee so far adds up: "2 h × 1,500 IQD", or a line per day when the
+ * stay crossed midnight, hit the daily cap or falls on a special price.
+ */
+function feeLines(quote: PriceQuote): string[] {
+  const details = 'garagePortal.slots.details'
+  const named = (text: string, label: string | null) => (label ? `${text} (${label})` : text)
+  const [only] = quote.days
+  if (quote.days.length === 1 && only) {
+    const text = only.capped
+      ? t(`${details}.feeCapped`, { hours: only.hours, cap: iqd(only.daily_cap ?? 0) })
+      : t(`${details}.feeRule`, { hours: only.hours, price: iqd(only.price_per_hour) })
+    return [named(text, only.label)]
+  }
+  return quote.days.map((day) => {
+    const date = formatDay(day.date, locale.value)
+    const text = day.capped
+      ? t(`${details}.feeDayCapped`, { day: date, hours: day.hours, cap: iqd(day.daily_cap ?? 0) })
+      : t(`${details}.feeDay`, { day: date, hours: day.hours, price: iqd(day.price_per_hour) })
+    return named(text, day.label)
+  })
+}
 
 function duration(minutes: number): string {
   const parts = splitMinutes(minutes)
@@ -189,12 +212,12 @@ function remove() {
           <dt class="text-muted">{{ t('garagePortal.slots.details.feeSoFar') }}</dt>
           <dd class="text-end text-highlighted">
             {{ iqd(slot.booking.charge_now.amount) }}
-            <span class="block text-xs text-muted">{{
-              t('garagePortal.slots.details.feeRule', {
-                hours: slot.booking.charge_now.hours,
-                price: iqd(slot.booking.price_per_hour),
-              })
-            }}</span>
+            <span
+              v-for="line in feeLines(slot.booking.charge_now)"
+              :key="line"
+              class="block text-xs text-muted"
+              >{{ line }}</span
+            >
           </dd>
         </div>
       </dl>

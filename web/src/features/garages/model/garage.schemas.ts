@@ -83,6 +83,8 @@ export const garageDetailSchema = z.object({
   latitude: z.number(),
   longitude: z.number(),
   price_per_hour: z.number(),
+  /** The most one day costs; null for no cap. */
+  daily_cap: z.number().nullable(),
   is_open_24h: z.boolean(),
   opening_time: z.string(),
   closing_time: z.string(),

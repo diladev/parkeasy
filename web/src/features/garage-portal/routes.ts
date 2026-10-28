@@ -20,4 +20,11 @@ export const garagePortalRoutes: RouteRecordRaw[] = [
     component: () => import('./pages/GarageBookingsPage.vue'),
     meta: { title: 'nav.bookings', icon: 'i-lucide-calendar-check', menuOrder: 30 },
   },
+  {
+    path: 'settings',
+    name: 'garage.settings',
+    component: () => import('./pages/LotSettingsPage.vue'),
+    // Reports will sit at 40, between Bookings and Settings, as in the design.
+    meta: { title: 'nav.settings', icon: 'i-lucide-settings', menuOrder: 50 },
+  },
 ]

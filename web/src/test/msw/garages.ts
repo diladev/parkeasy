@@ -59,6 +59,7 @@ function baseDetail(row: GarageRow) {
     latitude: 35.5571,
     longitude: 45.4356,
     price_per_hour: 1500,
+    daily_cap: row.id === 5 ? 9000 : null,
     is_open_24h: row.id === 5,
     opening_time: '08:00',
     closing_time: '22:00',

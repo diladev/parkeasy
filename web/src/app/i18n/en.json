@@ -13,7 +13,8 @@
     "users": "Users",
     "dashboard": "Dashboard",
     "liveSlots": "Live Slots",
-    "bookings": "Bookings"
+    "bookings": "Bookings",
+    "settings": "Settings"
   },
   "roles": {
     "admin": "Administrator",
@@ -242,6 +243,8 @@
         "title": "Lot settings",
         "subtitle": "Set by the owner in the Garage Portal; admins can edit them too.",
         "pricePerHour": "Price per hour",
+        "dailyCap": "Daily cap",
+        "noCap": "No cap",
         "openingHours": "Opening hours",
         "open24h": "Open 24 hours",
         "hoursRange": "{from} – {to}",
@@ -556,7 +559,10 @@
         "plate": "Plate",
         "parkedSince": "Parked since",
         "feeSoFar": "Fee so far",
-        "feeRule": "{hours} h × {price}"
+        "feeRule": "{hours} h × {price}",
+        "feeCapped": "{hours} h, daily cap {cap}",
+        "feeDay": "{day}: {hours} h × {price}",
+        "feeDayCapped": "{day}: {hours} h, daily cap {cap}"
       },
       "notes": {
         "free": "Drivers can book it in the app, or record a car that parked here without it.",
@@ -621,6 +627,82 @@
       "noMatch": "No bookings match these filters.",
       "clearFilters": "Clear filters",
       "viewAll": "View all"
+    },
+    "settings": {
+      "loading": "Loading the settings…",
+      "loadError": "Couldn't load the settings",
+      "sections": {
+        "details": "Lot information",
+        "pricing": "Pricing",
+        "overrides": "Special prices",
+        "hours": "Opening hours",
+        "amenities": "Amenities shown to drivers"
+      },
+      "name": "Lot name",
+      "address": "Address",
+      "city": "City",
+      "totalSlots": "Total slots",
+      "manageSlots": "Block or free slots on Live Slots",
+      "pricePerHour": "Price per hour",
+      "capSwitch": "Cap what a car pays per day",
+      "dailyCap": "Daily cap",
+      "capHelp": "The most one car pays from midnight to midnight.",
+      "capHint": "Stays of {hours} h or more pay {cap} for the day.",
+      "freeCancellation": "Free cancellation",
+      "freeCancellationHelp": "Minutes after the start a driver can still cancel for a full refund (0–{max}).",
+      "minutes": "min",
+      "open24h": "Open 24 hours",
+      "openingTime": "Opens at",
+      "closingTime": "Closes at",
+      "hoursHelp": "A closing time earlier than the opening time means it closes after midnight.",
+      "pricesNote": "New prices apply to new bookings and walk-ins. Cars already parked keep the prices they came in with.",
+      "overrides": {
+        "help": "Different prices for holidays and events, like Eid or Newroz. Each day can have one.",
+        "empty": "No special prices coming up.",
+        "add": "Add special price",
+        "addTitle": "Add a special price",
+        "editTitle": "Edit special price",
+        "dialogDescription": "It's saved with the rest of the page.",
+        "label": "Name",
+        "labelPlaceholder": "Eid al-Adha",
+        "startDate": "First day",
+        "endDate": "Last day",
+        "endDateHelp": "Up to {max} days.",
+        "capHelp": "Leave empty for no cap on these days.",
+        "update": "Update",
+        "edit": "Edit {label}",
+        "remove": "Remove {label}",
+        "running": "Now on",
+        "days": "{count} day | {count} days",
+        "perHour": "{price} an hour",
+        "capped": "at most {cap} a day",
+        "noCap": "no daily cap",
+        "limit": "You can have up to {max} special prices."
+      },
+      "save": "Save changes",
+      "discard": "Discard",
+      "cancel": "Cancel",
+      "unsaved": "Unsaved changes",
+      "leave": {
+        "title": "Leave without saving?",
+        "description": "Your changes to the settings will be lost.",
+        "stay": "Stay",
+        "leave": "Leave"
+      },
+      "errors": {
+        "required": "Fill this in.",
+        "minLength": "Use at least {min} characters.",
+        "wholeNumber": "Use a whole number.",
+        "atLeast": "Use {min} or more.",
+        "atMost": "Use {max} or less.",
+        "time": "Enter a time like 08:00.",
+        "date": "Pick a date.",
+        "capBelowPrice": "Use at least one hour's price.",
+        "endBeforeStart": "The last day can't be before the first.",
+        "ended": "This has already ended.",
+        "tooLong": "Use {max} days or fewer.",
+        "overlap": "These days overlap {label}."
+      }
     }
   }
 }

@@ -156,6 +156,15 @@ export const http = {
       typeof disposition === 'string' ? /filename="?([^";]+)"?/.exec(disposition)?.[1] : undefined
     return { blob: response.data, filename }
   },
+  async put<T>(
+    url: string,
+    body: unknown,
+    schema: ResponseSchema<T>,
+    options?: RequestOptions,
+  ): Promise<T> {
+    const response = await client.put<unknown>(url, body, options)
+    return parseBody(schema, response.data)
+  },
   async patch<T>(
     url: string,
     body: unknown,

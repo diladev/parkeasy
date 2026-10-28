@@ -43,6 +43,14 @@ const mapUrl = computed(() => mapLink(garage.latitude, garage.longitude))
         {{ formatInteger(garage.price_per_hour) }} {{ t('common.iqd') }}
       </dd>
 
+      <dt class="text-dimmed">{{ t('garages.detail.settings.dailyCap') }}</dt>
+      <dd class="text-highlighted">
+        <template v-if="garage.daily_cap !== null">
+          {{ formatInteger(garage.daily_cap) }} {{ t('common.iqd') }}
+        </template>
+        <template v-else>{{ t('garages.detail.settings.noCap') }}</template>
+      </dd>
+
       <dt class="text-dimmed">{{ t('garages.detail.settings.openingHours') }}</dt>
       <dd class="text-highlighted">{{ hours }}</dd>
 

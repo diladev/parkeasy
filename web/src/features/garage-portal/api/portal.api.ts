@@ -4,14 +4,18 @@ import { paginated, type PaginationMeta } from '@/shared/api/pagination'
 
 import { toBookingApiParams, type BookingListParams } from '../model/bookings-params'
 
+import type { LotSettingsBody } from '../model/lot-settings'
 import {
   dashboardSchema,
   liveSlotsSchema,
+  lotSettingsSavedSchema,
+  lotSettingsSchema,
   ownedGaragesSchema,
   slotChangeSchema,
   type GarageDashboard,
   type LiveSlot,
   type LiveSlots,
+  type LotSettings,
   type OwnedGarage,
   type SlotAction,
   type WalkInPaymentMethod,
@@ -27,6 +31,7 @@ export const portalKeys = {
   slots: (id: number) => [...portalKeys.all, 'slots', id] as const,
   bookings: (id: number, params: BookingListParams) =>
     [...portalKeys.all, 'bookings', id, params] as const,
+  settings: (id: number) => [...portalKeys.all, 'settings', id] as const,
 }
 
 const bookingPageSchema = paginated(bookingRowSchema)
@@ -49,6 +54,17 @@ export const portalApi = {
       params: toBookingApiParams(params),
       signal,
     }),
+
+  /** What the Lot Settings page edits. */
+  settings: (id: number, signal?: AbortSignal): Promise<LotSettings> =>
+    http.get(`${BASE}/${id}/settings`, lotSettingsSchema, { signal }),
+
+  /** Saves the whole page; special prices that haven't ended are replaced by the list sent. */
+  saveSettings: (
+    id: number,
+    body: LotSettingsBody,
+  ): Promise<{ message: string; settings: LotSettings }> =>
+    http.put(`${BASE}/${id}/settings`, body, lotSettingsSavedSchema),
 
   /** Every slot with its status, and the booking holding it. */
   slots: (id: number, signal?: AbortSignal): Promise<LiveSlots> =>

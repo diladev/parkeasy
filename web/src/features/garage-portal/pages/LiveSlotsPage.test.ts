@@ -2,6 +2,7 @@ import { flushPromises, type VueWrapper } from '@vue/test-utils'
 import { http as mock, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { garagePortalDb } from '@/test/msw/garage-portal'
 import { OWNER, nestError } from '@/test/msw/handlers'
 import { server } from '@/test/msw/server'
 import { mountApp } from '@/test/mountApp'
@@ -179,7 +180,7 @@ describe('LiveSlotsPage', () => {
     const links = [...document.querySelectorAll('[id^="dashboard-sidebar"] a')].map((a) =>
       clean(a.textContent),
     )
-    expect(links).toEqual(['Dashboard', 'Live Slots', 'Bookings'])
+    expect(links).toEqual(['Dashboard', 'Live Slots', 'Bookings', 'Settings'])
   })
 
   it('reads in Kurdish, right to left', async () => {
@@ -236,6 +237,38 @@ describe('LiveSlotsPage · walk-ins', () => {
     expect(sent).toEqual({ plate: '22 SUL 777' })
     expect(clean(document.body.textContent)).toContain('Walk-in started on G · A01 for 22 SUL 777.')
     expect(details()).toContain('Plate 22 SUL 777')
+  })
+
+  it('breaks the fee down by day when it crossed midnight, hit the cap or a special price', async () => {
+    const walkIn = garagePortalDb.slots(5).find((slot) => slot.id === 57)!.booking!
+    walkIn.charge_now = {
+      hours: 30,
+      amount: 21000,
+      days: [
+        {
+          date: '2026-10-27',
+          hours: 10,
+          price_per_hour: 1500,
+          daily_cap: 9000,
+          label: null,
+          amount: 9000,
+          capped: true,
+        },
+        {
+          date: '2026-10-28',
+          hours: 20,
+          price_per_hour: 2000,
+          daily_cap: 12000,
+          label: 'Weekend market',
+          amount: 12000,
+          capped: true,
+        },
+      ],
+    }
+    await openSlots('/garage/slots?level=G&slot=57')
+    expect(details()).toContain(
+      'Fee so far 21,000 IQD 27 Oct 2026: 10 h, daily cap 9,000 IQD 28 Oct 2026: 20 h, daily cap 12,000 IQD (Weekend market)',
+    )
   })
 
   it('shows the plate and the fee so far, and charges it at the exit', async () => {

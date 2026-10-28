@@ -20,7 +20,7 @@ const slot = (status: LiveSlot['status'], held: 'app' | 'walk_in' | null = null)
         customer: null,
         vehicle: null,
         plate: held === 'walk_in' ? '22 SUL 1' : null,
-        charge_now: held === 'walk_in' ? { hours: 1, amount: 1500 } : null,
+        charge_now: held === 'walk_in' ? { hours: 1, amount: 1500, days: [] } : null,
       }
     : null,
 })
