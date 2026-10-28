@@ -17,7 +17,7 @@
 
 | App | Stack | For |
 |---|---|---|
-| 📱 [`mobile/`](./mobile) | Flutter · Clean Architecture · BLoC · dartz · get_it · flutter_map | Drivers: find nearby garages on a map, scan a lot's QR sign, book, extend, end early, wallet top-ups, notifications, PDF receipts |
+| 📱 [`mobile/`](./mobile) | Flutter · Clean Architecture · BLoC · dartz · get_it · flutter_map | Drivers: find nearby garages on a map, scan a lot's QR sign, book with daily caps and special prices, extend, end early, wallet top-ups, notifications, PDF receipts, help & support |
 | ⚙️ [`backend/`](./backend) | NestJS 11 · Sequelize · MySQL 8 · Passport JWT · nestjs-i18n · Swagger | One REST API for all apps, with errors and emails translated per request (English / Kurdish) |
 | 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (sign-in, password reset, dashboard, live slots, walk-ins, bookings and lot settings so far), one app with English and right-to-left Kurdish |
 
@@ -155,5 +155,5 @@ cd mobile  && flutter analyze && flutter test
 
 - **Garage Portal:** reports (sign-in, password reset, the dashboard, live slots, walk-ins, bookings and lot settings are done).
 - **Admin Panel:** transactions, reports and settings pages; global search and notifications.
-- **Mobile:** prices from the quote endpoint (daily cap and special prices) before booking, Kurdish localization, live GPS location and a payment-methods screen.
+- **Mobile:** an onboarding screen, Kurdish localization and live GPS location.
 - **Deployment:** Docker images for the API and web app (nginx with security headers) and a public demo.
