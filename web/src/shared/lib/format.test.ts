@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  formatDay,
+  formatDayRange,
   formatDateTime,
   formatInteger,
   formatMonthYear,
@@ -43,5 +45,17 @@ describe('weekdays, times and days ago', () => {
     expect(formatTime(lateNight)).toBe('01:30')
     expect(iraqDaysAgo(lateNight, new Date('2026-10-27T08:00:00Z'))).toBe(0)
     expect(iraqDaysAgo(new Date('2026-10-26T20:00:00Z'), new Date('2026-10-27T08:00:00Z'))).toBe(1)
+  })
+})
+
+describe('calendar days', () => {
+  it('formats a day the API sends, in both languages', () => {
+    expect(formatDay('2027-03-20', 'en')).toBe('20 Mar 2027')
+    expect(formatDay('2027-03-20', 'ckb')).toBe('20 ئازار 2027')
+  })
+
+  it('formats a range, or a single day', () => {
+    expect(formatDayRange('2027-03-20', '2027-03-22', 'en')).toBe('20 Mar 2027 – 22 Mar 2027')
+    expect(formatDayRange('2026-12-31', '2026-12-31', 'ckb')).toBe('31 کانوونی یەکەم 2026')
   })
 })

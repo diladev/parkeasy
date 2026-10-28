@@ -108,6 +108,22 @@ export function formatWeekday(isoDate: string, language: string): string {
   return new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' }).format(date)
 }
 
+/** "2027-03-20" (an Iraq calendar day, as the API sends it) -> "20 Mar 2027" / "20 ئازار 2027" */
+export function formatDay(isoDate: string, language: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  if (language === 'ckb')
+    return `${day ?? ''} ${KURDISH_MONTHS[(month ?? 1) - 1] ?? ''} ${year ?? ''}`
+  const date = new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, day ?? 1, 12))
+  return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
+}
+
+/** "20 Mar 2027", or "20 Mar 2027 – 22 Mar 2027" for a range of days. */
+export function formatDayRange(start: string, end: string, language: string): string {
+  return start === end
+    ? formatDay(start, language)
+    : `${formatDay(start, language)} – ${formatDay(end, language)}`
+}
+
 /** "14:37", Iraq time. */
 export function formatTime(date: Date): string {
   return iraqParts(date).time
