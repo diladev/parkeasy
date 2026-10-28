@@ -7,7 +7,8 @@ import { z } from 'zod'
 export const paginationMetaSchema = z.object({
   totalItems: z.number().int().nonnegative(),
   itemsPerPage: z.number().int().positive(),
-  totalPages: z.number().int().positive(),
+  /** 0 when nothing matched: the backend counts pages of results, and there are none. */
+  totalPages: z.number().int().nonnegative(),
   currentPage: z.number().int().positive(),
 })
 export type PaginationMeta = z.infer<typeof paginationMetaSchema>
