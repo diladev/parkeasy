@@ -106,6 +106,7 @@ import 'package:mobile/feature/wallet/domain/usecases/get_balance.dart';
 import 'package:mobile/feature/wallet/domain/usecases/get_top_up.dart';
 import 'package:mobile/feature/wallet/domain/usecases/get_wallet_transactions.dart';
 import 'package:mobile/feature/wallet/domain/usecases/start_top_up.dart';
+import 'package:mobile/feature/wallet/presentation/cubit/payment_methods_cubit.dart';
 import 'package:mobile/feature/wallet/presentation/cubit/top_up_cubit.dart';
 import 'package:mobile/feature/wallet/presentation/cubit/wallet_cubit.dart';
 
@@ -296,6 +297,7 @@ Future<void> init() async {
     (draft, _) => PaymentCubit(sl(), sl(), sl(), draft: draft),
   );
   sl.registerFactory(() => WalletCubit(sl(), sl(), sl()));
+  sl.registerFactory(() => PaymentMethodsCubit(sl()));
   // Needs the top-up being paid, passed as param1.
   sl.registerFactoryParam<TopUpCubit, TopUp, void>(
     (topUp, _) => TopUpCubit(sl(), sl(), sl(), topUp: topUp),
