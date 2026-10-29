@@ -30,6 +30,8 @@ export interface GarageFormValues {
   /** One box for both, as copied from a map: "35.5571, 45.4356". */
   coordinates: string
   price_per_hour: number | undefined
+  has_daily_cap: boolean
+  daily_cap: number | undefined
   free_cancellation_minutes: number | undefined
   is_open_24h: boolean
   opening_time: string
@@ -52,6 +54,8 @@ export interface GarageDetailsBody {
   latitude: number
   longitude: number
   price_per_hour: number
+  /** The most one day costs; null for no cap. */
+  daily_cap: number | null
   free_cancellation_minutes: number
   is_open_24h: boolean
   opening_time: string
@@ -92,6 +96,8 @@ export function emptyGarageForm(): GarageFormValues {
     city: '',
     coordinates: '',
     price_per_hour: undefined,
+    has_daily_cap: false,
+    daily_cap: undefined,
     free_cancellation_minutes: 30,
     is_open_24h: false,
     opening_time: '08:00',
@@ -114,6 +120,8 @@ export function formFromGarage(garage: GarageDetail): GarageFormValues {
     city: garage.city,
     coordinates: formatCoordinates(garage.latitude, garage.longitude),
     price_per_hour: garage.price_per_hour,
+    has_daily_cap: garage.daily_cap !== null,
+    daily_cap: garage.daily_cap ?? undefined,
     free_cancellation_minutes: garage.free_cancellation_minutes,
     is_open_24h: garage.is_open_24h,
     opening_time: garage.opening_time,
@@ -136,6 +144,7 @@ function detailsBody(values: GarageFormValues): GarageDetailsBody {
     latitude: point.latitude,
     longitude: point.longitude,
     price_per_hour: values.price_per_hour ?? 0,
+    daily_cap: values.has_daily_cap ? (values.daily_cap ?? null) : null,
     free_cancellation_minutes: values.free_cancellation_minutes ?? 0,
     is_open_24h: values.is_open_24h,
     opening_time: values.opening_time,
@@ -197,7 +206,8 @@ export type FormMessage = (
     | 'level'
     | 'levelTwice'
     | 'email'
-    | 'phone',
+    | 'phone'
+    | 'capBelowPrice',
   params?: Record<string, number>,
 ) => string
 
@@ -283,6 +293,9 @@ export function createGarageFormSchema(
       .string()
       .refine((value) => parseCoordinates(value) !== null, { error: message('coordinates') }),
     price_per_hour: wholeNumber(0),
+    has_daily_cap: z.boolean(),
+    // Checked by dailyCapErrors: it depends on the price.
+    daily_cap: z.unknown(),
     free_cancellation_minutes: wholeNumber(0, MAX_FREE_CANCELLATION_MINUTES),
     is_open_24h: z.boolean(),
     opening_time: time,
@@ -295,6 +308,29 @@ export function createGarageFormSchema(
     withOwner: z.boolean(),
     owner: mode === 'create' && withOwner ? owner : z.unknown(),
   })
+}
+
+/**
+ * The daily cap, when it's switched on: a whole amount, at least one hour's
+ * price (the backend refuses less). As UForm's `validate` takes them.
+ */
+export function dailyCapErrors(
+  values: GarageFormValues,
+  message: FormMessage,
+): { name: string; message: string }[] {
+  if (!values.has_daily_cap) return []
+  const cap = values.daily_cap
+  const error =
+    cap === undefined
+      ? message('required')
+      : !Number.isInteger(cap)
+        ? message('wholeNumber')
+        : cap < 0
+          ? message('atLeast', { min: 0 })
+          : Number.isInteger(values.price_per_hour) && cap < (values.price_per_hour ?? 0)
+            ? message('capBelowPrice')
+            : null
+  return error ? [{ name: 'daily_cap', message: error }] : []
 }
 
 /** What "Add level" suggests: G first, then the first free basement (B1, B2...). */
@@ -323,6 +359,8 @@ export function stepsFor(mode: 'create' | 'edit'): readonly FormStep[] {
 const DETAIL_FIELDS = ['name', 'address', 'city', 'coordinates'] as const
 const PRICING_FIELDS = [
   'price_per_hour',
+  'has_daily_cap',
+  'daily_cap',
   'free_cancellation_minutes',
   'is_open_24h',
   'opening_time',

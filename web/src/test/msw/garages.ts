@@ -140,6 +140,7 @@ interface SavedBody {
   latitude: number
   longitude: number
   price_per_hour: number
+  daily_cap: number | null
   free_cancellation_minutes: number
   is_open_24h: boolean
   opening_time: string

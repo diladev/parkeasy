@@ -11,6 +11,7 @@ import { useSaveGarage } from '../composables/useSaveGarage'
 import { mapLink } from '../model/garage-figures'
 import {
   createGarageFormSchema,
+  dailyCapErrors,
   emptyGarageForm,
   fieldsOf,
   formFromGarage,
@@ -45,6 +46,8 @@ const FORM_ID = 'garage-form'
 const message: FormMessage = (key, params) => t(`garages.form.errors.${key}`, params ?? {})
 const state = reactive<GarageFormValues>(emptyGarageForm())
 const schema = computed(() => createGarageFormSchema(message, mode.value, state.withOwner))
+/** The daily cap depends on the price, so it's checked here rather than in the schema. */
+const validate = () => dailyCapErrors(state, message)
 /** What the form held when it opened, to tell whether anything changed. */
 let initial = ''
 const serverError = ref('')
@@ -237,6 +240,7 @@ const description = computed(() =>
         :id="FORM_ID"
         ref="form"
         :schema
+        :validate
         :state
         :loading-auto="false"
         :disabled="saving"
@@ -350,6 +354,30 @@ const description = computed(() =>
               >
                 <template #trailing>
                   <span class="text-xs text-dimmed">{{ t('garages.form.minutes') }}</span>
+                </template>
+              </UInput>
+            </UFormField>
+            <UFormField name="has_daily_cap" class="sm:col-span-2">
+              <USwitch v-model="state.has_daily_cap" :label="t('garages.form.capSwitch')" />
+            </UFormField>
+            <UFormField
+              v-if="state.has_daily_cap"
+              :label="t('garages.form.dailyCap')"
+              name="daily_cap"
+              :help="t('garages.form.capHelp')"
+              required
+              class="sm:col-span-2"
+            >
+              <UInput
+                v-model.optional="state.daily_cap"
+                type="number"
+                :min="0"
+                step="500"
+                class="w-full sm:w-1/2"
+                :ui="{ trailing: 'pointer-events-none' }"
+              >
+                <template #trailing>
+                  <span class="text-xs text-dimmed">{{ t('common.iqd') }}</span>
                 </template>
               </UInput>
             </UFormField>

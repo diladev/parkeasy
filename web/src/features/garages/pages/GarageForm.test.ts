@@ -297,4 +297,21 @@ describe('Edit details', () => {
     )
     expect(bodyText()).toContain('Garage details saved.')
   })
+
+  it('checks the daily cap against the price, and can switch it off', async () => {
+    await openEditDialog()
+    await next('pricing')
+    // City Center has a 9,000 IQD cap.
+    expect(field('Daily cap').value).toBe('9000')
+
+    await type('Daily cap', '1000')
+    button('Save changes', true).click()
+    await vi.waitFor(() => expect(fieldErrors()).toContain("Use at least one hour's price."))
+    expect(garagesDb.saved).toEqual([])
+
+    await toggle('Cap what a car pays per day')
+    button('Save changes', true).click()
+    await vi.waitFor(() => expect(dialog()).toBeNull())
+    expect(garagesDb.saved).toEqual([{ method: 'PATCH', id: 5, body: { daily_cap: null } }])
+  })
 })

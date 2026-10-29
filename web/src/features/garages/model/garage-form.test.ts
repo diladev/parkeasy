@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   createGarageFormSchema,
+  dailyCapErrors,
   emptyGarageForm,
   fieldsOf,
   formFromGarage,
@@ -154,6 +155,7 @@ describe('toCreateBody', () => {
       latitude: 36.8667,
       longitude: 42.9881,
       price_per_hour: 1000,
+      daily_cap: null,
       free_cancellation_minutes: 30,
       is_open_24h: false,
       opening_time: '08:00',
@@ -194,6 +196,30 @@ describe('toUpdateBody', () => {
       price_per_hour: 1750,
       has_ev_charging: true,
     })
+  })
+})
+
+describe('daily cap', () => {
+  it('is checked only when switched on, against the price', () => {
+    const values = filled()
+    expect(dailyCapErrors(values, message)).toEqual([])
+    values.has_daily_cap = true
+    expect(dailyCapErrors(values, message)).toEqual([{ name: 'daily_cap', message: 'required' }])
+    values.daily_cap = 500
+    expect(dailyCapErrors(values, message)).toEqual([
+      { name: 'daily_cap', message: 'capBelowPrice' },
+    ])
+    values.daily_cap = 6000
+    expect(dailyCapErrors(values, message)).toEqual([])
+    expect(toCreateBody(values).daily_cap).toBe(6000)
+  })
+
+  it('sends null when switched off, and only when it changed', () => {
+    const values = formFromGarage({ ...GARAGE, daily_cap: 9000 })
+    expect(values).toMatchObject({ has_daily_cap: true, daily_cap: 9000 })
+    expect(toUpdateBody(values, { ...GARAGE, daily_cap: 9000 })).toEqual({})
+    values.has_daily_cap = false
+    expect(toUpdateBody(values, { ...GARAGE, daily_cap: 9000 })).toEqual({ daily_cap: null })
   })
 })
 

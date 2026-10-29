@@ -291,6 +291,9 @@
       "coordinatesHelp": "Latitude, longitude. Right-click the entrance in Google Maps or OpenStreetMap and copy the numbers.",
       "checkOnMap": "Check on map",
       "pricePerHour": "Price per hour",
+      "capSwitch": "Cap what a car pays per day",
+      "dailyCap": "Daily cap",
+      "capHelp": "The most one car pays from midnight to midnight.",
       "freeCancellation": "Free cancellation",
       "freeCancellationHelp": "Minutes after the start a driver can still cancel for a full refund (0–{max}).",
       "minutes": "min",
@@ -323,7 +326,8 @@
         "level": "Use B1, B2… for basements, G for the ground floor or F1, F2… for floors.",
         "levelTwice": "This level is already listed.",
         "email": "Enter a valid email address.",
-        "phone": "Enter a phone number like +964 750 123 4567."
+        "phone": "Enter a phone number like +964 750 123 4567.",
+        "capBelowPrice": "Use at least one hour's price."
       },
       "steps": {
         "details": "Details",
