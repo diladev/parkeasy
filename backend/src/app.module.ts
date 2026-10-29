@@ -10,6 +10,7 @@ import { join } from 'path';
 import { Dialect } from 'sequelize';
 
 import { FetchMetadataMiddleware } from './common/middleware/fetch-metadata.middleware';
+import { databaseSsl } from './config/database-ssl';
 import { validateEnvironment } from './config/env.validation';
 import passwordPolicy from './config/password-policy';
 import { defaultLanguage } from './config/languages';
@@ -24,6 +25,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AdminUsersModule } from './admin-users/admin-users.module';
 import { AdminOverviewModule } from './admin-overview/admin-overview.module';
 import { GaragePortalModule } from './garage-portal/garage-portal.module';
+import { HealthModule } from './health/health.module';
 import { User } from './users/entities/user.entity';
 import { Session } from './users/entities/session.entity';
 import { Vehicle } from './users/entities/vehicle.entity';
@@ -89,6 +91,12 @@ import { Payment } from './payments/entities/payment.entity';
           ...(dialect === 'sqlite'
             ? { storage: config.get<string>('DB_STORAGE', ':memory:') }
             : { timezone: '+03:00' }),
+          // Hosted databases (Aiven, PlanetScale...) need TLS, checked against their CA.
+          ...(config.get<string>('DB_SSL') === 'true' && {
+            dialectOptions: {
+              ssl: databaseSsl(config.get<string>('DB_SSL_CA')),
+            },
+          }),
           models: [
             User,
             Vehicle,
@@ -106,7 +114,9 @@ import { Payment } from './payments/entities/payment.entity';
             PriceOverride,
           ],
           autoLoadModels: true,
-          synchronize: true,
+          // The schema comes from the migrations (database/migrations), which
+          // the API runs on start. sync would never change an existing table.
+          synchronize: false,
           logging: false,
         };
       },
@@ -122,6 +132,7 @@ import { Payment } from './payments/entities/payment.entity';
     AdminUsersModule,
     AdminOverviewModule,
     GaragePortalModule,
+    HealthModule,
   ],
 })
 export class AppModule implements NestModule {

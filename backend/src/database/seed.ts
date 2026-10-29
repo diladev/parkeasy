@@ -18,6 +18,7 @@ import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 
 import { AppModule } from 'src/app.module';
+import { migrate } from 'src/database/migrator';
 import {
   cancellableUntil,
   DEFAULT_FREE_CANCELLATION_MINUTES,
@@ -1130,7 +1131,8 @@ async function seed(): Promise<void> {
 
     console.log(`Emptying the "${database}" database...`);
     await sequelize.getQueryInterface().dropAllTables();
-    await sequelize.sync();
+    // The same schema as every other database: built by the migrations.
+    await migrate(sequelize);
 
     await sequelize.transaction((transaction) =>
       new DemoData(transaction).run(),
