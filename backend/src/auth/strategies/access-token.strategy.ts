@@ -29,6 +29,10 @@ export class UserAccessTokenStrategy extends PassportStrategy(
     // Even if someone configures the same secret twice, a refresh or reset
     // token must never be accepted as an access token.
     if (payload.type !== 'access') return false;
-    return { id: payload.sub, username: payload.username };
+    return {
+      id: payload.sub,
+      username: payload.username,
+      sessionId: payload.sid,
+    };
   }
 }

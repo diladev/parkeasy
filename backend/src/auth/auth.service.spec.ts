@@ -18,8 +18,14 @@ const PASSWORD = 'Demo@1234';
 
 describe('AuthService portal sign-in', () => {
   let users: Map<string, Partial<User>>;
-  let storedHashes: Map<number, string | null>;
+  /** Signed-in devices: session id -> its user and current token hash. */
+  let sessions: Map<string, { userId: number; hash: string }>;
   let service: AuthService;
+  const jwt = new JwtService({});
+  const sessionsOf = (userId: number) =>
+    [...sessions.values()].filter((session) => session.userId === userId);
+  const sidOf = (refreshToken: string) =>
+    jwt.decode<{ sid: string }>(refreshToken).sid;
 
   beforeAll(async () => {
     const password = await hashPassword(PASSWORD);
@@ -52,13 +58,32 @@ describe('AuthService portal sign-in', () => {
   });
 
   beforeEach(() => {
-    storedHashes = new Map();
+    sessions = new Map();
     const usersService = {
       findByEmail: (email: string) => Promise.resolve(users.get(email) ?? null),
       findByIdOrNull: (id: number) =>
         Promise.resolve([...users.values()].find((u) => u.id === id) ?? null),
-      setRefreshTokenHash: (id: number, hash: string | null) => {
-        storedHashes.set(id, hash);
+      startSession: (userId: number, sid: string, hash: string) => {
+        sessions.set(sid, { userId, hash });
+        return Promise.resolve();
+      },
+      // Like the real one: only the current token rotates; a reused one ends the session.
+      rotateSession: (
+        userId: number,
+        sid: string,
+        oldHash: string,
+        newHash: string,
+      ) => {
+        const session = sessions.get(sid);
+        if (session?.userId === userId && session.hash === oldHash) {
+          session.hash = newHash;
+          return Promise.resolve(true);
+        }
+        sessions.delete(sid);
+        return Promise.resolve(false);
+      },
+      endSession: (userId: number, sid: string) => {
+        sessions.delete(sid);
         return Promise.resolve();
       },
     } as unknown as UsersService;
@@ -84,11 +109,11 @@ describe('AuthService portal sign-in', () => {
       portal: 'admin',
     });
     expect(session.accessToken).toEqual(expect.any(String));
-    expect(storedHashes.get(1)).toEqual(expect.any(String));
+    expect(sessionsOf(1)).toHaveLength(1);
   });
 
   it('refuses a driver at the Admin Panel without touching their session', async () => {
-    storedHashes.set(2, 'phone-session');
+    sessions.set('phone', { userId: 2, hash: 'phone-session' });
     await expect(
       service.login({
         email: 'aram@example.com',
@@ -96,7 +121,7 @@ describe('AuthService portal sign-in', () => {
         portal: 'admin',
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
-    expect(storedHashes.get(2)).toBe('phone-session');
+    expect(sessionsOf(2)).toEqual([{ userId: 2, hash: 'phone-session' }]);
   });
 
   it('still checks the password first, with the usual error', async () => {
@@ -115,6 +140,58 @@ describe('AuthService portal sign-in', () => {
       password: PASSWORD,
     });
     expect(session.accessToken).toEqual(expect.any(String));
+  });
+
+  it('keeps the phone signed in when the same account signs in on a browser', async () => {
+    const phone = await service.login({
+      email: 'aram@example.com',
+      password: PASSWORD,
+    });
+    const browser = await service.login({
+      email: 'aram@example.com',
+      password: PASSWORD,
+    });
+    expect(sessionsOf(2)).toHaveLength(2);
+
+    // Both devices refresh on their own.
+    const phoneSid = sidOf(phone.refreshToken);
+    const next = await service.refresh(2, phoneSid, phone.refreshToken);
+    expect(sidOf(next.refreshToken)).toBe(phoneSid);
+    await expect(
+      service.refresh(2, sidOf(browser.refreshToken), browser.refreshToken),
+    ).resolves.toMatchObject({ accessToken: expect.any(String) as string });
+  });
+
+  it('accepts each refresh token once, and ends the session if one comes back', async () => {
+    const first = await service.login({
+      email: 'aram@example.com',
+      password: PASSWORD,
+    });
+    const sid = sidOf(first.refreshToken);
+    const second = await service.refresh(2, sid, first.refreshToken);
+
+    // The old token again: someone copied it. That device is signed out.
+    await expect(
+      service.refresh(2, sid, first.refreshToken),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(sessions.has(sid)).toBe(false);
+    await expect(
+      service.refresh(2, sid, second.refreshToken),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('signs out only the device that asked', async () => {
+    const phone = await service.login({
+      email: 'aram@example.com',
+      password: PASSWORD,
+    });
+    const browser = await service.login({
+      email: 'aram@example.com',
+      password: PASSWORD,
+    });
+    await service.logout(2, sidOf(browser.refreshToken));
+    expect(sessionsOf(2)).toHaveLength(1);
+    expect(sessions.has(sidOf(phone.refreshToken))).toBe(true);
   });
 
   it('describes the signed-in user and their permissions', async () => {

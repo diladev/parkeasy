@@ -6,15 +6,19 @@ export interface AccessTokenPayload {
   sub: number;
   username: string;
   type: 'access';
+  /** The signed-in device (session) it was issued to. */
+  sid: string;
 }
 
 /**
- * Claims inside a refresh token. `jti` is random, so two tokens issued in the
- * same second are still different (each one can only be used once).
+ * Claims inside a refresh token. `sid` is the device's session; `jti` is
+ * random, so two tokens issued in the same second are still different (each
+ * one can only be used once).
  */
 export interface RefreshTokenPayload {
   sub: number;
   type: 'refresh';
+  sid: string;
   jti: string;
 }
 
@@ -31,11 +35,14 @@ export interface PasswordResetPayload {
 export interface AuthenticatedUser {
   id: number;
   username: string;
+  /** The session the access token belongs to (missing in tokens from before sessions). */
+  sessionId?: string;
 }
 
 /** What the refresh-token guard puts on `request.user`. */
 export interface RefreshTokenUser {
   id: number;
+  sessionId: string;
   refreshToken: string;
 }
 

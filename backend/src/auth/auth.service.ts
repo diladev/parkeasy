@@ -53,9 +53,11 @@ const passwordFingerprint = (passwordHash: string) =>
  * Sessions and passwords. Profile data lives in UsersService: this service only
  * deals with credentials and tokens.
  *
- * Session model: one active session per user. Every login, register or refresh
- * issues a new token pair and stores the hash of the new refresh token, so each
- * refresh token works exactly once and signing in elsewhere ends the old session.
+ * Session model: one session per signed-in device (users/entities/session.entity.ts).
+ * Login and register start one; every refresh issues a new token pair and
+ * stores the hash of the new refresh token, so each refresh token works exactly
+ * once. Signing in on a phone doesn't sign the browser out. A password change,
+ * a suspension or a deleted account ends every session.
  */
 @Injectable()
 export class AuthService {
@@ -85,7 +87,7 @@ export class AuthService {
 
   async register(dto: RegisterUserDto): Promise<AuthSession> {
     const user = await this.usersService.register(dto);
-    return this.startSession(user);
+    return this.issueTokens(user, randomUUID(), null);
   }
 
   async login(dto: UserLocalLoginDto): Promise<AuthSession> {
@@ -105,7 +107,7 @@ export class AuthService {
     if (dto.portal && !canUsePortal(user.role, dto.portal)) {
       throw new ForbiddenException(this.t('PORTAL_NOT_ALLOWED'));
     }
-    return this.startSession(user);
+    return this.issueTokens(user, randomUUID(), null);
   }
 
   /** The signed-in user and their permissions, read fresh from the database. */
@@ -122,25 +124,34 @@ export class AuthService {
     };
   }
 
-  /** The guard has checked the token's signature; here we check it's the CURRENT one. */
-  async refresh(userId: number, refreshToken: string): Promise<AuthSession> {
+  /**
+   * The guard has checked the token's signature; the session swaps it for a
+   * new one only if it's the session's CURRENT token (see rotateSession).
+   */
+  async refresh(
+    userId: number,
+    sessionId: string,
+    refreshToken: string,
+  ): Promise<AuthSession> {
     const user = await this.usersService.findByIdOrNull(userId);
-
-    if (
-      !user?.refresh_token_hash ||
-      !safeEqual(sha256(refreshToken), user.refresh_token_hash)
-    ) {
-      // Signed out, signed in somewhere else since, or the token was already used.
-      throw new UnauthorizedException(this.t('SESSION_EXPIRED'));
-    }
-
+    if (!user) throw new UnauthorizedException(this.t('SESSION_EXPIRED'));
     this.assertActive(user);
-    return this.startSession(user);
+    // Signed out, ended (password change, suspension), or the token was already used.
+    return this.issueTokens(user, sessionId, sha256(refreshToken));
   }
 
-  async logout(userId: number): Promise<{ message: string }> {
-    await this.usersService.setRefreshTokenHash(userId, null);
+  /** Signs this device out; other devices stay signed in. */
+  async logout(
+    userId: number,
+    sessionId: string | undefined,
+  ): Promise<{ message: string }> {
+    if (sessionId) await this.usersService.endSession(userId, sessionId);
     return { message: this.t('LOGOUT_SUCCESS') };
+  }
+
+  /** Signs the user out on every device (an admin suspended the account). */
+  async endAllSessions(userId: number): Promise<void> {
+    await this.usersService.endAllSessions(userId);
   }
 
   // ---------------------------------------------------------- password reset
@@ -273,7 +284,15 @@ export class AuthService {
 
   // ---------------------------------------------------------------- helpers
 
-  private async startSession(user: User): Promise<AuthSession> {
+  /**
+   * A new token pair for session `sessionId`: a new session (`replacing`
+   * null), or the rotation of one whose current refresh token hashes to `replacing`.
+   */
+  private async issueTokens(
+    user: User,
+    sessionId: string,
+    replacing: string | null,
+  ): Promise<AuthSession> {
     const { access_token_expiration, refresh_token_expiration } =
       tokenExpiration();
 
@@ -281,10 +300,12 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       type: 'access',
+      sid: sessionId,
     };
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,
       type: 'refresh',
+      sid: sessionId,
       jti: randomUUID(),
     };
 
@@ -300,7 +321,27 @@ export class AuthService {
     ]);
 
     // Only the hash is stored, so a leaked database can't be used to sign in.
-    await this.usersService.setRefreshTokenHash(user.id, sha256(refreshToken));
+    const tokenHash = sha256(refreshToken);
+    const expiresAt = new Date(Date.now() + refresh_token_expiration * 1000);
+    if (replacing === null) {
+      await this.usersService.startSession(
+        user.id,
+        sessionId,
+        tokenHash,
+        expiresAt,
+      );
+    } else {
+      const rotated = await this.usersService.rotateSession(
+        user.id,
+        sessionId,
+        replacing,
+        tokenHash,
+        expiresAt,
+      );
+      if (!rotated) {
+        throw new UnauthorizedException(this.t('SESSION_EXPIRED'));
+      }
+    }
 
     return {
       accessToken,

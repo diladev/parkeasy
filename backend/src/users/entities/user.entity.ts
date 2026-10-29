@@ -1,11 +1,11 @@
 import { Table, Column, Model, HasMany, DataType } from 'sequelize-typescript';
 import type { Role } from 'src/auth/permissions';
+import { Session } from './session.entity';
 import { Vehicle } from './vehicle.entity';
 
 /** Columns that must never leave the server. */
 const PRIVATE_FIELDS = [
   'password',
-  'refresh_token_hash',
   'otp_hash',
   'otp_expires_at',
   'otp_attempts',
@@ -44,10 +44,6 @@ export class User extends Model {
   @Column({ type: DataType.DATEONLY, allowNull: true })
   declare date_of_birth: string | null;
 
-  // SHA-256 of the current refresh token (never the token itself).
-  @Column({ type: DataType.STRING, allowNull: true })
-  declare refresh_token_hash: string | null;
-
   // SHA-256 of the password-reset code.
   @Column({ type: DataType.STRING, allowNull: true })
   declare otp_hash: string | null;
@@ -74,6 +70,10 @@ export class User extends Model {
 
   @HasMany(() => Vehicle)
   declare vehicles: Vehicle[];
+
+  /** Signed-in devices (see Session). */
+  @HasMany(() => Session)
+  declare sessions: Session[];
 
   /**
    * Strips secrets whenever a user is serialized into a response, including

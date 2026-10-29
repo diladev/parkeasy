@@ -18,6 +18,7 @@ describe('AdminUsersService actions', () => {
   }[];
   let updateMatches: boolean;
   let resetFor: Partial<User>[];
+  let signedOut: number[];
   let service: AdminUsersService;
 
   beforeEach(() => {
@@ -30,6 +31,7 @@ describe('AdminUsersService actions', () => {
     updates = [];
     updateMatches = true;
     resetFor = [];
+    signedOut = [];
 
     const userModel = {
       findByPk: (id: number) =>
@@ -43,6 +45,10 @@ describe('AdminUsersService actions', () => {
       },
     } as unknown as typeof User;
     const authService = {
+      endAllSessions: (userId: number) => {
+        signedOut.push(userId);
+        return Promise.resolve();
+      },
       sendResetCodeFromAdmin: (user: Partial<User>) => {
         resetFor.push(user);
         return Promise.resolve({ message: 'message.RESET_CODE_SENT_TO' });
@@ -74,7 +80,6 @@ describe('AdminUsersService actions', () => {
       {
         values: {
           status: 'suspended',
-          refresh_token_hash: null,
           otp_hash: null,
           otp_expires_at: null,
           otp_attempts: 0,
@@ -83,6 +88,8 @@ describe('AdminUsersService actions', () => {
         where: { id: 7, status: 'active' },
       },
     ]);
+    // Signed out on every device.
+    expect(signedOut).toEqual([7]);
   });
 
   it('restores a suspended account without touching anything else', async () => {
@@ -91,6 +98,7 @@ describe('AdminUsersService actions', () => {
       status: 'active',
     });
     expect(updates[0].values).toEqual({ status: 'active' });
+    expect(signedOut).toEqual([]);
   });
 
   it('never suspends an admin', async () => {

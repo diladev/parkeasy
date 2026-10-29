@@ -25,6 +25,7 @@ import { AdminUsersModule } from './admin-users/admin-users.module';
 import { AdminOverviewModule } from './admin-overview/admin-overview.module';
 import { GaragePortalModule } from './garage-portal/garage-portal.module';
 import { User } from './users/entities/user.entity';
+import { Session } from './users/entities/session.entity';
 import { Vehicle } from './users/entities/vehicle.entity';
 import { ParkingLot } from './parking/entities/parking-lot.entity';
 import { ParkingSlot } from './parking/entities/parking-slot.entity';
@@ -91,6 +92,7 @@ import { Payment } from './payments/entities/payment.entity';
           models: [
             User,
             Vehicle,
+            Session,
             ParkingLot,
             ParkingSlot,
             FavoriteLot,

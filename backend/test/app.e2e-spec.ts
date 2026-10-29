@@ -64,6 +64,44 @@ describe('ParkEasy API (e2e)', () => {
       expect(JSON.stringify(me.body)).not.toMatch(/password|refresh_token/);
     });
 
+    it('stays signed in on two devices, and signs out only the one that asks', async () => {
+      // The refresh token comes back in the Set-Cookie header.
+      const signIn = async () => {
+        const response = await api()
+          .post('/user/local/login')
+          .send({ email: 'shilan@example.com', password: PASSWORD })
+          .expect(200);
+        const cookies = ([] as string[]).concat(
+          response.headers['set-cookie'] ?? [],
+        );
+        const cookie = cookies.find((c) => c.startsWith('refreshToken='))!;
+        return {
+          cookie: cookie.split(';')[0],
+          access: (response.body as { accessToken: string }).accessToken,
+        };
+      };
+      const refresh = (cookie: string) =>
+        api().post('/user/local/refresh').set('Cookie', cookie);
+
+      const phone = await signIn();
+      const browser = await signIn();
+
+      // Signing in on the browser didn't end the phone's session.
+      await refresh(phone.cookie).expect(200);
+      // Each refresh token works once: the old one coming back is refused,
+      // and ends that (phone) session, in case it was copied.
+      await refresh(phone.cookie).expect(401);
+
+      // Signing the browser out leaves another device signed in.
+      const tablet = await signIn();
+      await api()
+        .post('/user/local/logout')
+        .set('Authorization', `Bearer ${browser.access}`)
+        .expect(200);
+      await refresh(browser.cookie).expect(401);
+      await refresh(tablet.cookie).expect(200);
+    });
+
     it('answers in Kurdish when asked to', async () => {
       const response = await api()
         .post('/user/local/login')

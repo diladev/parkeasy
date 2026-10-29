@@ -272,8 +272,8 @@ export class AdminUsersService {
   }
 
   /**
-   * Suspend or restore. Suspending also ends every session (the stored
-   * refresh token is cleared) and any reset code, so the person is signed out
+   * Suspend or restore. Suspending also ends every session (on every device)
+   * and any reset code, so the person is signed out
    * within one access-token lifetime and can't get back in. Admin accounts are
    * left alone, so the panel can't lock out the people who run it.
    */
@@ -293,7 +293,6 @@ export class AdminUsersService {
       {
         status: next,
         ...(action === 'suspend' && {
-          refresh_token_hash: null,
           otp_hash: null,
           otp_expires_at: null,
           otp_attempts: 0,
@@ -302,6 +301,7 @@ export class AdminUsersService {
       { where: { id, status: user.status } },
     );
     if (changed === 0) throw this.statusChanged();
+    if (action === 'suspend') await this.authService.endAllSessions(id);
 
     this.logger.log(
       `Admin ${adminId}: ${action} user ${id} (${user.status} -> ${next})`,

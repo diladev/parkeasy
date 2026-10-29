@@ -13,6 +13,7 @@ import { PaginationResult } from 'src/common/pagination/interfaces/pagination-re
 import { ModelPagination } from 'src/common/pagination/model-pagination';
 import { hashPassword, verifyPassword } from 'src/common/security/password';
 import { TranslationService } from 'src/i18n/translation.service';
+import { Session } from 'src/users/entities/session.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Vehicle } from 'src/users/entities/vehicle.entity';
 import {
@@ -29,6 +30,9 @@ import {
  * credential columns (password, refresh-token hash, reset code) that AuthService
  * reads and writes through the methods at the bottom of this class.
  */
+/** Devices one account can be signed in on at once; the oldest is signed out first. */
+const MAX_SESSIONS = 10;
+
 @Injectable()
 export class UsersService {
   private readonly userPagination = new ModelPagination(User, '/users');
@@ -36,6 +40,7 @@ export class UsersService {
   constructor(
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Vehicle) private readonly vehicleModel: typeof Vehicle,
+    @InjectModel(Session) private readonly sessionModel: typeof Session,
     @InjectConnection() private readonly sequelize: Sequelize,
     private readonly translationService: TranslationService,
   ) {}
@@ -224,7 +229,6 @@ export class UsersService {
           username: `deleted_${tag}`,
           phone: '',
           date_of_birth: null,
-          refresh_token_hash: null,
           otp_hash: null,
           otp_expires_at: null,
           otp_attempts: 0,
@@ -236,6 +240,7 @@ export class UsersService {
         where: { user_id: user.id },
         transaction,
       });
+      await this.endAllSessions(user.id, transaction);
       await user.destroy({ transaction });
     });
 
@@ -364,24 +369,98 @@ export class UsersService {
     await this.userModel.update(
       {
         password: await hashPassword(password),
-        refresh_token_hash: null,
         otp_hash: null,
         otp_expires_at: null,
         otp_attempts: 0,
       },
       { where: { id: userId } },
     );
+    await this.endAllSessions(userId);
   }
 
-  /** Stores the hash of the current refresh token, or null to sign the user out. */
-  async setRefreshTokenHash(
+  // ------------------------------------------------ sessions (see Session)
+
+  /**
+   * A new signed-in device. Old sessions are tidied up on the way: expired
+   * ones go, and only the newest MAX_SESSIONS stay.
+   */
+  async startSession(
     userId: number,
-    hash: string | null,
+    sessionId: string,
+    tokenHash: string,
+    expiresAt: Date,
+    now = new Date(),
   ): Promise<void> {
-    await this.userModel.update(
-      { refresh_token_hash: hash },
-      { where: { id: userId } },
+    await this.sessionModel.destroy({
+      where: { user_id: userId, expires_at: { [Op.lte]: now } },
+    });
+    await this.sessionModel.create({
+      id: sessionId,
+      user_id: userId,
+      token_hash: tokenHash,
+      expires_at: expiresAt,
+    });
+    const extra = await this.sessionModel.findAll({
+      attributes: ['id'],
+      where: { user_id: userId },
+      order: [['createdAt', 'DESC']],
+      offset: MAX_SESSIONS,
+    });
+    if (extra.length > 0) {
+      await this.sessionModel.destroy({
+        where: { id: extra.map((session) => session.id) },
+      });
+    }
+  }
+
+  /**
+   * Swaps the session's refresh token for a new one. The UPDATE only matches
+   * the CURRENT token, so each token works once. An old token coming back
+   * means it was copied: that session is ended. False when nothing matched.
+   */
+  async rotateSession(
+    userId: number,
+    sessionId: string,
+    oldHash: string,
+    newHash: string,
+    expiresAt: Date,
+    now = new Date(),
+  ): Promise<boolean> {
+    const [rotated] = await this.sessionModel.update(
+      { token_hash: newHash, expires_at: expiresAt },
+      {
+        where: {
+          id: sessionId,
+          user_id: userId,
+          token_hash: oldHash,
+          expires_at: { [Op.gt]: now },
+        },
+      },
     );
+    if (rotated === 0) {
+      await this.sessionModel.destroy({
+        where: { id: sessionId, user_id: userId },
+      });
+    }
+    return rotated > 0;
+  }
+
+  /** Signs one device out. */
+  async endSession(userId: number, sessionId: string): Promise<void> {
+    await this.sessionModel.destroy({
+      where: { id: sessionId, user_id: userId },
+    });
+  }
+
+  /** Signs the user out on every device. */
+  async endAllSessions(
+    userId: number,
+    transaction?: Transaction,
+  ): Promise<void> {
+    await this.sessionModel.destroy({
+      where: { user_id: userId },
+      transaction,
+    });
   }
 
   /** Stores the hash of a new password-reset code and resets the attempt counter. */

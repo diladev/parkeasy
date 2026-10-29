@@ -47,7 +47,10 @@ export class UserRefreshTokenStrategy extends PassportStrategy(
     payload: RefreshTokenPayload,
   ): RefreshTokenUser | false {
     const refreshToken = extractRefreshToken(req);
-    if (payload.type !== 'refresh' || !refreshToken) return false;
-    return { id: payload.sub, refreshToken };
+    // Tokens from before per-device sessions have no `sid`: sign in again.
+    if (payload.type !== 'refresh' || !refreshToken || !payload.sid) {
+      return false;
+    }
+    return { id: payload.sub, sessionId: payload.sid, refreshToken };
   }
 }

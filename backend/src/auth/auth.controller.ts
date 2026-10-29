@@ -88,7 +88,11 @@ export class AuthController {
   ): Promise<AuthResponse> {
     return this.sendSession(
       res,
-      await this.authService.refresh(user.id, user.refreshToken),
+      await this.authService.refresh(
+        user.id,
+        user.sessionId,
+        user.refreshToken,
+      ),
     );
   }
 
@@ -107,13 +111,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(UserAccessTokenAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Sign out: the refresh token stops working.' })
+  @ApiOperation({
+    summary:
+      'Sign out this device: its refresh token stops working. Other devices stay signed in.',
+  })
   async logout(
     @CurrentUser() user: AuthenticatedUser,
     @Res({ passthrough: true }) res: Response,
   ) {
     res.clearCookie(REFRESH_COOKIE, this.cookieOptions());
-    return this.authService.logout(user.id);
+    return this.authService.logout(user.id, user.sessionId);
   }
 
   @Post('forgot-password')
