@@ -48,6 +48,13 @@ describe('ParkEasy API (e2e)', () => {
     return body.accessToken;
   }
 
+  describe('the server', () => {
+    it('answers the health check', async () => {
+      const response = await api().get('/health').expect(200);
+      expect(response.body).toEqual({ status: 'ok' });
+    });
+  });
+
   describe('signing in', () => {
     it('signs a driver in and says who they are', async () => {
       const token = await signIn('aram@example.com');
