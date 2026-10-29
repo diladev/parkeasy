@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/injection_container.dart';
 import 'package:mobile/core/router/app_router.dart';
+import 'package:mobile/core/service/onboarding_store.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:mobile/feature/auth/presentation/bloc/auth_event.dart';
@@ -68,7 +70,12 @@ class _SplashScreenState extends State<SplashScreen>
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
-          _goTo(AppRouter.toLogin);
+          // A new phone sees the welcome screen first, once.
+          _goTo(
+            sl<OnboardingStore>().isSeen
+                ? AppRouter.toLogin
+                : AppRouter.toOnboarding,
+          );
         } else if (state is AuthAuthenticated) {
           _goTo(AppRouter.toHome);
         }

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
 import 'package:mobile/core/locale/app_language.dart';
+import 'package:mobile/core/service/onboarding_store.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/core/network/token_provider.dart';
 import 'package:mobile/core/service/connectivity_service.dart';
@@ -121,6 +122,7 @@ Future<void> init() async {
   // Core
   sl.registerLazySingleton(() => ConnectivityService());
   sl.registerLazySingleton(() => AppLanguage(sl()));
+  sl.registerLazySingleton(() => OnboardingStore(sl()));
   sl.registerLazySingleton(
     () => ApiClient(
       sl(),

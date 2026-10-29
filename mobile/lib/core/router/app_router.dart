@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/feature/auth/presentation/screens/splash_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/login_screen.dart';
+import 'package:mobile/feature/auth/presentation/screens/onboarding_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/register_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:mobile/feature/auth/presentation/screens/otp_screen.dart';
@@ -53,6 +54,7 @@ class AppRouter {
 
   // ─── Route names ────────────────────────────────────────────────────────────
   static const String initial = '/';
+  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
@@ -96,6 +98,7 @@ class AppRouter {
   /// again (Help & support once did). Add new routes here too.
   static const List<String> routes = [
     initial,
+    onboarding,
     login,
     register,
     forgotPassword,
@@ -138,6 +141,8 @@ class AppRouter {
       // Auth
       case initial:
         return _route(const SplashScreen(), settings);
+      case onboarding:
+        return _route(const OnboardingScreen(), settings);
       case login:
         return _route(const LoginScreen(), settings);
       case register:
@@ -270,6 +275,10 @@ class AppRouter {
   // ─── Navigation helpers ─────────────────────────────────────────────────────
   static void toLogin(BuildContext context) =>
       Navigator.pushReplacementNamed(context, login);
+
+  /// The welcome screen, once per phone (see OnboardingStore).
+  static void toOnboarding(BuildContext context) =>
+      Navigator.pushReplacementNamed(context, onboarding);
 
   static void toRegister(BuildContext context) =>
       Navigator.pushNamed(context, register);
