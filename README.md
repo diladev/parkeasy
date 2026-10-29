@@ -61,6 +61,7 @@ flowchart LR
 - Multi-step writes run in transactions: a booking with its payment, or a garage with its levels, slots and owner account.
 - Status changes use conditional updates, so two admins acting at once can't both "win" with stale data.
 - Times are handled in Iraq time (UTC+3), not the server's clock.
+- The schema changes through numbered, forward-only migrations, which the API runs on start. The first one was checked to build exactly the same tables as the models.
 - One pricing engine for app bookings, extensions and walk-ins: every started hour at that day's price, at most the day's cap, with special prices for days like Eid or Newroz. Each booking saves the rules it started with, so a price change later never changes what a parked car pays.
 
 **Kurdish and accessibility**
@@ -72,7 +73,7 @@ flowchart LR
 
 | App | What runs |
 |---|---|
-| Backend | ESLint + Prettier, build, 142 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
+| Backend | ESLint + Prettier, build, 148 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
 | Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 275 component and unit tests (Vitest + MSW), production build |
 | Mobile | `flutter analyze`, `flutter test` |
 
@@ -95,9 +96,10 @@ docker compose up -d db          # MySQL 8 on localhost:3306, using DB_NAME and 
 ```bash
 cd backend
 npm ci
-npm run seed                     # demo garages, drivers, bookings and wallets
+npm run seed                     # empties the database, builds it, adds demo garages, drivers and bookings
 npm run start:dev
 ```
+The database schema comes from migrations in [`backend/src/database/migrations`](./backend/src/database/migrations). The API runs any pending ones when it starts, and each one runs only once per database, so a deploy never has to empty the database. `npm run migrate` runs them by hand, and `npm run migrate -- status` lists the ones still to run. To change the schema, add a new numbered migration instead of editing an old one.
 
 **3. Web app** (Admin Panel at http://localhost:5173/admin, Garage Portal at http://localhost:5173/garage)
 ```bash
