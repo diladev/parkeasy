@@ -51,7 +51,7 @@ flowchart LR
 ## Engineering highlights
 
 **Security**
-- Access tokens live in memory (web) and expire after 15 minutes. Refresh tokens rotate on every use and are stored only as a hash, so each one works once and a leaked database can't be used to sign in.
+- Access tokens live in memory (web) and expire after 15 minutes. Each signed-in device has its own session, so a phone and a browser can be signed in at once. Refresh tokens rotate on every use and are stored only as a hash, so each one works once (a reused one ends that session) and a leaked database can't be used to sign in.
 - Passwords are peppered with HMAC-SHA256 before bcrypt, so long passwords keep the pepper inside bcrypt's 72-byte limit.
 - CSRF protection uses `Sec-Fetch-Site` checks, the sign-in and password-reset endpoints are rate-limited, and every request body is whitelisted and validated.
 - The web app is built to run under a strict Content Security Policy: no inline scripts or styles, icons bundled, no third-party requests.
@@ -72,8 +72,8 @@ flowchart LR
 
 | App | What runs |
 |---|---|
-| Backend | ESLint + Prettier, build, 139 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
-| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 272 component and unit tests (Vitest + MSW), production build |
+| Backend | ESLint + Prettier, build, 142 unit tests (Jest), then API tests against a real MySQL 8 seeded with the demo data |
+| Web | oxlint + ESLint (0 warnings), Prettier, `vue-tsc`, 275 component and unit tests (Vitest + MSW), production build |
 | Mobile | `flutter analyze`, `flutter test` |
 
 Dependabot keeps dependencies current, and pull requests are checked for newly added vulnerable packages.
@@ -155,5 +155,5 @@ cd mobile  && flutter analyze && flutter test
 
 - **Garage Portal:** reports (sign-in, password reset, the dashboard, live slots, walk-ins, bookings and lot settings are done).
 - **Admin Panel:** transactions, reports and settings pages; global search and notifications.
-- **Mobile:** an onboarding screen, Kurdish localization and live GPS location.
+- **Mobile:** Kurdish localization and live GPS location.
 - **Deployment:** Docker images for the API and web app (nginx with security headers) and a public demo.
