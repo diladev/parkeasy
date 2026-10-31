@@ -1,3 +1,4 @@
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
@@ -20,7 +21,7 @@ class BookingSummaryModel extends BookingSummary {
       id: (map['id'] as num).toInt(),
       status: BookingStatus.fromApi(map['status'] as String?),
       lotId: (map['parking_lot_id'] as num).toInt(),
-      lotName: lot?['name'] as String? ?? 'Parking lot',
+      lotName: lot?['name'] as String? ?? l10n.parkingLot,
       slotNumber: slot?['slot_number'] as String? ?? '',
       // The API sends UTC; the app shows local time.
       startTime: DateTime.parse(map['start_time'] as String).toLocal(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mobile/core/config/map_config.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/map/app_tile_layer.dart';
@@ -105,7 +106,7 @@ class _DistanceBadge extends StatelessWidget {
       ),
       // Straight line, so no "min walk" or drive time: the map app has those.
       child: Text(
-        '${Formatters.approxDistance(km)}  ·  straight line',
+        l10n.straightLine(Formatters.approxDistance(km)),
         style: TextStyle(fontSize: 10, color: palette.textPrimary),
       ),
     );

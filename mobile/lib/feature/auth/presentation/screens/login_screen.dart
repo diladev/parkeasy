@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
@@ -68,9 +69,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppColors.tealDim,
                     child: Column(
                       children: [
-                        const Text(
-                          'Welcome back',
-                          style: TextStyle(
+                        Text(
+                          l10n.welcomeBack,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
@@ -78,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Sign in to your account',
+                          l10n.signInToAccount,
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.65),
@@ -99,8 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             const SizedBox(height: 8),
                             AppInputField(
-                              label: 'Email',
-                              hint: 'you@example.com',
+                              label: l10n.email,
+                              hint: l10n.emailHint,
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               textInputAction: TextInputAction.next,
@@ -109,34 +110,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 16),
                             AppPasswordField(
-                              label: 'Password',
+                              label: l10n.password,
                               controller: _passwordController,
                               textInputAction: TextInputAction.done,
                               autofillHints: const [AutofillHints.password],
                               validator: (v) => v == null || v.isEmpty
-                                  ? 'Please enter your password'
+                                  ? l10n.enterYourPassword
                                   : null,
                             ),
                             const SizedBox(height: 8),
                             Align(
-                              alignment: Alignment.centerRight,
+                              alignment: AlignmentDirectional.centerEnd,
                               child: TextButton(
                                 onPressed: () =>
                                     AppRouter.toForgotPassword(context),
-                                child: const Text('Forgot password?'),
+                                child: Text(l10n.forgotPassword),
                               ),
                             ),
                             const SizedBox(height: 8),
                             AppButton(
-                              label: 'Sign in',
+                              label: l10n.signIn,
                               isLoading: state is AuthLoading,
                               onTap: _signIn,
                             ),
                             const SizedBox(height: 24),
-                            const AppDividerWithLabel(label: 'or'),
+                            AppDividerWithLabel(label: l10n.or),
                             const SizedBox(height: 24),
                             AppOutlinedButton(
-                              label: 'G   Continue with Google',
+                              label: l10n.continueWithGoogle,
                               onTap: () {
                                 // TODO: Google sign in
                               },
@@ -146,14 +147,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "New here? ",
+                                  l10n.newHere,
                                   style: TextStyle(color: palette.textHint),
                                 ),
                                 GestureDetector(
                                   onTap: () => AppRouter.toRegister(context),
-                                  child: const Text(
-                                    'Create account',
-                                    style: TextStyle(
+                                  child: Text(
+                                    l10n.createAccount,
+                                    style: const TextStyle(
                                       color: AppColors.teal,
                                       fontWeight: FontWeight.w500,
                                     ),

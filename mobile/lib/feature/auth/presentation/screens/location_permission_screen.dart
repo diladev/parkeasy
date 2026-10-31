@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -45,7 +46,7 @@ class LocationPermissionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Allow location access',
+                l10n.allowLocation,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -54,7 +55,7 @@ class LocationPermissionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'ParkEasy needs your location to show nearby parking spots and guide you to your booked slot.',
+                l10n.locationWhy,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -72,24 +73,24 @@ class LocationPermissionScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: palette.border, width: 0.5),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
                     _ReasonRow(
                       icon: LucideIcons.search,
-                      title: 'Find nearby spots',
-                      subtitle: 'See available parking around you',
+                      title: l10n.locationFindTitle,
+                      subtitle: l10n.locationFindSubtitle,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     _ReasonRow(
                       icon: LucideIcons.compass,
-                      title: 'Navigate to your spot',
-                      subtitle: 'Turn-by-turn to the parking lot',
+                      title: l10n.locationNavigateTitle,
+                      subtitle: l10n.locationNavigateSubtitle,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     _ReasonRow(
                       icon: LucideIcons.shieldCheck,
-                      title: 'Location is never sold',
-                      subtitle: 'Used only while using the app',
+                      title: l10n.locationPrivateTitle,
+                      subtitle: l10n.locationPrivateSubtitle,
                     ),
                   ],
                 ),
@@ -97,14 +98,14 @@ class LocationPermissionScreen extends StatelessWidget {
 
               const Spacer(),
               AppButton(
-                label: 'Allow location access',
+                label: l10n.allowLocation,
                 onTap: () => _allow(context),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => AppRouter.toHome(context),
                 child: Text(
-                  'Not now',
+                  l10n.notNow,
                   style: TextStyle(color: palette.textMuted),
                 ),
               ),

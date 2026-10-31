@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// Looks like a search field; tapping it opens the search screen.
@@ -22,7 +23,7 @@ class HomeSearchBar extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         height: 44,
-        padding: const EdgeInsets.only(left: 9, right: 6),
+        padding: const EdgeInsetsDirectional.only(start: 9, end: 6),
         decoration: BoxDecoration(
           color: palette.surface,
           borderRadius: BorderRadius.circular(12),
@@ -34,7 +35,7 @@ class HomeSearchBar extends StatelessWidget {
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                'Search parking spots...',
+                l10n.searchParkingSpots,
                 style: TextStyle(fontSize: 12, color: palette.textHint),
               ),
             ),

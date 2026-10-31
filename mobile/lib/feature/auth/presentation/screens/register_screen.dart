@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
@@ -60,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         (i) => Container(
           width: i < filled ? 28 : 7,
           height: 7,
-          margin: const EdgeInsets.only(right: 6),
+          margin: const EdgeInsetsDirectional.only(end: 6),
           decoration: BoxDecoration(
             color: i < filled ? AppColors.teal : empty,
             borderRadius: BorderRadius.circular(4),
@@ -94,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 // Topbar
                 AppTopBar(
-                  title: 'Create account',
+                  title: l10n.createAccount,
                   onBack: () => Navigator.pop(context),
                 ),
 
@@ -115,8 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             children: [
                               Expanded(
                                 child: AppInputField(
-                                  label: 'First name',
-                                  hint: 'Dilan',
+                                  label: l10n.firstName,
+                                  hint: l10n.firstNameHint,
                                   controller: _firstNameController,
                                   textCapitalization: TextCapitalization.words,
                                   textInputAction: TextInputAction.next,
@@ -126,8 +127,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: AppInputField(
-                                  label: 'Last name',
-                                  hint: 'Karimi',
+                                  label: l10n.lastName,
+                                  hint: l10n.lastNameHint,
                                   controller: _lastNameController,
                                   textCapitalization: TextCapitalization.words,
                                   textInputAction: TextInputAction.next,
@@ -138,8 +139,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           AppInputField(
-                            label: 'Email address',
-                            hint: 'you@example.com',
+                            label: l10n.emailAddress,
+                            hint: l10n.emailHint,
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
@@ -148,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           AppInputField(
-                            label: 'Phone number',
+                            label: l10n.phoneNumber,
                             hint: '+964  07XX XXX XXXX',
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
@@ -160,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           AppPasswordField(
-                            label: 'Password',
+                            label: l10n.password,
                             controller: _passwordController,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.newPassword],
@@ -174,7 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
                           AppPasswordField(
-                            label: 'Confirm password',
+                            label: l10n.confirmPassword,
                             controller: _confirmPasswordController,
                             validator: Validators.matches(
                               () => _passwordController.text,
@@ -217,22 +218,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 Expanded(
                                   child: Text.rich(
                                     TextSpan(
-                                      text: 'I agree to the ',
+                                      text: l10n.agreeToThe,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: palette.textHint,
                                       ),
-                                      children: const [
+                                      children: [
                                         TextSpan(
-                                          text: 'Terms of Service',
-                                          style: TextStyle(
+                                          text: l10n.termsOfService,
+                                          style: const TextStyle(
                                             color: AppColors.teal,
                                           ),
                                         ),
-                                        TextSpan(text: ' and '),
+                                        TextSpan(text: l10n.and),
                                         TextSpan(
-                                          text: 'Privacy Policy',
-                                          style: TextStyle(
+                                          text: l10n.privacyPolicy,
+                                          style: const TextStyle(
                                             color: AppColors.teal,
                                           ),
                                         ),
@@ -246,15 +247,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 24),
 
                           AppButton(
-                            label: 'Continue',
+                            label: l10n.continueLabel,
                             isLoading: state is AuthLoading,
                             onTap: _agreedToTerms ? _register : null,
                           ),
                           const SizedBox(height: 24),
-                          const AppDividerWithLabel(label: 'or'),
+                          AppDividerWithLabel(label: l10n.or),
                           const SizedBox(height: 16),
                           AppOutlinedButton(
-                            label: 'G   Sign up with Google',
+                            label: l10n.signUpWithGoogle,
                             onTap: () {
                               // TODO: Google sign up
                             },
@@ -264,14 +265,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Already have an account? ',
+                                l10n.alreadyHaveAccountSpace,
                                 style: TextStyle(color: palette.textHint),
                               ),
                               GestureDetector(
                                 onTap: () => Navigator.pop(context),
-                                child: const Text(
-                                  'Sign in',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.signIn,
+                                  style: const TextStyle(
                                     color: AppColors.teal,
                                     fontWeight: FontWeight.w500,
                                   ),

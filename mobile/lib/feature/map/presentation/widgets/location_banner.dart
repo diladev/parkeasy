@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/feature/location/domain/entities/location_failure.dart';
 
@@ -12,22 +13,17 @@ class LocationBanner extends StatelessWidget {
   final VoidCallback onFix;
 
   (String, String) get _text => switch (problem) {
-    LocationProblem.serviceDisabled => (
-      'Location is off on this phone.',
-      'Turn on',
-    ),
+    LocationProblem.serviceDisabled => (l10n.locationOffOnPhone, l10n.turnOn),
     LocationProblem.permissionDeniedForever => (
-      'Location is off for ParkEasy.',
-      'Settings',
+      l10n.locationOffForApp,
+      l10n.settings,
     ),
     LocationProblem.permissionDenied => (
-      'See the spots nearest to you.',
-      'Use my location',
+      l10n.seeNearestSpots,
+      l10n.useMyLocation,
     ),
-    LocationProblem.timeout || LocationProblem.unknown => (
-      "Couldn't find your location.",
-      'Try again',
-    ),
+    LocationProblem.timeout ||
+    LocationProblem.unknown => (l10n.couldntFindLocation, l10n.tryAgain),
   };
 
   @override
@@ -36,7 +32,7 @@ class LocationBanner extends StatelessWidget {
     final (message, action) = _text;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 6, 4, 6),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(10),

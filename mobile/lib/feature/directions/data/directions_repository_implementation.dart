@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:mobile/core/errors/failure.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/directions/data/directions_url_builder.dart';
 import 'package:mobile/feature/directions/domain/entities/map_app.dart';
@@ -61,7 +62,7 @@ class DirectionsRepositoryImpl implements DirectionsRepository {
       }
     }
     return Left(
-      APIFailure(message: "Couldn't open ${app.label}.", statusCode: 0),
+      APIFailure(message: l10n.couldntOpenApp(app.label), statusCode: 0),
     );
   }
 }

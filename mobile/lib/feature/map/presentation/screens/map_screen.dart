@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:mobile/core/config/map_config.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -160,8 +161,7 @@ class _MapViewState extends State<_MapView> with WidgetsBindingObserver {
                       ),
                       child: AppErrorView(
                         message:
-                            state.errorMessage ??
-                            "Couldn't load the parking lots.",
+                            state.errorMessage ?? l10n.couldntLoadParkingLots,
                         onRetry: context.read<MapCubit>().load,
                       ),
                     ),

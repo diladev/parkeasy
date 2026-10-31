@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/feature/home/presentation/cubit/home_state.dart';
 
@@ -64,42 +65,42 @@ class _LotIllustration extends StatelessWidget {
         color: _background,
         child: Stack(
           children: [
-            const Positioned(
-              left: 30,
+            const PositionedDirectional(
+              start: 30,
               top: 0,
               bottom: 0,
               width: 10,
               child: ColoredBox(color: _pillar),
             ),
-            const Positioned(
-              right: 50,
+            const PositionedDirectional(
+              end: 50,
               top: 0,
               bottom: 0,
               width: 10,
               child: ColoredBox(color: _pillar),
             ),
-            const Positioned(
-              left: 0,
-              right: 0,
+            const PositionedDirectional(
+              start: 0,
+              end: 0,
               bottom: 0,
               height: 20,
               child: ColoredBox(color: _road),
             ),
-            Positioned(
-              left: 10,
+            PositionedDirectional(
+              start: 10,
               top: 8,
               child: Container(
                 width: 100,
                 height: 20,
-                padding: const EdgeInsets.only(left: 8),
-                alignment: Alignment.centerLeft,
+                padding: const EdgeInsetsDirectional.only(start: 8),
+                alignment: AlignmentDirectional.centerStart,
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'Your Regulars',
-                  style: TextStyle(fontSize: 9, color: Colors.white),
+                child: Text(
+                  l10n.yourRegularsBadge,
+                  style: const TextStyle(fontSize: 9, color: Colors.white),
                 ),
               ),
             ),

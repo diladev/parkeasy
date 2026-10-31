@@ -1,5 +1,6 @@
 import 'package:mobile/core/constants/end_points.dart';
 import 'package:mobile/core/errors/exception.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/network/api_client.dart';
 import 'package:mobile/feature/auth/data/models/auth_model.dart';
 import 'package:mobile/feature/profile/data/models/user_model.dart';
@@ -113,10 +114,7 @@ class AuthenticationRemoteDataSourceImpl
     final cookie = response.headers['set-cookie'] ?? '';
     final match = RegExp(r'refreshToken=([^;,\s]+)').firstMatch(cookie);
     if (match == null) {
-      throw APIException(
-        message: 'Refresh token not found in response headers',
-        statusCode: 500,
-      );
+      throw APIException(message: l10n.somethingWentWrong, statusCode: 500);
     }
 
     final body = response.map;

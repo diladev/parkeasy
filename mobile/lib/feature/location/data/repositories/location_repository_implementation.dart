@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/location/domain/entities/geo_point.dart';
 import 'package:mobile/feature/location/domain/entities/location_failure.dart';
@@ -20,10 +21,10 @@ class LocationRepositoryImpl implements LocationRepository {
   }) async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
-        return const Left(
+        return Left(
           LocationFailure(
             LocationProblem.serviceDisabled,
-            message: 'Location is turned off on this phone.',
+            message: l10n.locationServiceOff,
           ),
         );
       }
@@ -36,17 +37,17 @@ class LocationRepositoryImpl implements LocationRepository {
       switch (permission) {
         case LocationPermission.denied:
         case LocationPermission.unableToDetermine:
-          return const Left(
+          return Left(
             LocationFailure(
               LocationProblem.permissionDenied,
-              message: 'ParkEasy is not allowed to use your location.',
+              message: l10n.locationNotAllowed,
             ),
           );
         case LocationPermission.deniedForever:
-          return const Left(
+          return Left(
             LocationFailure(
               LocationProblem.permissionDeniedForever,
-              message: 'Location is off for ParkEasy. Turn it on in Settings.',
+              message: l10n.locationOffInSettings,
             ),
           );
         case LocationPermission.whileInUse:
@@ -65,32 +66,29 @@ class LocationRepositoryImpl implements LocationRepository {
       final last = await _lastKnown();
       return last != null
           ? Right(last)
-          : const Left(
+          : Left(
               LocationFailure(
                 LocationProblem.timeout,
-                message: "Couldn't get your location. Try again outside.",
+                message: l10n.locationTimeout,
               ),
             );
     } on LocationServiceDisabledException {
-      return const Left(
+      return Left(
         LocationFailure(
           LocationProblem.serviceDisabled,
-          message: 'Location is turned off on this phone.',
+          message: l10n.locationServiceOff,
         ),
       );
     } on PermissionDeniedException {
-      return const Left(
+      return Left(
         LocationFailure(
           LocationProblem.permissionDenied,
-          message: 'ParkEasy is not allowed to use your location.',
+          message: l10n.locationNotAllowed,
         ),
       );
     } catch (_) {
-      return const Left(
-        LocationFailure(
-          LocationProblem.unknown,
-          message: "Couldn't get your location.",
-        ),
+      return Left(
+        LocationFailure(LocationProblem.unknown, message: l10n.locationUnknown),
       );
     }
   }

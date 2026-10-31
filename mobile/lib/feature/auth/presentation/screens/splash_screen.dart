@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/service/onboarding_store.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -135,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 8),
 
                 Text(
-                  'Find & book parking in seconds',
+                  l10n.tagline,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withValues(alpha: 0.65),

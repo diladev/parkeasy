@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -97,8 +98,8 @@ class _HomeView extends StatelessWidget {
                     if (state.regulars.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       _SectionHeader(
-                        title: 'Your regulars',
-                        action: 'View all',
+                        title: l10n.yourRegulars,
+                        action: l10n.viewAll,
                         onAction: onOpenBookings,
                       ),
                       const SizedBox(height: 8),
@@ -107,8 +108,8 @@ class _HomeView extends StatelessWidget {
                     if (state.recentBookings.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       _SectionHeader(
-                        title: 'Recent bookings',
-                        action: 'See all',
+                        title: l10n.recentBookings,
+                        action: l10n.seeAll,
                         onAction: onOpenBookings,
                       ),
                       const SizedBox(height: 8),
@@ -154,26 +155,26 @@ class _QuickActions extends StatelessWidget {
       children: [
         QuickActionButton(
           icon: LucideIcons.search300,
-          label: 'Find spot',
+          label: l10n.findSpot,
           onTap: onFindSpot,
           isPrimary: true,
         ),
         const SizedBox(width: 16),
         QuickActionButton(
           icon: LucideIcons.scanQrCode300,
-          label: 'Scan QR',
+          label: l10n.scanQr,
           onTap: onScanQr,
         ),
         const SizedBox(width: 16),
         QuickActionButton(
           icon: LucideIcons.heart300,
-          label: 'Favorites',
+          label: l10n.favorites,
           onTap: onFavorites,
         ),
         const SizedBox(width: 16),
         QuickActionButton(
           icon: LucideIcons.history300,
-          label: 'History',
+          label: l10n.history,
           onTap: onHistory,
         ),
       ],

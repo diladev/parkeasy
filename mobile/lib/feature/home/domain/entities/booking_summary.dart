@@ -1,17 +1,23 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 
 enum BookingStatus {
-  active('Active'),
-  completed('Completed'),
-  cancelled('Cancelled');
+  active,
+  completed,
+  cancelled;
 
-  const BookingStatus(this.label);
-  final String label;
+  /// "Active", in the app's language.
+  String get label => switch (this) {
+    BookingStatus.active => l10n.statusActive,
+    BookingStatus.completed => l10n.statusCompleted,
+    BookingStatus.cancelled => l10n.statusCancelled,
+  };
 
-  static BookingStatus fromApi(String? value) => BookingStatus.values.firstWhere(
-    (status) => status.name == value,
-    orElse: () => BookingStatus.completed,
-  );
+  static BookingStatus fromApi(String? value) =>
+      BookingStatus.values.firstWhere(
+        (status) => status.name == value,
+        orElse: () => BookingStatus.completed,
+      );
 }
 
 /// One of the user's bookings, with just what the home screen shows.

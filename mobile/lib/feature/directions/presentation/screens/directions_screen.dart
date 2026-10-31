@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -31,7 +32,7 @@ class DirectionsScreen extends StatelessWidget {
         BlocProvider(create: (_) => sl<LocationCubit>()..locate()),
       ],
       child: AppScreen(
-        topBar: const AppTopBar(title: 'Get directions'),
+        topBar: AppTopBar(title: l10n.getDirections),
         body: BlocBuilder<DirectionsCubit, DirectionsState>(
           builder: (context, state) {
             final lot = state.lot;
@@ -40,7 +41,7 @@ class DirectionsScreen extends StatelessWidget {
             }
             if (state.status == DirectionsStatus.failure) {
               return AppErrorView(
-                message: state.errorMessage ?? "Couldn't load this lot.",
+                message: state.errorMessage ?? l10n.couldntLoadLot,
                 onRetry: () => context.read<DirectionsCubit>().load(lotId),
               );
             }
@@ -68,10 +69,7 @@ class _Directions extends StatelessWidget {
       ClipboardData(text: '${lot.latitude},${lot.longitude}'),
     );
     if (context.mounted) {
-      context.showSnack(
-        "Couldn't open ${app.label}. The lot's coordinates were copied.",
-        isError: true,
-      );
+      context.showSnack(l10n.couldntOpenAppCopied(app.label), isError: true);
     }
   }
 
@@ -144,7 +142,7 @@ class _Directions extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                'OPEN WITH',
+                l10n.openWith,
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w500,

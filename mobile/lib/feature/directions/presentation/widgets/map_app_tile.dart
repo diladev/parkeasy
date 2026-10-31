@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// A map app to open the route in. The recommended one is outlined in teal.
@@ -21,7 +22,7 @@ class MapAppTile extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: isRecommended ? '$name, recommended' : name,
+      label: isRecommended ? l10n.recommendedSemantics(name) : name,
       excludeSemantics: true,
       child: Material(
         color: palette.surface,
@@ -74,7 +75,7 @@ class MapAppTile extends StatelessWidget {
                         if (isRecommended) ...[
                           const SizedBox(height: 3),
                           Text(
-                            'Recommended',
+                            l10n.recommended,
                             style: TextStyle(
                               fontSize: 10,
                               color: palette.textHint,
@@ -85,7 +86,8 @@ class MapAppTile extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '›',
+                    l10n.forwardChevron,
+                    textDirection: TextDirection.ltr,
                     style: TextStyle(fontSize: 18, color: palette.textHint),
                   ),
                   const SizedBox(width: 6),

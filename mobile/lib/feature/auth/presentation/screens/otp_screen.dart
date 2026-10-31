@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -92,7 +93,7 @@ class _OtpScreenState extends State<OtpScreen> {
             } else if (state is ForgotPasswordError) {
               context.showSnack(state.message, isError: true);
             } else if (state is ForgotPasswordSent) {
-              context.showSnack('We sent a new code to ${widget.email}.');
+              context.showSnack(l10n.newCodeSent(widget.email));
             } else if (state is OtpVerifiedSuccess) {
               AppRouter.toResetPassword(context, state.token);
             }
@@ -100,7 +101,7 @@ class _OtpScreenState extends State<OtpScreen> {
           builder: (context, state) {
             return Column(
               children: [
-                const AppTopBar(title: 'Enter code'),
+                AppTopBar(title: l10n.enterCode),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(22),
@@ -122,7 +123,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Check your email',
+                          l10n.checkYourEmail,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
@@ -132,7 +133,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         const SizedBox(height: 10),
                         Text.rich(
                           TextSpan(
-                            text: 'We sent a 6-digit code to\n',
+                            text: l10n.codeSentTo,
                             style: TextStyle(
                               fontSize: 13,
                               color: palette.textHint,
@@ -224,13 +225,13 @@ class _OtpScreenState extends State<OtpScreen> {
                         const SizedBox(height: 32),
 
                         AppButton(
-                          label: 'Verify code',
+                          label: l10n.verifyCode,
                           isLoading: state is AuthLoading,
                           onTap: _otp.length == 6 ? _verify : null,
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          "Didn't receive the code?",
+                          l10n.didntReceiveCode,
                           style: TextStyle(
                             fontSize: 13,
                             color: palette.textHint,
@@ -239,7 +240,9 @@ class _OtpScreenState extends State<OtpScreen> {
                         const SizedBox(height: 6),
                         _secondsLeft > 0
                             ? Text(
-                                'Resend in 0:${_secondsLeft.toString().padLeft(2, '0')}',
+                                l10n.resendIn(
+                                  _secondsLeft.toString().padLeft(2, '0'),
+                                ),
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.teal,
@@ -248,9 +251,9 @@ class _OtpScreenState extends State<OtpScreen> {
                               )
                             : GestureDetector(
                                 onTap: _resend,
-                                child: const Text(
-                                  'Resend code',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.resendCode,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     color: AppColors.teal,
                                     fontWeight: FontWeight.w500,

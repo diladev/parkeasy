@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
@@ -62,7 +63,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           builder: (context, state) {
             return Column(
               children: [
-                const AppTopBar(title: 'New password'),
+                AppTopBar(title: l10n.newPassword),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(22),
@@ -86,7 +87,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Set a new password',
+                            l10n.setNewPassword,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
@@ -95,7 +96,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'At least 8 characters, with an uppercase and a lowercase letter, a number and a symbol.',
+                            l10n.passwordRules,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -104,7 +105,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           ),
                           const SizedBox(height: 32),
                           AppPasswordField(
-                            label: 'New password',
+                            label: l10n.newPassword,
                             controller: _passwordController,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.newPassword],
@@ -117,7 +118,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           ),
                           const SizedBox(height: 16),
                           AppPasswordField(
-                            label: 'Confirm new password',
+                            label: l10n.confirmNewPassword,
                             controller: _confirmController,
                             validator: Validators.matches(
                               () => _passwordController.text,
@@ -125,7 +126,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           ),
                           const SizedBox(height: 32),
                           AppButton(
-                            label: 'Reset password',
+                            label: l10n.resetPassword,
                             isLoading: state is AuthLoading,
                             onTap: _reset,
                           ),
@@ -173,7 +174,7 @@ class ResetPasswordSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Password reset!',
+                l10n.passwordResetDone,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w500,
@@ -182,13 +183,13 @@ class ResetPasswordSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Your password has been updated. For your safety you were signed out on every device.',
+                l10n.passwordResetSignedOut,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: palette.textHint),
               ),
               const SizedBox(height: 40),
               AppButton(
-                label: 'Sign in now',
+                label: l10n.signInNow,
                 onTap: () => AppRouter.toLogin(context),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// "Find nearby spot" with the number of free slots around the user.
@@ -18,11 +19,11 @@ class FindNearbyBanner extends StatelessWidget {
   final VoidCallback onFind;
 
   String get _subtitle {
-    if (isLoading) return 'Looking for spots near you...';
+    if (isLoading) return l10n.lookingForSpots;
     final spots = spotsNearby;
-    if (spots == null) return "Couldn't check spots near you";
-    if (spots == 0) return 'No free spots near you right now';
-    return spots == 1 ? '1 spot available near you' : '$spots spots available near you';
+    if (spots == null) return l10n.couldntCheckSpots;
+    if (spots == 0) return l10n.noFreeSpotsNear;
+    return l10n.spotsNearYou(spots);
   }
 
   @override
@@ -31,7 +32,7 @@ class FindNearbyBanner extends StatelessWidget {
 
     return Container(
       height: 58,
-      padding: const EdgeInsets.only(left: 14, right: 10),
+      padding: const EdgeInsetsDirectional.only(start: 14, end: 10),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(14),
@@ -46,7 +47,7 @@ class FindNearbyBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Find nearby spot',
+                    l10n.findNearbySpot,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -74,14 +75,18 @@ class FindNearbyBanner extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.tealLight, width: 0.5),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(LucideIcons.compass300, size: 16, color: AppColors.tealLight),
-                  SizedBox(width: 5),
+                  const Icon(
+                    LucideIcons.compass300,
+                    size: 16,
+                    color: AppColors.tealLight,
+                  ),
+                  const SizedBox(width: 5),
                   Text(
-                    'Find',
-                    style: TextStyle(
+                    l10n.find,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: AppColors.tealLight,

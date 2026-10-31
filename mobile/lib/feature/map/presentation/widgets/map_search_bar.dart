@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// "Search area..." over the map, with the locate-me button on the right.
@@ -38,13 +39,13 @@ class MapSearchBar extends StatelessWidget {
           Expanded(
             child: Semantics(
               button: true,
-              label: 'Search area',
+              label: l10n.searchArea,
               excludeSemantics: true,
               child: GestureDetector(
                 onTap: onSearch,
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 14),
+                  padding: const EdgeInsetsDirectional.only(start: 14),
                   child: Row(
                     children: [
                       Icon(
@@ -54,7 +55,7 @@ class MapSearchBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Search area...',
+                        l10n.searchAreaHint,
                         style: TextStyle(fontSize: 12, color: palette.textHint),
                       ),
                     ],
@@ -65,7 +66,7 @@ class MapSearchBar extends StatelessWidget {
           ),
           Semantics(
             button: true,
-            label: 'Show my location',
+            label: l10n.showMyLocation,
             excludeSemantics: true,
             child: GestureDetector(
               onTap: onLocate,

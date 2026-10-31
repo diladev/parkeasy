@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/map/parking_pin.dart';
@@ -52,7 +53,7 @@ class NearbySheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              hasLocation ? 'Nearby spots' : 'Parking in Sulaymaniyah',
+              hasLocation ? l10n.nearbySpots : l10n.parkingInSulaymaniyah,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -64,7 +65,7 @@ class NearbySheet extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  'No parking lots yet.',
+                  l10n.noParkingLotsYet,
                   style: TextStyle(fontSize: 11, color: palette.textHint),
                 ),
               ),
@@ -93,8 +94,8 @@ class _NearbyRow extends StatelessWidget {
     final color = ParkingPin.colorFor(summary.availableSlots);
     final distance = lot.distanceKm;
     final free = summary.availableSlots == 0
-        ? 'Full'
-        : '${summary.availableSlots} free';
+        ? l10n.full
+        : l10n.freeCount(summary.availableSlots);
 
     return InkWell(
       onTap: onTap,
@@ -144,7 +145,7 @@ class _NearbyRow extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              '${Formatters.money(summary.pricePerHour)}/hr',
+              l10n.perHourShort(Formatters.money(summary.pricePerHour)),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

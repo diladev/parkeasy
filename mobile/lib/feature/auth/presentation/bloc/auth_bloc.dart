@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/feature/auth/domain/usecases/clear_session.dart';
 import 'package:mobile/feature/auth/domain/usecases/forgot_password.dart';
 import 'package:mobile/feature/auth/domain/usecases/reset_password.dart';
@@ -41,11 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // ApiClient reports when a request finds the session is over.
     _sessionExpiredSubscription = sessionExpired.listen(
-      (_) => add(
-        ResetToUnauthorized(
-          message: 'Your session has expired. Please sign in again.',
-        ),
-      ),
+      (_) => add(ResetToUnauthorized(message: l10n.sessionExpired)),
     );
   }
 

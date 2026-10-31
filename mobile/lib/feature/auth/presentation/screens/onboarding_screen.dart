@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/service/onboarding_store.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -48,26 +49,26 @@ class OnboardingScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const _Feature(
+                    _Feature(
                       icon: LucideIcons.search,
-                      title: 'Find nearby spots',
-                      subtitle: 'Real-time availability',
+                      title: l10n.onboardingFindTitle,
+                      subtitle: l10n.onboardingFindSubtitle,
                     ),
                     const SizedBox(height: 12),
-                    const _Feature(
+                    _Feature(
                       icon: LucideIcons.calendar,
-                      title: 'Reserve in advance',
-                      subtitle: 'Book before you arrive',
+                      title: l10n.onboardingReserveTitle,
+                      subtitle: l10n.onboardingReserveSubtitle,
                     ),
                     const SizedBox(height: 12),
-                    const _Feature(
+                    _Feature(
                       icon: LucideIcons.wallet,
-                      title: 'Pay seamlessly',
-                      subtitle: 'From your ParkEasy wallet',
+                      title: l10n.onboardingPayTitle,
+                      subtitle: l10n.onboardingPaySubtitle,
                     ),
                     const SizedBox(height: 20),
                     AppButton(
-                      label: 'Get started',
+                      label: l10n.getStarted,
                       height: 48,
                       onTap: () => _getStarted(context),
                     ),
@@ -76,7 +77,7 @@ class OnboardingScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Already have an account?',
+                          l10n.alreadyHaveAccount,
                           style: TextStyle(
                             fontSize: 11,
                             color: palette.textHint,
@@ -88,9 +89,9 @@ class OnboardingScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             minimumSize: const Size(0, 36),
                           ),
-                          child: const Text(
-                            'Sign in',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.signIn,
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: AppColors.tealLight,
@@ -150,10 +151,10 @@ class _Hero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Find & book parking in seconds',
+          Text(
+            l10n.tagline,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: AppColors.tealLight),
+            style: const TextStyle(fontSize: 12, color: AppColors.tealLight),
           ),
         ],
       ),

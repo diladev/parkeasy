@@ -33,8 +33,8 @@ class RecentBookingCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Positioned(
-              left: 12,
+            PositionedDirectional(
+              start: 12,
               top: 13,
               child: Container(
                 width: 36,
@@ -50,10 +50,10 @@ class RecentBookingCard extends StatelessWidget {
                 ),
               ),
             ),
-            Positioned(
-              left: 60,
+            PositionedDirectional(
+              start: 60,
               top: 10,
-              right: 70,
+              end: 70,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -77,8 +77,8 @@ class RecentBookingCard extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
-              right: 8,
+            PositionedDirectional(
+              end: 8,
               top: 18,
               child: _StatusBadge(status: booking.status),
             ),

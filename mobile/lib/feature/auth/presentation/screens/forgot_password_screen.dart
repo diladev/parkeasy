@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
@@ -57,7 +58,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           builder: (context, state) {
             return Column(
               children: [
-                const AppTopBar(title: 'Reset password'),
+                AppTopBar(title: l10n.resetPassword),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(22),
@@ -82,7 +83,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Forgot your password?',
+                            l10n.forgotYourPassword,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
@@ -91,7 +92,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            "Enter the email linked to your account\nand we'll send you a reset code.",
+                            l10n.forgotPasswordHelp,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -100,8 +101,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 32),
                           AppInputField(
-                            label: 'Email address',
-                            hint: 'you@example.com',
+                            label: l10n.emailAddress,
+                            hint: l10n.emailHint,
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             autofillHints: const [AutofillHints.email],
@@ -109,7 +110,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 24),
                           AppButton(
-                            label: 'Send reset code',
+                            label: l10n.sendResetCode,
                             isLoading: state is AuthLoading,
                             onTap: _sendCode,
                           ),
@@ -118,14 +119,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Remembered it? ',
+                                l10n.rememberedIt,
                                 style: TextStyle(color: palette.textHint),
                               ),
                               GestureDetector(
                                 onTap: () => Navigator.pop(context),
-                                child: const Text(
-                                  'Back to sign in',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.backToSignIn,
+                                  style: const TextStyle(
                                     color: AppColors.teal,
                                     fontWeight: FontWeight.w500,
                                   ),

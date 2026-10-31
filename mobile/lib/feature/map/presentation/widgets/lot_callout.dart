@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_lot_summary.dart';
@@ -20,7 +21,7 @@ class LotCallout extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: '${lot.name}, ${lot.availableSlots} free, open details',
+      label: l10n.lotCalloutSemantics(lot.name, lot.availableSlots),
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -29,7 +30,7 @@ class LotCallout extends StatelessWidget {
           children: [
             Container(
               constraints: const BoxConstraints(maxWidth: 200),
-              padding: const EdgeInsets.fromLTRB(8, 4, 10, 6),
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 10, 6),
               decoration: BoxDecoration(
                 color: palette.surface,
                 borderRadius: BorderRadius.circular(10),
@@ -51,8 +52,8 @@ class LotCallout extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${lot.availableSlots} free · '
-                    '${Formatters.money(lot.pricePerHour)}/hr',
+                    '${l10n.freeCount(lot.availableSlots)} · '
+                    '${l10n.perHourShort(Formatters.money(lot.pricePerHour))}',
                     style: const TextStyle(
                       fontSize: 9,
                       color: AppColors.tealLight,

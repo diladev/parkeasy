@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/constants/default_location.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// The top of the home tab: the user's area and the notifications bell.
@@ -22,8 +23,8 @@ class HomeHeader extends StatelessWidget {
       height: 62,
       child: Stack(
         children: [
-          Positioned(
-            left: 18,
+          PositionedDirectional(
+            start: 18,
             top: 18,
             child: Container(
               width: 14,
@@ -34,15 +35,15 @@ class HomeHeader extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            left: 36,
+          PositionedDirectional(
+            start: 36,
             top: 10,
-            right: 70,
+            end: 70,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your location',
+                  l10n.yourLocation,
                   style: TextStyle(fontSize: 10, color: palette.textHint),
                 ),
                 const SizedBox(height: 4),
@@ -59,8 +60,8 @@ class HomeHeader extends StatelessWidget {
               ],
             ),
           ),
-          Positioned(
-            right: 16,
+          PositionedDirectional(
+            end: 16,
             top: 14,
             child: _BellButton(hasUnread: hasUnread, onTap: onNotifications),
           ),
@@ -80,7 +81,7 @@ class _BellButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: hasUnread ? 'Notifications, unread' : 'Notifications',
+      label: hasUnread ? l10n.notificationsUnread : l10n.notifications,
       child: GestureDetector(
         onTap: onTap,
         child: Stack(
@@ -102,8 +103,8 @@ class _BellButton extends StatelessWidget {
               ),
             ),
             if (hasUnread)
-              Positioned(
-                right: -2,
+              PositionedDirectional(
+                end: -2,
                 top: 2,
                 child: Container(
                   width: 8,
