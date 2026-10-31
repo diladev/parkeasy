@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 
 class ConnectivityWrapper extends StatelessWidget {
   final Widget child;
@@ -45,12 +46,12 @@ class ConnectivityWrapper extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No Internet Connection',
+                          l10n.noInternetTitle,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Please check your internet connection and try again.',
+                          l10n.noInternetMessage,
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),

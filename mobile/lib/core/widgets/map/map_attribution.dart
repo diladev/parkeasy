@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/config/map_config.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 
 /// "© OpenStreetMap contributors", always visible and linked to the
 /// copyright page, as the OSM attribution guidelines require. Place it where
@@ -12,7 +13,7 @@ class MapAttribution extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       link: true,
-      label: 'Map data ${MapConfig.attribution}',
+      label: l10n.mapData(MapConfig.attribution),
       excludeSemantics: true,
       child: GestureDetector(
         onTap: () => launchUrl(

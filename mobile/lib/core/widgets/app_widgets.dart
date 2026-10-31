@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 // Every neutral color (backgrounds, text, borders) comes from context.palette,
@@ -156,6 +157,10 @@ class AppInputField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final bool enabled;
 
+  /// Left to right for emails, phone numbers, numbers and passwords unless
+  /// set; otherwise the app's direction.
+  final TextDirection? textDirection;
+
   const AppInputField({
     super.key,
     required this.label,
@@ -173,11 +178,28 @@ class AppInputField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.autofillHints,
     this.enabled = true,
+    this.textDirection,
   });
+
+  bool get _isLatin =>
+      obscureText ||
+      const [
+        TextInputType.emailAddress,
+        TextInputType.phone,
+        TextInputType.number,
+        TextInputType.url,
+        TextInputType.visiblePassword,
+      ].any((type) => type.index == keyboardType.index);
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final direction = textDirection ?? (_isLatin ? TextDirection.ltr : null);
+    // A left-to-right field on a right-to-left screen still lines up with
+    // its label, on the right.
+    final align = direction == TextDirection.ltr && l10n.isRtl
+        ? TextAlign.right
+        : TextAlign.start;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,9 +224,12 @@ class AppInputField extends StatelessWidget {
           textInputAction: textInputAction,
           textCapitalization: textCapitalization,
           autofillHints: autofillHints,
+          textDirection: direction,
+          textAlign: align,
           style: TextStyle(fontSize: 13, color: palette.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
+            hintTextDirection: direction,
             suffixIcon: suffixIcon,
             prefixIcon: prefixIcon,
           ),
@@ -404,7 +429,8 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
             GestureDetector(
               onTap: onBack ?? () => Navigator.maybePop(context),
               child: Text(
-                '←',
+                l10n.backArrow,
+                textDirection: TextDirection.ltr,
                 style: TextStyle(fontSize: 18, color: palette.textMuted),
               ),
             ),
@@ -445,29 +471,33 @@ class AppBottomNav extends StatelessWidget {
         color: palette.surface,
         border: Border(top: BorderSide(color: palette.border, width: 0.5)),
       ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onTap,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.house, size: 24),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.map, size: 24),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.listCheck, size: 24),
-            label: 'Bookings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(LucideIcons.userRound, size: 24),
-            label: 'Profile',
-          ),
-        ],
+      // Kurdish reads right to left, but the tabs keep their order.
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: onTap,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.house, size: 24),
+              label: l10n.navHome,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.map, size: 24),
+              label: l10n.navMap,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.listCheck, size: 24),
+              label: l10n.navBookings,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(LucideIcons.userRound, size: 24),
+              label: l10n.navProfile,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -528,10 +558,10 @@ class PasswordStrengthBar extends StatelessWidget {
   String get _label {
     return switch (_strength) {
       0 => '',
-      1 => 'Weak',
-      2 => 'Fair',
-      3 => 'Good',
-      _ => 'Strong',
+      1 => l10n.passwordWeak,
+      2 => l10n.passwordFair,
+      3 => l10n.passwordGood,
+      _ => l10n.passwordStrong,
     };
   }
 
@@ -557,7 +587,7 @@ class PasswordStrengthBar extends StatelessWidget {
             4,
             (i) => Expanded(
               child: Container(
-                margin: EdgeInsets.only(right: i < 3 ? 4 : 0),
+                margin: EdgeInsetsDirectional.only(end: i < 3 ? 4 : 0),
                 height: 4,
                 decoration: BoxDecoration(
                   color: _barColor(i, empty),
@@ -569,10 +599,7 @@ class PasswordStrengthBar extends StatelessWidget {
         ),
         if (_label.isNotEmpty) ...[
           const SizedBox(height: 6),
-          Text(
-            '$_label password',
-            style: TextStyle(fontSize: 11, color: _labelColor),
-          ),
+          Text(_label, style: TextStyle(fontSize: 11, color: _labelColor)),
         ],
       ],
     );
@@ -731,7 +758,11 @@ class AppMenuRow extends StatelessWidget {
                 ],
               ),
             ),
-            Text('›', style: TextStyle(fontSize: 18, color: palette.textHint)),
+            Text(
+              l10n.forwardChevron,
+              textDirection: TextDirection.ltr,
+              style: TextStyle(fontSize: 18, color: palette.textHint),
+            ),
           ],
         ),
       ),
@@ -763,7 +794,7 @@ class AppErrorView extends StatelessWidget {
               style: TextStyle(fontSize: 13, color: palette.textMuted),
             ),
             const SizedBox(height: 16),
-            TextButton(onPressed: onRetry, child: const Text('Try again')),
+            TextButton(onPressed: onRetry, child: Text(l10n.tryAgain)),
           ],
         ),
       ),
@@ -801,7 +832,7 @@ Future<bool> showAppConfirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, false),
-          child: Text('Cancel', style: TextStyle(color: palette.textMuted)),
+          child: Text(l10n.cancel, style: TextStyle(color: palette.textMuted)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, true),

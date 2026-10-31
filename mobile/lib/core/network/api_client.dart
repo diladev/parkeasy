@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:mobile/core/errors/exception.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/network/token_provider.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:http/http.dart' as http;
@@ -80,10 +81,7 @@ class ApiClient {
       token = await _tokenProvider().getAccessToken();
       if (token == null) {
         _sessionExpired.add(null);
-        throw const APIException(
-          message: 'Your session has expired. Please sign in again.',
-          statusCode: 401,
-        );
+        throw APIException(message: l10n.sessionExpired, statusCode: 401);
       }
     }
 
@@ -111,7 +109,7 @@ class ApiClient {
       data = _decode(response);
     } on FormatException {
       throw APIException(
-        message: 'Somthing went wrong. Please try again.',
+        message: l10n.somethingWentWrong,
         statusCode: response.statusCode,
       );
     }
@@ -147,15 +145,9 @@ class ApiClient {
       final streamedResponse = await _client.send(request).timeout(_timeout);
       return await http.Response.fromStream(streamedResponse).timeout(_timeout);
     } on TimeoutException {
-      throw const APIException(
-        message: 'Request timed out. Please try again.',
-        statusCode: 408,
-      );
+      throw APIException(message: l10n.requestTimedOut, statusCode: 408);
     } catch (e) {
-      throw APIException(
-        message: "Can't reach the server. Check your connection and try again.",
-        statusCode: 503,
-      );
+      throw APIException(message: l10n.cantReachServer, statusCode: 503);
     }
   }
 
@@ -175,6 +167,6 @@ class ApiClient {
     } on FormatException {
       // Not Json, ignore and return generic error message below
     }
-    return 'Something went wrong(${response.statusCode}). Please try again later.';
+    return l10n.somethingWentWrongCode(response.statusCode);
   }
 }
