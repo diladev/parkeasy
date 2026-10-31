@@ -17,7 +17,7 @@
 
 | App | Stack | For |
 |---|---|---|
-| 📱 [`mobile/`](./mobile) | Flutter · Clean Architecture · BLoC · dartz · get_it · flutter_map | Drivers: find nearby garages on a map, scan a lot's QR sign, book with daily caps and special prices, extend, end early, wallet top-ups, notifications, PDF receipts, help & support |
+| 📱 [`mobile/`](./mobile) | Flutter · Clean Architecture · BLoC · dartz · get_it · flutter_map | Drivers: find nearby garages on a map, scan a lot's QR sign, book with daily caps and special prices, extend, end early, wallet top-ups, notifications, PDF receipts, help & support, in English or right-to-left Kurdish |
 | ⚙️ [`backend/`](./backend) | NestJS 11 · Sequelize · MySQL 8 · Passport JWT · nestjs-i18n · Swagger | One REST API for all apps, with errors and emails translated per request (English / Kurdish) |
 | 🖥️ [`web/`](./web) | Vue 3.5 · Vite · TypeScript · Nuxt UI · Pinia · TanStack Query · Zod · vue-i18n | Admin Panel (done) and Garage Portal (sign-in, password reset, dashboard, live slots, walk-ins, bookings and lot settings so far), one app with English and right-to-left Kurdish |
 
@@ -66,6 +66,7 @@ flowchart LR
 
 **Kurdish and accessibility**
 - Kurdish (Sorani) is supported end to end: the API translates errors and emails from the `x-lang` header, and the web and mobile apps switch to right-to-left.
+- In the mobile app, Profile > App language switches every screen at once. The texts are typed (a missing translation doesn't compile), and the bottom tabs, phone numbers, plates and codes keep their left-to-right order.
 - Names, phone numbers and amounts stay readable inside RTL text (Unicode isolates); Kurdish month and weekday names are built in, because browsers don't ship them.
 - The web app is keyboard-friendly: focus moves to the first field to fix, dialogs trap focus, and the chart has a table for screen readers. Text colours were adjusted to meet WCAG AA contrast.
 
@@ -157,5 +158,5 @@ cd mobile  && flutter analyze && flutter test
 
 - **Garage Portal:** reports (sign-in, password reset, the dashboard, live slots, walk-ins, bookings and lot settings are done).
 - **Admin Panel:** transactions, reports and settings pages; global search and notifications.
-- **Mobile:** Kurdish localization and live GPS location.
+- **Mobile:** live GPS location; Kurdish PDF receipts (they need a bundled Arabic-script font).
 - **Deployment:** Docker images for the API and web app (nginx with security headers) and a public demo.
