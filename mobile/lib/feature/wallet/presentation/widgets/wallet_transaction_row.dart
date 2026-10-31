@@ -24,7 +24,6 @@ class WalletTransactionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final amount = Formatters.money(transaction.amount);
 
     return Padding(
       padding: const EdgeInsets.only(top: 6, bottom: 8),
@@ -64,7 +63,9 @@ class WalletTransactionRow extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: Text(
-              transaction.isCredit ? '+$amount' : '-$amount',
+              Formatters.signedMoney(
+                transaction.isCredit ? transaction.amount : -transaction.amount,
+              ),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

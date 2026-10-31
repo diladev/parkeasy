@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
@@ -67,7 +68,7 @@ class VehicleTile extends StatelessWidget {
                     ),
                     if (vehicle.isDefault) ...[
                       const SizedBox(width: 8),
-                      const AppBadge(label: 'Default'),
+                      AppBadge(label: l10n.defaultBadge),
                     ],
                   ],
                 ),
@@ -92,7 +93,10 @@ class VehicleTile extends StatelessWidget {
             )
           else
             PopupMenuButton<_VehicleAction>(
-              icon: Icon(LucideIcons.ellipsisVertical, color: palette.textMuted),
+              icon: Icon(
+                LucideIcons.ellipsisVertical,
+                color: palette.textMuted,
+              ),
               color: palette.surface2,
               onSelected: (action) {
                 switch (action) {
@@ -105,15 +109,21 @@ class VehicleTile extends StatelessWidget {
                 }
               },
               itemBuilder: (_) => [
-                const PopupMenuItem(value: _VehicleAction.edit, child: Text('Edit')),
+                PopupMenuItem(
+                  value: _VehicleAction.edit,
+                  child: Text(l10n.edit),
+                ),
                 if (!vehicle.isDefault)
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: _VehicleAction.makeDefault,
-                    child: Text('Make default'),
+                    child: Text(l10n.makeDefault),
                   ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: _VehicleAction.delete,
-                  child: Text('Delete', style: TextStyle(color: AppColors.red)),
+                  child: Text(
+                    l10n.delete,
+                    style: const TextStyle(color: AppColors.red),
+                  ),
                 ),
               ],
             ),

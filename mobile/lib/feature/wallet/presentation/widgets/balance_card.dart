@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 
@@ -29,8 +30,8 @@ class BalanceCard extends StatelessWidget {
       child: Stack(
         children: [
           // The faint circle in the top-right corner.
-          Positioned(
-            right: -60,
+          PositionedDirectional(
+            end: -60,
             top: -30,
             child: Container(
               width: 160,
@@ -48,7 +49,7 @@ class BalanceCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Available balance',
+                  l10n.availableBalance,
                   style: TextStyle(
                     fontSize: 10,
                     color: Colors.white.withValues(alpha: 0.65),
@@ -57,7 +58,7 @@ class BalanceCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Text(
                     Formatters.money(balance),
                     style: const TextStyle(
@@ -72,7 +73,7 @@ class BalanceCard extends StatelessWidget {
                 Row(
                   children: [
                     _CardChip(
-                      label: '+ Top up',
+                      label: l10n.topUpChip,
                       background: Colors.white.withValues(alpha: 0.18),
                       textColor: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -80,7 +81,7 @@ class BalanceCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     _CardChip(
-                      label: '↑ Withdraw',
+                      label: l10n.withdrawChip,
                       background: Colors.white.withValues(alpha: 0.12),
                       textColor: Colors.white.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w400,

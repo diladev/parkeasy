@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:mobile/core/errors/exception.dart';
 import 'package:mobile/core/errors/failure.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/profile/data/repositories/profile_local_data_source.dart';
@@ -139,11 +140,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } on APIException catch (e) {
       return Left(APIFailure.fromException(e));
     } catch (_) {
-      return const Left(
-        APIFailure(
-          message: 'Something went wrong. Please try again.',
-          statusCode: 500,
-        ),
+      return Left(
+        APIFailure(message: l10n.somethingWentWrong, statusCode: 500),
       );
     }
   }

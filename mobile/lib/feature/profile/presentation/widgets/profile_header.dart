@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -53,15 +54,22 @@ class ProfileHeader extends StatelessWidget {
                 _InfoLine(icon: LucideIcons.mail, text: user.email),
                 if (user.phone.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  _InfoLine(icon: LucideIcons.phone, text: user.phone),
+                  _InfoLine(
+                    icon: LucideIcons.phone,
+                    text: Formatters.ltr(user.phone),
+                  ),
                 ],
               ],
             ),
           ),
           IconButton(
             onPressed: onEdit,
-            tooltip: 'Edit profile',
-            icon: const Icon(LucideIcons.squarePen, size: 24, color: AppColors.amber),
+            tooltip: l10n.editProfile,
+            icon: const Icon(
+              LucideIcons.squarePen,
+              size: 24,
+              color: AppColors.amber,
+            ),
           ),
         ],
       ),

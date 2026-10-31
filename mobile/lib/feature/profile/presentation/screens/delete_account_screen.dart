@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/state/submit_state.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
@@ -47,9 +48,9 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
 
     final confirmed = await showAppConfirmDialog(
       context,
-      title: 'Delete your account?',
-      message: "This can't be undone.",
-      confirmLabel: 'Delete',
+      title: l10n.deleteAccountQuestion,
+      message: l10n.cantBeUndone,
+      confirmLabel: l10n.delete,
       isDestructive: true,
     );
     if (confirmed && mounted) {
@@ -71,11 +72,11 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
               // AuthBloc clears the session; main.dart then shows the login
               // screen with this message.
               context.read<AuthBloc>().add(
-                ResetToUnauthorized(message: 'Your account has been deleted.'),
+                ResetToUnauthorized(message: l10n.accountDeleted),
               );
             } else if (state.status == SubmitStatus.failure) {
               context.showSnack(
-                state.message ?? "Couldn't delete your account.",
+                state.message ?? l10n.couldntDeleteAccount,
                 isError: true,
               );
             }
@@ -83,7 +84,7 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
           builder: (context, state) {
             return Column(
               children: [
-                const AppTopBar(title: 'Delete account'),
+                AppTopBar(title: l10n.deleteAccount),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(22),
@@ -106,8 +107,7 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Your profile, your vehicles and your saved details will be removed and you will be signed out. '
-                                    'Past bookings are kept for our records. This cannot be undone.',
+                                    l10n.deleteAccountWarning,
                                     style: TextStyle(
                                       fontSize: 13,
                                       height: 1.5,
@@ -120,14 +120,14 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
                           ),
                           const SizedBox(height: 24),
                           AppPasswordField(
-                            label: 'Enter your password to confirm',
+                            label: l10n.enterPasswordToConfirm,
                             controller: _passwordController,
                             validator: Validators.required,
                             autofillHints: const [AutofillHints.password],
                           ),
                           const SizedBox(height: 32),
                           AppDestructiveButton(
-                            label: 'Delete my account',
+                            label: l10n.deleteMyAccount,
                             icon: LucideIcons.trash2,
                             isLoading: state.isSubmitting,
                             onTap: _delete,
@@ -136,7 +136,7 @@ class _DeleteAccountViewState extends State<_DeleteAccountView> {
                           TextButton(
                             onPressed: () => Navigator.pop(context),
                             child: Text(
-                              'Keep my account',
+                              l10n.keepMyAccount,
                               style: TextStyle(color: palette.textMuted),
                             ),
                           ),

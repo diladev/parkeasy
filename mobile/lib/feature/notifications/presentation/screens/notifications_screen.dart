@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -20,12 +21,12 @@ class NotificationsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<NotificationsCubit>()..load(),
-      child: const AppScreen(
+      child: AppScreen(
         topBar: AppTopBar(
-          title: 'Notifications',
-          trailing: _MarkAllReadButton(),
+          title: l10n.notifications,
+          trailing: const _MarkAllReadButton(),
         ),
-        body: _NotificationsView(),
+        body: const _NotificationsView(),
       ),
     );
   }
@@ -37,18 +38,17 @@ class _MarkAllReadButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<NotificationsCubit, NotificationsState>(
-      buildWhen: (previous, current) =>
-          previous.hasUnread != current.hasUnread,
+      buildWhen: (previous, current) => previous.hasUnread != current.hasUnread,
       builder: (context, state) {
         if (!state.hasUnread) return const SizedBox.shrink();
         return GestureDetector(
           onTap: context.read<NotificationsCubit>().markAllRead,
           behavior: HitTestBehavior.opaque,
-          child: const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
             child: Text(
-              'Mark all read',
-              style: TextStyle(fontSize: 11, color: AppColors.teal),
+              l10n.markAllRead,
+              style: const TextStyle(fontSize: 11, color: AppColors.teal),
             ),
           ),
         );
@@ -143,7 +143,7 @@ class _Body extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         case NotificationsStatus.failure:
           return AppErrorView(
-            message: state.errorMessage ?? "Couldn't load your notifications.",
+            message: state.errorMessage ?? l10n.couldntLoadNotifications,
             onRetry: cubit.load,
           );
         case NotificationsStatus.loaded:
@@ -199,10 +199,9 @@ class _EmptyInbox extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final message = switch (tab.category) {
-      NotificationCategory.booking =>
-        'Updates about your bookings show up here.',
-      NotificationCategory.wallet => 'Wallet top-ups show up here.',
-      null => 'Booking and wallet updates show up here.',
+      NotificationCategory.booking => l10n.bookingUpdatesHere,
+      NotificationCategory.wallet => l10n.walletUpdatesHere,
+      null => l10n.allUpdatesHere,
     };
 
     return Padding(
@@ -210,7 +209,7 @@ class _EmptyInbox extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'No notifications yet',
+            l10n.noNotificationsYet,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,

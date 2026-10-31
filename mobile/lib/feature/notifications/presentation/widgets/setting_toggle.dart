@@ -29,7 +29,9 @@ class SettingToggle extends StatelessWidget {
       child: AnimatedAlign(
         duration: _slide,
         curve: Curves.easeOut,
-        alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: isOn
+            ? AlignmentDirectional.centerEnd
+            : AlignmentDirectional.centerStart,
         child: Container(
           width: 15,
           height: 15,

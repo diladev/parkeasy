@@ -1,12 +1,16 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 
 enum VehicleType {
-  sedan('Sedan'),
-  suv('SUV'),
-  truck('Truck');
+  sedan,
+  suv,
+  truck;
 
-  const VehicleType(this.label);
-  final String label;
+  String get label => switch (this) {
+    VehicleType.sedan => l10n.vehicleSedan,
+    VehicleType.suv => l10n.vehicleSuv,
+    VehicleType.truck => l10n.vehicleTruck,
+  };
 
   String get apiValue => name;
 

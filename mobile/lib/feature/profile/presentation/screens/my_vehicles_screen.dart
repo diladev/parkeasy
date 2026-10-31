@@ -3,8 +3,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
@@ -40,10 +42,9 @@ class _MyVehiclesView extends StatelessWidget {
     final cubit = context.read<VehiclesCubit>();
     final confirmed = await showAppConfirmDialog(
       context,
-      title: 'Delete ${vehicle.displayName}?',
-      message:
-          'Plate ${vehicle.plateNumber} will be removed from your account.',
-      confirmLabel: 'Delete',
+      title: l10n.deleteVehicleQuestion(vehicle.displayName),
+      message: l10n.plateWillBeRemoved(Formatters.ltr(vehicle.plateNumber)),
+      confirmLabel: l10n.delete,
       isDestructive: true,
     );
     if (confirmed) {
@@ -67,9 +68,9 @@ class _MyVehiclesView extends StatelessWidget {
             return Column(
               children: [
                 AppTopBar(
-                  title: 'My vehicles',
+                  title: l10n.myVehicles,
                   trailing: IconButton(
-                    tooltip: 'Add vehicle',
+                    tooltip: l10n.addVehicle,
                     icon: const Icon(LucideIcons.plus, color: AppColors.teal),
                     onPressed: () => _openForm(context),
                   ),
@@ -95,7 +96,7 @@ class _MyVehiclesView extends StatelessWidget {
           child: CircularProgressIndicator(),
         ),
         VehiclesStatus.failure => AppErrorView(
-          message: state.errorMessage ?? "Couldn't load your vehicles.",
+          message: state.errorMessage ?? l10n.couldntLoadVehicles,
           onRetry: cubit.load,
         ),
         VehiclesStatus.loaded => _EmptyVehicles(
@@ -117,7 +118,7 @@ class _MyVehiclesView extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(top: 8),
               child: AppOutlinedButton(
-                label: 'Add another vehicle',
+                label: l10n.addAnotherVehicle,
                 icon: LucideIcons.plus,
                 onTap: () => _openForm(context),
               ),
@@ -166,12 +167,12 @@ class _EmptyVehicles extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'No vehicles yet',
+              l10n.noVehiclesYet,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Add your car so you can book a parking spot in one tap.',
+              l10n.noVehiclesHint,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -181,7 +182,7 @@ class _EmptyVehicles extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             AppButton(
-              label: 'Add a vehicle',
+              label: l10n.addAVehicle,
               icon: LucideIcons.plus,
               onTap: onAdd,
             ),

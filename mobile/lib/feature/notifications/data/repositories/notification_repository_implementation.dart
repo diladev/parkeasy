@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:mobile/core/errors/exception.dart';
 import 'package:mobile/core/errors/failure.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/notifications/data/repositories/notification_remote_data_source.dart';
 import 'package:mobile/feature/notifications/domain/entities/app_notification.dart';
@@ -52,11 +53,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
     } on APIException catch (e) {
       return Left(APIFailure.fromException(e));
     } catch (_) {
-      return const Left(
-        APIFailure(
-          message: 'Something went wrong. Please try again.',
-          statusCode: 500,
-        ),
+      return Left(
+        APIFailure(message: l10n.somethingWentWrong, statusCode: 500),
       );
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/constants/support.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -30,7 +31,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       Uri(
         scheme: 'mailto',
         path: kSupportEmail,
-        query: 'subject=${Uri.encodeComponent('ParkEasy support')}',
+        query: 'subject=${Uri.encodeComponent(l10n.supportEmailSubject)}',
       ),
     );
     if (opened || !mounted) return;
@@ -38,14 +39,14 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     // No mail app (the iOS simulator has none): hand over the address.
     await Clipboard.setData(const ClipboardData(text: kSupportEmail));
     if (mounted) {
-      context.showSnack('No email app found. Copied $kSupportEmail.');
+      context.showSnack(l10n.noEmailAppCopied(kSupportEmail));
     }
   }
 
   Future<void> _openDocumentation() async {
     final opened = await _open(Uri.parse(kDocumentationUrl));
     if (!opened && mounted) {
-      context.showSnack("Couldn't open the documentation.", isError: true);
+      context.showSnack(l10n.couldntOpenDocs, isError: true);
     }
   }
 
@@ -63,11 +64,11 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     final palette = context.palette;
 
     return AppScreen(
-      topBar: const AppTopBar(title: 'Help & support'),
+      topBar: AppTopBar(title: l10n.helpAndSupport),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
         children: [
-          const _SectionLabel('CONTACT US'),
+          _SectionLabel(l10n.contactUs),
           const SizedBox(height: 7),
           IntrinsicHeight(
             child: Row(
@@ -78,21 +79,19 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   // online; it points to email instead.
                   child: ContactCard(
                     icon: LucideIcons.messageCircleMore,
-                    label: 'Live chat',
-                    status: 'Coming soon',
+                    label: l10n.liveChat,
+                    status: l10n.comingSoon,
                     tint: AppColors.tealBg,
                     statusColor: palette.textHint,
-                    onTap: () => context.showSnack(
-                      "Live chat isn't available yet. Email us instead.",
-                    ),
+                    onTap: () => context.showSnack(l10n.liveChatUnavailable),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: ContactCard(
                     icon: LucideIcons.mail,
-                    label: 'Email us',
-                    status: 'Reply in 24h',
+                    label: l10n.emailUs,
+                    status: l10n.replyIn24h,
                     tint: _emailTint,
                     statusColor: palette.textHint,
                     onTap: _emailUs,
@@ -102,7 +101,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          const _SectionLabel('FAQS'),
+          _SectionLabel(l10n.faqsLabel),
           const SizedBox(height: 7),
           for (final (index, faq) in kFaqs.indexed) ...[
             if (index > 0) const SizedBox(height: 8),
@@ -117,9 +116,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           Center(
             child: TextButton(
               onPressed: _openDocumentation,
-              child: const Text(
-                'View full documentation',
-                style: TextStyle(fontSize: 11, color: AppColors.teal),
+              child: Text(
+                l10n.viewDocumentation,
+                style: const TextStyle(fontSize: 11, color: AppColors.teal),
               ),
             ),
           ),

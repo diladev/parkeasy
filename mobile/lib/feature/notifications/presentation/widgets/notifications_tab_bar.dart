@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/feature/notifications/presentation/cubit/notifications_state.dart';
 
@@ -13,10 +14,10 @@ class NotificationsTabBar extends StatelessWidget {
   final NotificationsTab selected;
   final ValueChanged<NotificationsTab> onSelected;
 
-  static const Map<NotificationsTab, String> _labels = {
-    NotificationsTab.all: 'All',
-    NotificationsTab.bookings: 'Bookings',
-    NotificationsTab.wallet: 'Wallet',
+  static Map<NotificationsTab, String> get _labels => {
+    NotificationsTab.all: l10n.tabAll,
+    NotificationsTab.bookings: l10n.tabBookings,
+    NotificationsTab.wallet: l10n.tabWallet,
   };
 
   @override
@@ -25,7 +26,7 @@ class NotificationsTabBar extends StatelessWidget {
 
     return Container(
       height: 44,
-      padding: const EdgeInsets.only(left: 22),
+      padding: const EdgeInsetsDirectional.only(start: 22),
       decoration: BoxDecoration(
         color: palette.bg,
         border: Border(bottom: BorderSide(color: palette.border, width: 0.5)),
@@ -68,8 +69,8 @@ class _Tab extends StatelessWidget {
           height: 44,
           child: Stack(
             children: [
-              Positioned(
-                left: 0,
+              PositionedDirectional(
+                start: 0,
                 top: 14,
                 child: Text(
                   label,
@@ -83,8 +84,8 @@ class _Tab extends StatelessWidget {
                 ),
               ),
               if (isSelected)
-                Positioned(
-                  left: 0,
+                PositionedDirectional(
+                  start: 0,
                   top: 40,
                   child: Container(
                     width: 60,

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/state/submit_state.dart';
 import 'package:mobile/core/theme/app_theme.dart';
@@ -98,14 +99,14 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
     if (widget.isOnboarding) {
       AppRouter.toLocationPermission(context);
     } else {
-      context.showSnack(_isEditing ? 'Vehicle updated.' : 'Vehicle added.');
+      context.showSnack(_isEditing ? l10n.vehicleUpdated : l10n.vehicleAdded);
       Navigator.pop(context, vehicle);
     }
   }
 
   String get _title {
-    if (widget.isOnboarding) return 'Add your vehicle';
-    return _isEditing ? 'Edit vehicle' : 'Add vehicle';
+    if (widget.isOnboarding) return l10n.addYourVehicle;
+    return _isEditing ? l10n.editVehicle : l10n.addVehicle;
   }
 
   @override
@@ -120,7 +121,7 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
               _onSaved(state.data!);
             } else if (state.status == SubmitStatus.failure) {
               context.showSnack(
-                state.message ?? "Couldn't save the vehicle.",
+                state.message ?? l10n.couldntSaveVehicle,
                 isError: true,
               );
             }
@@ -135,7 +136,7 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
                       ? TextButton(
                           onPressed: () =>
                               AppRouter.toLocationPermission(context),
-                          child: const Text('Skip'),
+                          child: Text(l10n.skip),
                         )
                       : null,
                 ),
@@ -151,7 +152,7 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
                             const _StepDots(filled: 3),
                             const SizedBox(height: 16),
                             Text(
-                              'Add the car you park most often. You can add more, or change it, later in your profile.',
+                              l10n.addVehicleIntro,
                               style: TextStyle(
                                 fontSize: 13,
                                 color: palette.textMuted,
@@ -165,8 +166,8 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
                             children: [
                               Expanded(
                                 child: AppInputField(
-                                  label: 'Brand',
-                                  hint: 'Toyota',
+                                  label: l10n.brand,
+                                  hint: l10n.brandHint,
                                   controller: _brandController,
                                   textCapitalization: TextCapitalization.words,
                                   textInputAction: TextInputAction.next,
@@ -176,8 +177,8 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: AppInputField(
-                                  label: 'Model',
-                                  hint: 'Camry',
+                                  label: l10n.model,
+                                  hint: l10n.modelHint,
                                   controller: _modelController,
                                   textCapitalization: TextCapitalization.words,
                                   textInputAction: TextInputAction.next,
@@ -196,8 +197,8 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: AppInputField(
-                                  label: 'Color',
-                                  hint: 'Silver',
+                                  label: l10n.color,
+                                  hint: l10n.colorHint,
                                   controller: _colorController,
                                   textCapitalization: TextCapitalization.words,
                                   textInputAction: TextInputAction.next,
@@ -208,15 +209,17 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
                           ),
                           const SizedBox(height: 16),
                           AppInputField(
-                            label: 'License plate',
-                            hint: '22 SUL 12345',
+                            label: l10n.licensePlate,
+                            hint: l10n.plateHint,
                             controller: _plateController,
                             textCapitalization: TextCapitalization.characters,
+                            // Plates read left to right in Kurdish too.
+                            textDirection: TextDirection.ltr,
                             validator: Validators.plate,
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Type',
+                            l10n.vehicleTypeLabel,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
@@ -251,7 +254,9 @@ class _VehicleFormViewState extends State<_VehicleFormView> {
                           ),
                           const SizedBox(height: 32),
                           AppButton(
-                            label: _isEditing ? 'Save changes' : 'Save vehicle',
+                            label: _isEditing
+                                ? l10n.saveChanges
+                                : l10n.saveVehicle,
                             isLoading: state.isSubmitting,
                             onTap: _submit,
                           ),
@@ -281,7 +286,7 @@ class _YearField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Year',
+          l10n.year,
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
@@ -321,7 +326,7 @@ class _StepDots extends StatelessWidget {
         (i) => Container(
           width: i < filled ? 28 : 7,
           height: 7,
-          margin: const EdgeInsets.only(right: 6),
+          margin: const EdgeInsetsDirectional.only(end: 6),
           decoration: BoxDecoration(
             color: i < filled ? AppColors.teal : empty,
             borderRadius: BorderRadius.circular(4),

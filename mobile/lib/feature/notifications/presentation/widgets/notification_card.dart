@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/notifications/domain/entities/app_notification.dart';
@@ -20,7 +21,7 @@ class NotificationCard extends StatelessWidget {
   String get _time {
     final at = notification.createdAt;
     final day = Formatters.day(at);
-    return day == 'Today'
+    return day == l10n.today
         ? Formatters.time(at)
         : '$day · ${Formatters.time(at)}';
   }
@@ -33,13 +34,13 @@ class NotificationCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: isUnread ? 'Unread' : null,
+      label: isUnread ? l10n.unread : null,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: Container(
           constraints: const BoxConstraints(minHeight: 80),
-          padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 10, 10),
           decoration: BoxDecoration(
             color: isUnread ? AppColors.tealBg : palette.surface,
             borderRadius: BorderRadius.circular(12),
@@ -92,7 +93,7 @@ class NotificationCard extends StatelessWidget {
                           Container(
                             width: 8,
                             height: 8,
-                            margin: const EdgeInsets.only(left: 8),
+                            margin: const EdgeInsetsDirectional.only(start: 8),
                             decoration: const BoxDecoration(
                               color: AppColors.teal,
                               shape: BoxShape.circle,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 
@@ -39,9 +40,9 @@ class TopUpAmountField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Text(
-              'IQD',
-              style: TextStyle(
+            Text(
+              l10n.iqd,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w500,
                 color: AppColors.tealLight,

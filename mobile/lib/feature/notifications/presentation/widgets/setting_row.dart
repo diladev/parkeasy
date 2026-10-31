@@ -36,7 +36,7 @@ class SettingRow extends StatelessWidget {
       child: InkWell(
         onTap: isEnabled ? () => change(!isOn) : null,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 16, 10),
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 16, 10),
           child: Row(
             children: [
               icon,

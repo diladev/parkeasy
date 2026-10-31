@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -49,7 +50,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     final now = DateTime.now();
     if (now.difference(_lastWarning) > const Duration(seconds: 3)) {
       _lastWarning = now;
-      context.showSnack("That isn't a ParkEasy parking code.", isError: true);
+      context.showSnack(l10n.notAParkEasyCode, isError: true);
     }
   }
 
@@ -77,7 +78,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
   Widget build(BuildContext context) {
     return AppScreen(
       topBar: AppTopBar(
-        title: 'Scan QR',
+        title: l10n.scanQr,
         trailing: ValueListenableBuilder<MobileScannerState>(
           valueListenable: _scanner,
           builder: (context, state, _) {
@@ -86,7 +87,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
             }
             final isOn = state.torchState == TorchState.on;
             return IconButton(
-              tooltip: isOn ? 'Turn off the light' : 'Turn on the light',
+              tooltip: isOn ? l10n.turnOffLight : l10n.turnOnLight,
               onPressed: _scanner.toggleTorch,
               icon: Icon(
                 isOn ? LucideIcons.flashlightOff : LucideIcons.flashlight,
@@ -103,10 +104,8 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
           MobileScanner(
             controller: _scanner,
             onDetect: _onDetect,
-            errorBuilder: (context, error) => _CameraProblem(
-              error: error,
-              onTypeCode: _typeCode,
-            ),
+            errorBuilder: (context, error) =>
+                _CameraProblem(error: error, onTypeCode: _typeCode),
           ),
           const IgnorePointer(child: ScanFrame()),
           Positioned(
@@ -115,10 +114,10 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
             bottom: 28,
             child: Column(
               children: [
-                const Text(
-                  'Point at the QR code at the parking entrance',
+                Text(
+                  l10n.pointAtQr,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Colors.white),
+                  style: const TextStyle(fontSize: 12, color: Colors.white),
                 ),
                 const SizedBox(height: 12),
                 TextButton.icon(
@@ -135,9 +134,12 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
                     size: 16,
                     color: AppColors.tealLight,
                   ),
-                  label: const Text(
-                    'Enter lot code',
-                    style: TextStyle(fontSize: 12, color: AppColors.tealLight),
+                  label: Text(
+                    l10n.enterLotCode,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.tealLight,
+                    ),
                   ),
                 ),
               ],
@@ -159,8 +161,7 @@ class _CameraProblem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final isDenied =
-        error.errorCode == MobileScannerErrorCode.permissionDenied;
+    final isDenied = error.errorCode == MobileScannerErrorCode.permissionDenied;
 
     return ColoredBox(
       color: palette.bg,
@@ -173,9 +174,7 @@ class _CameraProblem extends StatelessWidget {
               Icon(LucideIcons.cameraOff, size: 40, color: palette.textHint),
               const SizedBox(height: 12),
               Text(
-                isDenied
-                    ? 'Camera access is off for ParkEasy.'
-                    : "The camera isn't available on this device.",
+                isDenied ? l10n.cameraOff : l10n.cameraUnavailable,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: palette.textMuted),
               ),
@@ -184,11 +183,11 @@ class _CameraProblem extends StatelessWidget {
                 TextButton(
                   // The app's page in Settings (the same for any permission).
                   onPressed: sl<LocationRepository>().openAppSettings,
-                  child: const Text('Open Settings'),
+                  child: Text(l10n.openSettings),
                 ),
               TextButton(
                 onPressed: onTypeCode,
-                child: const Text('Enter lot code instead'),
+                child: Text(l10n.enterLotCodeInstead),
               ),
             ],
           ),
@@ -219,7 +218,7 @@ class _LotCodeDialogState extends State<_LotCodeDialog> {
   void _submit() {
     final lotId = LotQrCode.parseTyped(_controller.text);
     if (lotId == null) {
-      setState(() => _error = 'Enter the number under the QR code.');
+      setState(() => _error = l10n.enterNumberUnderQr);
       return;
     }
     Navigator.pop(context, lotId);
@@ -233,7 +232,7 @@ class _LotCodeDialogState extends State<_LotCodeDialog> {
       backgroundColor: palette.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
-        'Enter lot code',
+        l10n.enterLotCode,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
@@ -246,21 +245,18 @@ class _LotCodeDialogState extends State<_LotCodeDialog> {
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onSubmitted: (_) => _submit(),
-        decoration: InputDecoration(
-          hintText: 'e.g. 1',
-          errorText: _error,
-        ),
+        decoration: InputDecoration(hintText: 'e.g. 1', errorText: _error),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel', style: TextStyle(color: palette.textMuted)),
+          child: Text(l10n.cancel, style: TextStyle(color: palette.textMuted)),
         ),
         TextButton(
           onPressed: _submit,
-          child: const Text(
-            'Open',
-            style: TextStyle(
+          child: Text(
+            l10n.openButton,
+            style: const TextStyle(
               color: AppColors.teal,
               fontWeight: FontWeight.w500,
             ),

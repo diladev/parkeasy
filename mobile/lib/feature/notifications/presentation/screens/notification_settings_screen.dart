@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -18,7 +19,7 @@ class NotificationSettingsScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => sl<NotificationSettingsCubit>()..load(),
       child: AppScreen(
-        topBar: const AppTopBar(title: 'Notifications'),
+        topBar: AppTopBar(title: l10n.notifications),
         body:
             BlocConsumer<NotificationSettingsCubit, NotificationSettingsState>(
               listenWhen: (previous, current) =>
@@ -32,7 +33,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                   return AppErrorView(
                     message:
                         state.errorMessage ??
-                        "Couldn't load your notification settings.",
+                        l10n.couldntLoadNotificationSettings,
                     onRetry: context.read<NotificationSettingsCubit>().load,
                   );
                 }
@@ -66,12 +67,12 @@ class _Settings extends StatelessWidget {
 
   /// In the app's inbox. There are no push notifications (that needs
   /// Firebase), so these show up under the bell on Home.
-  static const List<_Item> _inApp = [
+  static List<_Item> get _inApp => [
     _Item(
       NotificationSetting.bookingReminders,
-      'Booking reminders',
-      '15 min before booking',
-      AppIconBox(
+      l10n.bookingReminders,
+      l10n.bookingRemindersHint,
+      const AppIconBox(
         glyph: 'P',
         color: AppColors.textPrimary,
         background: AppColors.blue35,
@@ -79,9 +80,9 @@ class _Settings extends StatelessWidget {
     ),
     _Item(
       NotificationSetting.expiryAlerts,
-      'Expiry alerts',
-      '15 min before your time is up',
-      AppIconBox(
+      l10n.expiryAlerts,
+      l10n.expiryAlertsHint,
+      const AppIconBox(
         icon: LucideIcons.clock10,
         color: _sage,
         background: Color(0x26B0BCA8),
@@ -89,9 +90,9 @@ class _Settings extends StatelessWidget {
     ),
     _Item(
       NotificationSetting.offers,
-      'Offers & promotions',
-      'Deals near you',
-      AppIconBox(
+      l10n.offers,
+      l10n.offersHint,
+      const AppIconBox(
         icon: LucideIcons.tag,
         color: _olive,
         background: Color(0x269F9751),
@@ -99,9 +100,9 @@ class _Settings extends StatelessWidget {
     ),
     _Item(
       NotificationSetting.loyaltyRewards,
-      'Loyalty rewards',
-      'Progress & unlocked perks',
-      AppIconBox(
+      l10n.loyaltyRewards,
+      l10n.loyaltyRewardsHint,
+      const AppIconBox(
         icon: LucideIcons.star,
         color: AppColors.amber,
         background: AppColors.amber12,
@@ -109,12 +110,12 @@ class _Settings extends StatelessWidget {
     ),
   ];
 
-  static const List<_Item> _email = [
+  static List<_Item> get _email => [
     _Item(
       NotificationSetting.bookingReceiptEmails,
-      'Booking receipts',
-      'After each session ends',
-      AppIconBox(
+      l10n.bookingReceipts,
+      l10n.bookingReceiptsHint,
+      const AppIconBox(
         icon: LucideIcons.receipt,
         color: AppColors.teal,
         background: AppColors.tealBg,
@@ -122,9 +123,9 @@ class _Settings extends StatelessWidget {
     ),
     _Item(
       NotificationSetting.newsletter,
-      'Newsletter',
-      'Monthly updates',
-      AppIconBox(
+      l10n.newsletter,
+      l10n.newsletterHint,
+      const AppIconBox(
         icon: LucideIcons.mail,
         color: _mailBlue,
         background: Color(0x260064B0),
@@ -137,11 +138,11 @@ class _Settings extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(22, 14, 22, 24),
       children: [
-        const _SectionLabel('IN-APP NOTIFICATIONS'),
+        _SectionLabel(l10n.inAppNotifications),
         const SizedBox(height: 5),
         _SettingsCard(items: _inApp, settings: settings),
         const SizedBox(height: 16),
-        const _SectionLabel('EMAIL NOTIFICATIONS'),
+        _SectionLabel(l10n.emailNotifications),
         const SizedBox(height: 5),
         _SettingsCard(items: _email, settings: settings),
       ],
@@ -180,7 +181,7 @@ class _SettingsCard extends StatelessWidget {
               title: item.title,
               subtitle: settings.isAvailable(item.setting)
                   ? item.subtitle
-                  : '${item.subtitle} · Coming soon',
+                  : l10n.withComingSoon(item.subtitle),
               isOn: settings.isOn(item.setting),
               onChanged: settings.isAvailable(item.setting)
                   ? (value) => cubit.toggle(item.setting, value)

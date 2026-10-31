@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 import 'package:mobile/feature/profile/domain/usecases/delete_vehicle.dart';
 import 'package:mobile/feature/profile/domain/usecases/get_vehicles.dart';
@@ -62,7 +63,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
             vehicles: reloaded.getOrElse(() => state.vehicles),
             lastAction: VehicleActionResult(
               id: vehicle.id,
-              message: '${vehicle.displayName} is now your default vehicle.',
+              message: l10n.nowDefaultVehicle(vehicle.displayName),
               isError: false,
             ),
           ),
@@ -75,7 +76,9 @@ class VehiclesCubit extends Cubit<VehiclesState> {
     if (state.busyVehicleId != null) return;
     emit(state.copyWith(busyVehicleId: () => vehicle.id));
 
-    final result = await _deleteVehicle(DeleteVehicleParams(vehicleId: vehicle.id));
+    final result = await _deleteVehicle(
+      DeleteVehicleParams(vehicleId: vehicle.id),
+    );
     await result.fold(
       (failure) async => emit(
         state.copyWith(
@@ -98,7 +101,7 @@ class VehiclesCubit extends Cubit<VehiclesState> {
             ),
             lastAction: VehicleActionResult(
               id: vehicle.id,
-              message: '${vehicle.displayName} was removed.',
+              message: l10n.vehicleRemoved(vehicle.displayName),
               isError: false,
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/state/submit_state.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -75,7 +76,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
       initialDate: _dateOfBirth ?? DateTime(now.year - 25),
       firstDate: DateTime(1900),
       lastDate: now,
-      helpText: 'Date of birth',
+      helpText: l10n.dateOfBirth,
     );
     if (picked != null) {
       setState(() => _setDateOfBirth(picked));
@@ -104,11 +105,11 @@ class _EditProfileViewState extends State<_EditProfileView> {
             if (state.status == SubmitStatus.success && state.data != null) {
               // Every screen showing the user updates at once.
               context.read<ProfileBloc>().add(ProfileUserChanged(state.data!));
-              context.showSnack('Your profile has been updated.');
+              context.showSnack(l10n.profileUpdated);
               Navigator.pop(context);
             } else if (state.status == SubmitStatus.failure) {
               context.showSnack(
-                state.message ?? "Couldn't save your changes.",
+                state.message ?? l10n.couldntSaveChanges,
                 isError: true,
               );
             }
@@ -116,7 +117,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
           builder: (context, state) {
             return Column(
               children: [
-                const AppTopBar(title: 'Personal details'),
+                AppTopBar(title: l10n.personalDetails),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(22),
@@ -126,8 +127,8 @@ class _EditProfileViewState extends State<_EditProfileView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           AppInputField(
-                            label: 'Full name',
-                            hint: 'Dilan Karimi',
+                            label: l10n.fullName,
+                            hint: l10n.fullNameHint,
                             controller: _nameController,
                             validator: Validators.name,
                             textCapitalization: TextCapitalization.words,
@@ -136,8 +137,8 @@ class _EditProfileViewState extends State<_EditProfileView> {
                           ),
                           const SizedBox(height: 16),
                           AppInputField(
-                            label: 'Email address',
-                            hint: 'you@example.com',
+                            label: l10n.emailAddress,
+                            hint: l10n.emailHint,
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             validator: Validators.email,
@@ -146,8 +147,8 @@ class _EditProfileViewState extends State<_EditProfileView> {
                           ),
                           const SizedBox(height: 16),
                           AppInputField(
-                            label: 'Phone number',
-                            hint: '+964 750 123 4567',
+                            label: l10n.phoneNumber,
+                            hint: l10n.phoneHint,
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
                             validator: Validators.phone,
@@ -157,8 +158,8 @@ class _EditProfileViewState extends State<_EditProfileView> {
                           ),
                           const SizedBox(height: 16),
                           AppInputField(
-                            label: 'Date of birth (optional)',
-                            hint: 'Not set',
+                            label: l10n.dateOfBirthOptional,
+                            hint: l10n.notSet,
                             controller: _birthdayController,
                             readOnly: true,
                             onTap: _pickDateOfBirth,
@@ -169,7 +170,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                                     color: palette.textHint,
                                   )
                                 : IconButton(
-                                    tooltip: 'Clear',
+                                    tooltip: l10n.clear,
                                     icon: Icon(
                                       LucideIcons.x,
                                       size: 18,
@@ -181,7 +182,7 @@ class _EditProfileViewState extends State<_EditProfileView> {
                           ),
                           const SizedBox(height: 32),
                           AppButton(
-                            label: 'Save changes',
+                            label: l10n.saveChanges,
                             isLoading: state.isSubmitting,
                             onTap: _save,
                           ),

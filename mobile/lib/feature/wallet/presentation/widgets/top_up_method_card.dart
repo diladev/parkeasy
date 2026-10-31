@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// How a top-up is paid: FIB (First Iraqi Bank), the only provider.
@@ -12,7 +13,7 @@ class TopUpMethodCard extends StatelessWidget {
 
     return Container(
       constraints: const BoxConstraints(minHeight: 54),
-      padding: const EdgeInsets.fromLTRB(12, 10, 14, 10),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 14, 10),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(12),
@@ -28,7 +29,7 @@ class TopUpMethodCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'First Iraqi Bank (FIB)',
+                  l10n.firstIraqiBank,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -37,7 +38,7 @@ class TopUpMethodCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Approve the payment in the FIB app',
+                  l10n.approveInFib,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 10, color: palette.textHint),

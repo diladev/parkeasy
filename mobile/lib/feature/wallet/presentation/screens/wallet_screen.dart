@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -22,9 +23,9 @@ class WalletScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<WalletCubit>()..load(),
-      child: const AppScreen(
-        topBar: AppTopBar(title: 'ParkEasy Wallet'),
-        body: _WalletView(),
+      child: AppScreen(
+        topBar: AppTopBar(title: l10n.parkEasyWallet),
+        body: const _WalletView(),
       ),
     );
   }
@@ -90,7 +91,7 @@ class _WalletViewState extends State<_WalletView> {
             child: CircularProgressIndicator(),
           ),
           WalletStatus.failure => AppErrorView(
-            message: state.errorMessage ?? "Couldn't load your wallet.",
+            message: state.errorMessage ?? l10n.couldntLoadWallet,
             onRetry: cubit.load,
           ),
           WalletStatus.loaded => _WalletContent(
@@ -122,8 +123,8 @@ class _WalletContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<WalletCubit>();
     final buttonLabel = state.isAmountValid
-        ? 'Top up ${Formatters.money(state.amount)}'
-        : 'Top up';
+        ? l10n.topUpAmountButton(Formatters.money(state.amount))
+        : l10n.topUp;
 
     return RefreshIndicator(
       color: AppColors.teal,
@@ -143,12 +144,10 @@ class _WalletContent extends StatelessWidget {
               balance: state.balance,
               onTopUp: amountFocus.requestFocus,
               // Not offered yet: money only goes into the wallet for now.
-              onWithdraw: () => context.showSnack(
-                "Withdrawals aren't available yet.",
-              ),
+              onWithdraw: () => context.showSnack(l10n.withdrawalsUnavailable),
             ),
             const SizedBox(height: 18),
-            const _SectionLabel('TOP UP AMOUNT'),
+            _SectionLabel(l10n.topUpAmountLabel),
             const SizedBox(height: 7),
             TopUpAmountField(
               controller: amountController,
@@ -171,7 +170,7 @@ class _WalletContent extends StatelessWidget {
               onTap: cubit.startTopUp,
             ),
             const SizedBox(height: 18),
-            const _SectionLabel('RECENT TRANSACTIONS'),
+            _SectionLabel(l10n.recentTransactions),
             const SizedBox(height: 7),
             ..._history(context),
           ],
@@ -188,7 +187,7 @@ class _WalletContent extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Text(
-            'Top-ups, payments and refunds show up here.',
+            l10n.transactionsEmpty,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: palette.textHint),
           ),

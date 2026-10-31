@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -38,38 +39,35 @@ class _PaymentMethodsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreen(
-      topBar: const AppTopBar(title: 'Payment methods'),
+      topBar: AppTopBar(title: l10n.paymentMethods),
       body: BlocBuilder<PaymentMethodsCubit, PaymentMethodsState>(
         builder: (context, state) => switch (state.status) {
           PaymentMethodsStatus.loading => const Center(
             child: CircularProgressIndicator(),
           ),
           PaymentMethodsStatus.failure => AppErrorView(
-            message: state.errorMessage ?? "Couldn't load your wallet.",
+            message: state.errorMessage ?? l10n.couldntLoadWallet,
             onRetry: context.read<PaymentMethodsCubit>().load,
           ),
           PaymentMethodsStatus.loaded => ListView(
             padding: const EdgeInsets.fromLTRB(22, 16, 22, 24),
             children: [
-              const _SectionLabel('WALLET'),
+              _SectionLabel(l10n.walletLabel),
               const SizedBox(height: 7),
               _WalletCard(
                 balance: state.balance,
                 onTopUp: () => _openWallet(context),
               ),
               const SizedBox(height: 16),
-              const _SectionLabel('ADD MONEY WITH'),
+              _SectionLabel(l10n.addMoneyWith),
               const SizedBox(height: 7),
               const TopUpMethodCard(),
               const SizedBox(height: 16),
-              const _SectionLabel('CARDS'),
+              _SectionLabel(l10n.cardsLabel),
               const SizedBox(height: 7),
               _ComingSoonRow(
-                label: 'Add a new card',
-                onTap: () => context.showSnack(
-                  "Paying by card isn't available yet. "
-                  'Top up your wallet with FIB instead.',
-                ),
+                label: l10n.addNewCardRow,
+                onTap: () => context.showSnack(l10n.cardsUnavailable),
               ),
             ],
           ),
@@ -101,8 +99,8 @@ class _WalletCard extends StatelessWidget {
       child: Stack(
         children: [
           // The faint circle in the bottom-right corner.
-          Positioned(
-            right: -60,
+          PositionedDirectional(
+            end: -60,
             bottom: -110,
             child: Container(
               width: 180,
@@ -125,13 +123,13 @@ class _WalletCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Default',
+                            l10n.defaultBadge,
                             style: TextStyle(fontSize: 10, color: faded),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'ParkEasy Wallet',
-                            style: TextStyle(
+                          Text(
+                            l10n.parkEasyWallet,
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
@@ -150,7 +148,7 @@ class _WalletCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Text(
                     Formatters.money(balance),
                     style: const TextStyle(
@@ -165,7 +163,7 @@ class _WalletCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        'Pays for bookings and extensions',
+                        l10n.paysForBookings,
                         style: TextStyle(fontSize: 10, color: faded),
                       ),
                     ),
@@ -175,14 +173,14 @@ class _WalletCard extends StatelessWidget {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8),
                         onTap: onTopUp,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 5,
                           ),
                           child: Text(
-                            'Top up',
-                            style: TextStyle(
+                            l10n.topUp,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
@@ -243,7 +241,7 @@ class _ComingSoonRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'Coming soon',
+                  l10n.comingSoon,
                   style: TextStyle(fontSize: 9, color: palette.textHint),
                 ),
               ),

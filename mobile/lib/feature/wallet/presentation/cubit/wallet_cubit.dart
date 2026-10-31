@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/wallet/domain/usecases/get_balance.dart';
 import 'package:mobile/feature/wallet/domain/usecases/get_wallet_transactions.dart';
@@ -92,8 +93,10 @@ class WalletCubit extends Cubit<WalletState> {
     if (state.isStartingTopUp) return;
     if (!state.isAmountValid) {
       _showError(
-        'Top up between ${Formatters.money(StartTopUp.minAmount)} '
-        'and ${Formatters.money(StartTopUp.maxAmount)}.',
+        l10n.topUpBetween(
+          Formatters.money(StartTopUp.minAmount),
+          Formatters.money(StartTopUp.maxAmount),
+        ),
       );
       return;
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/connectivity_wrapper.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/state/submit_state.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/validators.dart';
@@ -60,11 +61,11 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
         body: BlocConsumer<ChangePasswordCubit, SubmitState<void>>(
           listener: (context, state) {
             if (state.status == SubmitStatus.success) {
-              context.showSnack('Your password has been changed.');
+              context.showSnack(l10n.passwordChanged);
               Navigator.pop(context);
             } else if (state.status == SubmitStatus.failure) {
               context.showSnack(
-                state.message ?? "Couldn't change your password.",
+                state.message ?? l10n.couldntChangePassword,
                 isError: true,
               );
             }
@@ -72,7 +73,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
           builder: (context, state) {
             return Column(
               children: [
-                const AppTopBar(title: 'Change password'),
+                AppTopBar(title: l10n.changePassword),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(22),
@@ -82,7 +83,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Use at least 8 characters with an uppercase and a lowercase letter, a number and a symbol.',
+                            l10n.changePasswordRules,
                             style: TextStyle(
                               fontSize: 13,
                               color: palette.textMuted,
@@ -91,7 +92,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                           ),
                           const SizedBox(height: 24),
                           AppPasswordField(
-                            label: 'Current password',
+                            label: l10n.currentPassword,
                             controller: _currentController,
                             validator: Validators.required,
                             textInputAction: TextInputAction.next,
@@ -99,7 +100,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                           ),
                           const SizedBox(height: 16),
                           AppPasswordField(
-                            label: 'New password',
+                            label: l10n.newPassword,
                             controller: _newController,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.newPassword],
@@ -107,7 +108,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                               final error = Validators.strongPassword(value);
                               if (error != null) return error;
                               return value == _currentController.text
-                                  ? 'Choose a different password'
+                                  ? l10n.chooseDifferentPassword
                                   : null;
                             },
                           ),
@@ -118,7 +119,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                           ),
                           const SizedBox(height: 16),
                           AppPasswordField(
-                            label: 'Confirm new password',
+                            label: l10n.confirmNewPassword,
                             controller: _confirmController,
                             validator: Validators.matches(
                               () => _newController.text,
@@ -126,7 +127,7 @@ class _ChangePasswordViewState extends State<_ChangePasswordView> {
                           ),
                           const SizedBox(height: 32),
                           AppButton(
-                            label: 'Update password',
+                            label: l10n.updatePassword,
                             isLoading: state.isSubmitting,
                             onTap: _submit,
                           ),

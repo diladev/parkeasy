@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 class StubScreen extends StatelessWidget {
@@ -21,7 +22,8 @@ class StubScreen extends StatelessWidget {
         leading: showBack
             ? IconButton(
                 icon: Text(
-                  '←',
+                  l10n.backArrow,
+                  textDirection: TextDirection.ltr,
                   style: TextStyle(fontSize: 18, color: palette.textMuted),
                 ),
                 onPressed: () => Navigator.maybePop(context),
@@ -52,7 +54,7 @@ class StubScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Coming soon',
+              l10n.comingSoon,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
