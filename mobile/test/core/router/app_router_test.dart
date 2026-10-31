@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/router/app_router.dart';
+import 'package:mobile/feature/profile/presentation/screens/app_language_screen.dart';
 import 'package:mobile/feature/stub/stub_screen.dart';
 import 'package:mobile/feature/support/presentation/screens/help_support_screen.dart';
 import 'package:mobile/feature/wallet/presentation/screens/payment_methods_screen.dart';
@@ -46,16 +47,16 @@ void main() {
     expect(AppRouter.routes.toSet(), hasLength(AppRouter.routes.length));
   });
 
-  testWidgets('opens Help & support and Payment methods', (tester) async {
+  testWidgets('opens Help & support, Payment methods and App language', (
+    tester,
+  ) async {
     await pumpContext(tester);
-    expect(
-      screenFor(context, AppRouter.helpSupport),
-      isA<HelpSupportScreen>(),
-    );
+    expect(screenFor(context, AppRouter.helpSupport), isA<HelpSupportScreen>());
     expect(
       screenFor(context, AppRouter.paymentMethods),
       isA<PaymentMethodsScreen>(),
     );
+    expect(screenFor(context, AppRouter.appLanguage), isA<AppLanguageScreen>());
   });
 
   testWidgets('still shows the stub for an unknown name', (tester) async {

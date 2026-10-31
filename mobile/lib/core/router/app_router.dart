@@ -26,6 +26,7 @@ import 'package:mobile/feature/parking/presentation/screens/parking_details_scre
 import 'package:mobile/feature/parking/presentation/screens/search_screen.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 import 'package:mobile/feature/scan/presentation/screens/scan_qr_screen.dart';
+import 'package:mobile/feature/profile/presentation/screens/app_language_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/change_password_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/delete_account_screen.dart';
 import 'package:mobile/feature/profile/presentation/screens/edit_profile_screen.dart';
@@ -89,6 +90,7 @@ class AppRouter {
   static const String vehicleForm = '/vehicle-form';
   static const String notificationSettings = '/notification-settings';
   static const String helpSupport = '/help-support';
+  static const String appLanguage = '/app-language';
   static const String changePassword = '/change-password';
   static const String deleteAccount = '/delete-account';
   static const String notificationsInbox = '/notifications-inbox';
@@ -130,6 +132,7 @@ class AppRouter {
     vehicleForm,
     notificationSettings,
     helpSupport,
+    appLanguage,
     changePassword,
     deleteAccount,
     notificationsInbox,
@@ -237,6 +240,8 @@ class AppRouter {
         return _route(const DeleteAccountScreen(), settings);
       case helpSupport:
         return _route(const HelpSupportScreen(), settings);
+      case appLanguage:
+        return _route(const AppLanguageScreen(), settings);
       case myVehicles:
         return _route(const MyVehiclesScreen(), settings);
       case vehicleForm:
@@ -429,6 +434,9 @@ class AppRouter {
 
   static void toHelpSupport(BuildContext context) =>
       Navigator.pushNamed(context, helpSupport);
+
+  static void toAppLanguage(BuildContext context) =>
+      Navigator.pushNamed(context, appLanguage);
 
   static void toChangePassword(BuildContext context) =>
       Navigator.pushNamed(context, changePassword);

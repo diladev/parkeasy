@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/theme/theme_cubit.dart';
@@ -26,9 +27,9 @@ class ProfileScreen extends StatelessWidget {
   Future<void> _signOut(BuildContext context) async {
     final confirmed = await showAppConfirmDialog(
       context,
-      title: 'Sign out?',
-      message: 'You can sign back in any time with your email and password.',
-      confirmLabel: 'Sign out',
+      title: l10n.signOutQuestion,
+      message: l10n.signOutMessage,
+      confirmLabel: l10n.signOut,
       isDestructive: true,
     );
     // main.dart takes the user back to the login screen when this finishes.
@@ -47,7 +48,7 @@ class ProfileScreen extends StatelessWidget {
           if (user == null) {
             if (state.status == ProfileStatus.failure) {
               return AppErrorView(
-                message: state.errorMessage ?? "Couldn't load your profile.",
+                message: state.errorMessage ?? l10n.couldntLoadProfile,
                 onRetry: () =>
                     context.read<ProfileBloc>().add(ProfileRequested()),
               );
@@ -63,7 +64,7 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
               children: [
                 Text(
-                  'Profile',
+                  l10n.profile,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 16),
@@ -73,26 +74,26 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                const AppSectionHeader(title: 'Account'),
+                AppSectionHeader(title: l10n.account),
                 const SizedBox(height: 8),
                 _MenuCard(
                   children: [
                     AppMenuRow(
-                      title: 'Personal details',
-                      subtitle: 'Name, email, phone and birthday',
+                      title: l10n.personalDetails,
+                      subtitle: l10n.personalDetailsHint,
                       icon: LucideIcons.userRound,
                       iconColor: AppColors.tealLight,
                       iconBg: AppColors.tealBg,
                       onTap: () => AppRouter.toEditProfile(context),
                     ),
                     AppMenuRow(
-                      title: 'My vehicles',
-                      subtitle: 'Add your cars and pick a default',
+                      title: l10n.myVehicles,
+                      subtitle: l10n.myVehiclesHint,
                       icon: LucideIcons.car,
                       onTap: () => AppRouter.toMyVehicles(context),
                     ),
                     AppMenuRow(
-                      title: 'Change password',
+                      title: l10n.changePassword,
                       icon: LucideIcons.keyRound,
                       iconColor: AppColors.amber,
                       showDivider: false,
@@ -102,7 +103,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                const AppSectionHeader(title: 'Preferences'),
+                AppSectionHeader(title: l10n.preferences),
                 const SizedBox(height: 8),
                 _MenuCard(
                   children: [
@@ -110,7 +111,7 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: BlocBuilder<ThemeCubit, bool>(
                         builder: (context, isDarkMode) => AppToggleRow(
-                          title: 'Dark mode',
+                          title: l10n.darkMode,
                           leading: const AppIconBox(
                             icon: LucideIcons.moon,
                             color: AppColors.purple,
@@ -124,7 +125,15 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     Divider(color: context.palette.border),
                     AppMenuRow(
-                      title: 'Notifications',
+                      title: l10n.appLanguage,
+                      subtitle: l10n.currentLanguageName,
+                      icon: LucideIcons.languages,
+                      iconColor: AppColors.tealLight,
+                      iconBg: AppColors.tealBg,
+                      onTap: () => AppRouter.toAppLanguage(context),
+                    ),
+                    AppMenuRow(
+                      title: l10n.notifications,
                       icon: LucideIcons.bell,
                       iconColor: AppColors.amber,
                       iconBg: AppColors.amber12,
@@ -135,19 +144,19 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                const AppSectionHeader(title: 'More'),
+                AppSectionHeader(title: l10n.more),
                 const SizedBox(height: 8),
                 _MenuCard(
                   children: [
                     AppMenuRow(
-                      title: 'Wallet',
+                      title: l10n.wallet,
                       icon: LucideIcons.wallet,
                       iconColor: AppColors.amber,
                       iconBg: AppColors.amber12,
                       onTap: () => AppRouter.toWallet(context),
                     ),
                     AppMenuRow(
-                      title: 'Help & support',
+                      title: l10n.helpAndSupport,
                       glyph: '?',
                       iconColor: AppColors.red,
                       showDivider: false,
@@ -160,13 +169,13 @@ class ProfileScreen extends StatelessWidget {
                 _MenuCard(
                   children: [
                     AppMenuRow(
-                      title: 'Sign out',
+                      title: l10n.signOut,
                       icon: LucideIcons.squareArrowRightExit,
                       isDestructive: true,
                       onTap: () => _signOut(context),
                     ),
                     AppMenuRow(
-                      title: 'Delete account',
+                      title: l10n.deleteAccount,
                       icon: LucideIcons.trash2,
                       isDestructive: true,
                       showDivider: false,
