@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
+import 'package:mobile/core/l10n/language_cubit.dart';
 import 'package:mobile/core/locale/app_language.dart';
 import 'package:mobile/core/service/onboarding_store.dart';
 import 'package:mobile/core/network/api_client.dart';
@@ -182,9 +183,7 @@ Future<void> init() async {
   sl.registerLazySingleton<BookingRepository>(
     () => BookingRepositoryImpl(sl()),
   );
-  sl.registerLazySingleton<WalletRepository>(
-    () => WalletRepositoryImpl(sl()),
-  );
+  sl.registerLazySingleton<WalletRepository>(() => WalletRepositoryImpl(sl()));
 
   // Use cases: authentication
   sl.registerLazySingleton(() => UserLogin(sl()));
@@ -218,9 +217,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SetFavorite(sl()));
 
   // Location and directions
-  sl.registerLazySingleton<LocationRepository>(
-    () => LocationRepositoryImpl(),
-  );
+  sl.registerLazySingleton<LocationRepository>(() => LocationRepositoryImpl());
   sl.registerLazySingleton<DirectionsRepository>(
     () => DirectionsRepositoryImpl(),
   );
@@ -254,6 +251,7 @@ Future<void> init() async {
 
   // Blocs and cubits: a new instance every time one is asked for
   sl.registerFactory(() => ThemeCubit());
+  sl.registerFactory(() => LanguageCubit(sl()));
   sl.registerFactory(() => ConnectivityCubit(sl()));
   sl.registerFactory(
     () => AuthBloc(

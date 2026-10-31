@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/connection/cubit/connectivity_cubit.dart';
+import 'package:mobile/core/l10n/l10n.dart';
+import 'package:mobile/core/l10n/language_cubit.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/theme/theme_cubit.dart';
@@ -30,6 +32,7 @@ class ParkEasy extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<ThemeCubit>(create: (_) => di.sl<ThemeCubit>()),
+        BlocProvider<LanguageCubit>(create: (_) => di.sl<LanguageCubit>()),
         BlocProvider<ConnectivityCubit>(
           create: (context) => di.sl<ConnectivityCubit>(),
         ),
@@ -37,21 +40,32 @@ class ParkEasy extends StatelessWidget {
         BlocProvider<AuthBloc>(create: (_) => di.sl<AuthBloc>()),
         BlocProvider<ProfileBloc>(create: (_) => di.sl<ProfileBloc>()),
       ],
-      child: BlocBuilder<ThemeCubit, bool>(
-        builder: (context, isDarkMode) {
-          return MaterialApp(
-            title: 'ParkEasy',
-            debugShowCheckedModeBanner: false,
-            navigatorKey: AppRouter.navigatorKey,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            initialRoute: AppRouter.initial,
-            onGenerateRoute: AppRouter.onGenerateRoute,
-            builder: (context, child) =>
-                _SignedOutListener(child: child ?? const SizedBox.shrink()),
-          );
-        },
+      child: BlocBuilder<LanguageCubit, String>(
+        builder: (context, _) => BlocBuilder<ThemeCubit, bool>(
+          builder: (context, isDarkMode) {
+            return MaterialApp(
+              title: 'ParkEasy',
+              debugShowCheckedModeBanner: false,
+              navigatorKey: AppRouter.navigatorKey,
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              // Kurdish turns every screen right to left (see AppLocales).
+              locale: context.read<LanguageCubit>().locale,
+              supportedLocales: AppLocales.supported,
+              localizationsDelegates: AppLocales.delegates,
+              initialRoute: AppRouter.initial,
+              onGenerateRoute: AppRouter.onGenerateRoute,
+              builder: (context, child) => BlocListener<LanguageCubit, String>(
+                // Screens already open read their texts again.
+                listener: (_, _) => rebuildAllWidgets(),
+                child: _SignedOutListener(
+                  child: child ?? const SizedBox.shrink(),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
