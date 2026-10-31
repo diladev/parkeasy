@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
@@ -18,9 +19,9 @@ class BookingListCard extends StatelessWidget {
 
   /// Active: "Slot A04 · Level B1"; ended: "Slot A04 · 12 Oct · 2h".
   String get _details => booking.isActive
-      ? 'Slot ${booking.slotLabel}'
+      ? l10n.slotName(booking.slotLabel)
       : [
-          'Slot ${booking.slotNumber}',
+          l10n.slotName(booking.slotNumber),
           Formatters.day(booking.startTime),
           Formatters.duration(Duration(hours: booking.durationHours)),
         ].join(' · ');
@@ -36,7 +37,7 @@ class BookingListCard extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: Container(
           height: 100,
-          padding: const EdgeInsets.fromLTRB(12, 8, 10, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 10, 0),
           decoration: BoxDecoration(
             color: palette.surface,
             borderRadius: BorderRadius.circular(12),
@@ -105,7 +106,7 @@ class BookingListCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(right: 2),
+                padding: const EdgeInsetsDirectional.only(end: 2),
                 child: Divider(height: 1, thickness: 1, color: palette.border),
               ),
               const SizedBox(height: 7),
@@ -122,7 +123,9 @@ class BookingListCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     booking.isActive
-                        ? '${Formatters.money(booking.pricePerHour)}/hr'
+                        ? l10n.perHourShort(
+                            Formatters.money(booking.pricePerHour),
+                          )
                         : Formatters.money(booking.totalCost),
                     maxLines: 1,
                     softWrap: false,
@@ -154,9 +157,21 @@ class BookingStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final (label, background, foreground) = switch (status) {
-      BookingStatus.active => ('Active', AppColors.tealBg, AppColors.tealLight),
-      BookingStatus.completed => ('Done', palette.surface2, palette.textHint),
-      BookingStatus.cancelled => ('Cancelled', AppColors.red12, AppColors.red),
+      BookingStatus.active => (
+        l10n.statusActive,
+        AppColors.tealBg,
+        AppColors.tealLight,
+      ),
+      BookingStatus.completed => (
+        l10n.statusDone,
+        palette.surface2,
+        palette.textHint,
+      ),
+      BookingStatus.cancelled => (
+        l10n.statusCancelled,
+        AppColors.red12,
+        AppColors.red,
+      ),
     };
 
     return Container(

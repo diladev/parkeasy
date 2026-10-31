@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 
 /// A lot in the search results: enough to choose one, not its slots.
 class ParkingLotSummary extends Equatable {
@@ -38,10 +39,10 @@ class ParkingLotSummary extends Equatable {
 
   /// The lot's features as short labels, most useful first.
   List<String> get featureLabels => [
-    if (isCovered) 'Covered',
-    if (hasEvCharging) 'EV',
-    if (isAccessible) 'Accessible',
-    if (hasCctv) 'CCTV',
+    if (isCovered) l10n.covered,
+    if (hasEvCharging) l10n.evShort,
+    if (isAccessible) l10n.accessible,
+    if (hasCctv) l10n.cctv,
   ];
 
   @override

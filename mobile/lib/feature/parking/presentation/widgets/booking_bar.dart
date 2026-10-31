@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_slot.dart';
@@ -43,7 +44,7 @@ class BookingBar extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: '/hr',
+                        text: l10n.perHourSuffix,
                         style: TextStyle(fontSize: 10, color: palette.textHint),
                       ),
                     ],
@@ -52,13 +53,15 @@ class BookingBar extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   slot == null
-                      ? 'Pick a free slot'
-                      : 'Slot ${slot.slotNumber} · Level ${slot.level}',
+                      ? l10n.pickFreeSlot
+                      : l10n.slotAndLevel(slot.slotNumber, slot.level),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 10,
-                    color: slot == null ? palette.textHint : AppColors.tealLight,
+                    color: slot == null
+                        ? palette.textHint
+                        : AppColors.tealLight,
                   ),
                 ),
               ],
@@ -87,21 +90,21 @@ class _BookButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          child: const SizedBox(
+          child: SizedBox(
             width: 118,
             height: 44,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   LucideIcons.calendarDays,
                   size: 12,
                   color: AppColors.textPrimary,
                 ),
-                SizedBox(width: 5),
+                const SizedBox(width: 5),
                 Text(
-                  'Book now',
-                  style: TextStyle(
+                  l10n.bookNow,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -21,9 +22,7 @@ class ParkingEndedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    final hours = booking.durationHours == 1
-        ? '1 hour'
-        : '${booking.durationHours} hours';
+    final hours = l10n.hoursLong(booking.durationHours);
 
     return PopScope(
       canPop: false,
@@ -37,7 +36,7 @@ class ParkingEndedScreen extends StatelessWidget {
             const Center(child: _EndedBadge()),
             const SizedBox(height: 16),
             Text(
-              'Parking ended',
+              l10n.parkingEnded,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -47,8 +46,7 @@ class ParkingEndedScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Your slot is free for the next driver.\n'
-              'Thanks for parking with ParkEasy.',
+              l10n.slotFreeThanks,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -59,33 +57,33 @@ class ParkingEndedScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ResultDetailsCard(
               rows: [
-                ('Location', booking.lotName, false),
-                ('Slot', booking.slotLabel, false),
+                (l10n.location, booking.lotName, false),
+                (l10n.slot, booking.slotLabel, false),
                 (
-                  'Parked',
+                  l10n.parked,
                   Formatters.bookingTime(booking.startTime, booking.finishedAt),
                   false,
                 ),
-                ('Booked', hours, false),
+                (l10n.booked, hours, false),
               ],
               afterDivider: [
-                ('Charged', Formatters.money(booking.totalCost), true),
+                (l10n.charged, Formatters.money(booking.totalCost), true),
                 (
-                  'Paid with',
-                  booking.isPaidFromWallet ? 'ParkEasy Wallet' : 'Card',
+                  l10n.paidWith,
+                  booking.isPaidFromWallet ? l10n.parkEasyWallet : l10n.card,
                   false,
                 ),
               ],
             ),
             const SizedBox(height: 20),
             AppButton(
-              label: 'View receipt',
+              label: l10n.viewReceipt,
               height: 48,
               onTap: () => AppRouter.toBookingReceipt(context, booking.id),
             ),
             const SizedBox(height: 10),
             ResultSecondaryButton(
-              label: 'Back to home',
+              label: l10n.backToHome,
               onTap: () => AppRouter.toHome(context),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// The green band at the top: back link, the favorite heart, lot name,
@@ -43,7 +44,7 @@ class ParkingDetailsHeader extends StatelessWidget {
               const SizedBox(height: 7),
               Padding(
                 // Room for the heart.
-                padding: const EdgeInsets.only(right: 32),
+                padding: const EdgeInsetsDirectional.only(end: 32),
                 child: Text(
                   name,
                   maxLines: 1,
@@ -79,9 +80,9 @@ class ParkingDetailsHeader extends StatelessWidget {
               ),
             ],
           ),
-          Positioned(
+          PositionedDirectional(
             top: -8,
-            right: -10,
+            end: -10,
             child: _FavoriteButton(
               isFavorite: isFavorite,
               onTap: onToggleFavorite,
@@ -105,7 +106,7 @@ class _FavoriteButton extends StatelessWidget {
     return Semantics(
       button: true,
       toggled: isFavorite,
-      label: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+      label: isFavorite ? l10n.removeFromFavorites : l10n.addToFavorites,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,
@@ -148,7 +149,7 @@ class BackToMapLink extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Text(
-        '← Back to map',
+        l10n.backToMap,
         style: TextStyle(fontSize: 11, color: context.palette.textMuted),
       ),
     );

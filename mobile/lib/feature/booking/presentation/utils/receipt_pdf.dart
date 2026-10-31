@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:mobile/core/l10n/l10n.dart';
+import 'package:mobile/core/l10n/strings_en.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/booking/domain/entities/booking_receipt.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
@@ -9,9 +11,22 @@ import 'package:pdf/widgets.dart' as pw;
 /// The receipt as an A5 PDF, built on the phone (no server needed).
 ///
 /// It uses the PDF's built-in Helvetica, which covers Latin text only, so
-/// a lot name in another script can't be drawn and building throws; the
-/// screen shows an error then.
+/// the receipt is in English whatever the app's language, and a lot name in
+/// another script can't be drawn and building throws; the screen shows an
+/// error then.
 Future<Uint8List> buildReceiptPdf(BookingReceipt receipt) {
+  // Dates, amounts and labels below are read in English, then the app's
+  // language is put back. All of it happens before this returns.
+  final appStrings = AppStrings.current;
+  AppStrings.current = const EnStrings();
+  try {
+    return _receipt(receipt).save();
+  } finally {
+    AppStrings.current = appStrings;
+  }
+}
+
+pw.Document _receipt(BookingReceipt receipt) {
   final booking = receipt.booking;
   final isCancelled = booking.status == BookingStatus.cancelled;
   final document = pw.Document(
@@ -19,79 +34,80 @@ Future<Uint8List> buildReceiptPdf(BookingReceipt receipt) {
     author: 'ParkEasy',
   );
 
+  // Built here, not in the page's build callback, so every text is read
+  // while the strings are English.
+  final content = pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+    children: [
+      pw.Row(
+        children: [
+          pw.Text(
+            'ParkEasy',
+            style: pw.TextStyle(
+              fontSize: 18,
+              fontWeight: pw.FontWeight.bold,
+              color: _teal,
+            ),
+          ),
+          pw.Spacer(),
+          pw.Text(
+            'Receipt ${receipt.receiptNumber}',
+            style: pw.TextStyle(fontSize: 10, color: _grey),
+          ),
+        ],
+      ),
+      pw.SizedBox(height: 20),
+      pw.Text(
+        Formatters.money(receipt.total),
+        style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+      ),
+      pw.SizedBox(height: 4),
+      pw.Text(
+        '${receipt.status.label} · ${_dateTime(receipt.issuedAt)}',
+        style: pw.TextStyle(fontSize: 10, color: _grey),
+      ),
+      pw.SizedBox(height: 20),
+      _section('PARKING DETAILS', [
+        ('Location', booking.lotName),
+        ('Address', booking.lotAddress),
+        ('Slot', booking.slotLabel),
+        ('Vehicle', booking.vehicleLabel),
+      ]),
+      _section('SESSION', [
+        ('Entry', _dateTime(booking.startTime)),
+        (
+          isCancelled ? 'Booked until' : 'Exit',
+          _dateTime(isCancelled ? booking.endTime : booking.finishedAt),
+        ),
+        (
+          booking.endedEarly ? 'Booked' : 'Duration',
+          Formatters.duration(booking.endTime.difference(booking.startTime)),
+        ),
+        ('Rate', '${Formatters.money(booking.pricePerHour)} / hr'),
+      ]),
+      _section('PAYMENT', [
+        ('Subtotal', Formatters.money(receipt.subtotal)),
+        if (receipt.refunded > 0)
+          ('Refunded', Formatters.money(-receipt.refunded)),
+        ('Total', Formatters.money(receipt.total)),
+        ('Paid with', receipt.paymentMethod.label),
+      ]),
+      pw.Spacer(),
+      pw.Text(
+        'Thank you for parking with ParkEasy.',
+        textAlign: pw.TextAlign.center,
+        style: pw.TextStyle(fontSize: 9, color: _grey),
+      ),
+    ],
+  );
   document.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a5,
       margin: const pw.EdgeInsets.all(32),
-      build: (_) => pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-        children: [
-          pw.Row(
-            children: [
-              pw.Text(
-                'ParkEasy',
-                style: pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
-                  color: _teal,
-                ),
-              ),
-              pw.Spacer(),
-              pw.Text(
-                'Receipt ${receipt.receiptNumber}',
-                style: pw.TextStyle(fontSize: 10, color: _grey),
-              ),
-            ],
-          ),
-          pw.SizedBox(height: 20),
-          pw.Text(
-            Formatters.money(receipt.total),
-            style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(height: 4),
-          pw.Text(
-            '${receipt.status.label} · ${_dateTime(receipt.issuedAt)}',
-            style: pw.TextStyle(fontSize: 10, color: _grey),
-          ),
-          pw.SizedBox(height: 20),
-          _section('PARKING DETAILS', [
-            ('Location', booking.lotName),
-            ('Address', booking.lotAddress),
-            ('Slot', booking.slotLabel),
-            ('Vehicle', booking.vehicleLabel),
-          ]),
-          _section('SESSION', [
-            ('Entry', _dateTime(booking.startTime)),
-            (
-              isCancelled ? 'Booked until' : 'Exit',
-              _dateTime(isCancelled ? booking.endTime : booking.finishedAt),
-            ),
-            (
-              booking.endedEarly ? 'Booked' : 'Duration',
-              Formatters.duration(
-                booking.endTime.difference(booking.startTime),
-              ),
-            ),
-            ('Rate', '${Formatters.money(booking.pricePerHour)} / hr'),
-          ]),
-          _section('PAYMENT', [
-            ('Subtotal', Formatters.money(receipt.subtotal)),
-            if (receipt.refunded > 0)
-              ('Refunded', '-${Formatters.money(receipt.refunded)}'),
-            ('Total', Formatters.money(receipt.total)),
-            ('Paid with', receipt.paymentMethod.label),
-          ]),
-          pw.Spacer(),
-          pw.Text(
-            'Thank you for parking with ParkEasy.',
-            textAlign: pw.TextAlign.center,
-            style: pw.TextStyle(fontSize: 9, color: _grey),
-          ),
-        ],
-      ),
+      build: (_) => content,
     ),
   );
-  return document.save();
+  return document;
 }
 
 final PdfColor _teal = PdfColor.fromInt(0xFF1D9E75);

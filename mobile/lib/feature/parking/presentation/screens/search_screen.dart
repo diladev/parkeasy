@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -80,7 +81,7 @@ class _SearchViewState extends State<_SearchView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 8, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 0),
           child: Row(
             children: [
               Expanded(
@@ -114,7 +115,7 @@ class _FiltersButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Filters',
+      label: l10n.filters,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -155,25 +156,25 @@ class _Chips extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             children: [
               SearchChip(
-                label: 'Nearest',
+                label: l10n.chipNearest,
                 isSelected: filters.sort == SearchSort.nearest,
                 onTap: () => cubit.sortBy(SearchSort.nearest),
               ),
               const SizedBox(width: 8),
               SearchChip(
-                label: 'Price',
+                label: l10n.chipPrice,
                 isSelected: filters.sort == SearchSort.cheapest,
                 onTap: () => cubit.sortBy(SearchSort.cheapest),
               ),
               const SizedBox(width: 8),
               SearchChip(
-                label: 'EV',
+                label: l10n.evShort,
                 isSelected: filters.amenities.contains(Amenity.evCharging),
                 onTap: () => cubit.toggleAmenity(Amenity.evCharging),
               ),
               const SizedBox(width: 8),
               SearchChip(
-                label: 'Covered',
+                label: l10n.covered,
                 isSelected: filters.amenities.contains(Amenity.covered),
                 onTap: () => cubit.toggleAmenity(Amenity.covered),
               ),
@@ -201,7 +202,7 @@ class _Results extends StatelessWidget {
           body = const Center(child: CircularProgressIndicator());
         } else if (state.status == SearchStatus.failure) {
           body = AppErrorView(
-            message: state.errorMessage ?? "Couldn't search parking lots.",
+            message: state.errorMessage ?? l10n.couldntSearch,
             onRetry: cubit.search,
           );
         } else if (results.isEmpty) {
@@ -225,7 +226,9 @@ class _Results extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _ResultBar(
-              count: state.status == SearchStatus.loaded ? results.length : null,
+              count: state.status == SearchStatus.loaded
+                  ? results.length
+                  : null,
               isSearching: state.status == SearchStatus.loading,
             ),
             Expanded(child: body),
@@ -249,14 +252,13 @@ class _ResultBar extends StatelessWidget {
     final palette = context.palette;
     final found = count;
     final label = switch (found) {
-      null => isSearching ? 'Searching...' : '',
-      1 => '1 spot found',
-      _ => '$found spots found',
+      null => isSearching ? l10n.searching : '',
+      final int total => l10n.spotsFound(total),
     };
 
     return Container(
       height: 40,
-      padding: const EdgeInsets.only(left: 22, right: 14),
+      padding: const EdgeInsetsDirectional.only(start: 22, end: 14),
       decoration: BoxDecoration(
         border: Border.symmetric(
           horizontal: BorderSide(color: palette.border, width: 0.5),
@@ -302,7 +304,7 @@ class _ViewToggle extends StatelessWidget {
     return Semantics(
       button: true,
       selected: isSelected,
-      label: isSelected ? 'List view' : 'Map view',
+      label: isSelected ? l10n.listView : l10n.mapView,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
@@ -340,8 +342,8 @@ class _NoResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final (title, message) = isFiltered
-        ? ('No spots match these filters', 'Change or reset the filters.')
-        : ('No parking found', 'Try another name or street.');
+        ? (l10n.noSpotsMatchFilters, l10n.changeOrResetFilters)
+        : (l10n.noParkingFound, l10n.tryAnotherName);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(22, 60, 22, 24),

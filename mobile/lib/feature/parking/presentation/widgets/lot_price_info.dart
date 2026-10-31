@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -37,14 +38,24 @@ class LotPriceInfo extends StatelessWidget {
       if (today.label != null)
         (
           LucideIcons.tag,
-          '${today.label} price today: ${Formatters.money(today.pricePerHour)}/hr',
+          l10n.specialPriceToday(
+            today.label!,
+            Formatters.money(today.pricePerHour),
+          ),
         ),
       if (cap != null)
-        (LucideIcons.circleCheck, 'Never more than ${Formatters.money(cap)} a day'),
+        (
+          LucideIcons.circleCheck,
+          l10n.neverMoreThanADay(Formatters.money(cap)),
+        ),
       if (next != null)
         (
           LucideIcons.calendarDays,
-          '${next.label}: ${Formatters.money(next.pricePerHour)}/hr on ${_days(next)}',
+          l10n.specialPriceOn(
+            next.label,
+            Formatters.money(next.pricePerHour),
+            _days(next),
+          ),
         ),
     ];
     if (lines.isEmpty) return const SizedBox.shrink();

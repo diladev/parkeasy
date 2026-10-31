@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -22,9 +23,9 @@ class ExtendBookingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => sl<ExtendBookingCubit>(param1: booking)..load(),
-      child: const AppScreen(
-        topBar: AppTopBar(title: 'Extend parking'),
-        body: _ExtendView(),
+      child: AppScreen(
+        topBar: AppTopBar(title: l10n.extendParking),
+        body: const _ExtendView(),
       ),
     );
   }
@@ -41,7 +42,7 @@ class _ExtendView extends StatelessWidget {
           current.errorSerial != previous.errorSerial,
       listener: (context, state) {
         if (state.status == ExtendStatus.saved) {
-          context.showSnack('Your booking has been extended.');
+          context.showSnack(l10n.bookingExtended);
           Navigator.pop(context, true);
         } else if (state.status != ExtendStatus.failure &&
             state.errorMessage != null) {
@@ -53,7 +54,7 @@ class _ExtendView extends StatelessWidget {
           child: CircularProgressIndicator(),
         ),
         ExtendStatus.failure => AppErrorView(
-          message: state.errorMessage ?? "Couldn't load your wallet.",
+          message: state.errorMessage ?? l10n.couldntLoadWallet,
           onRetry: context.read<ExtendBookingCubit>().load,
         ),
         _ => _ExtendForm(state: state),
@@ -72,10 +73,7 @@ class _ExtendForm extends StatelessWidget {
 
   void _confirm(BuildContext context) {
     if (!state.canAfford) {
-      context.showSnack(
-        'Not enough balance. Top up your wallet first.',
-        isError: true,
-      );
+      context.showSnack(l10n.notEnoughBalanceTopUp, isError: true);
       return;
     }
     context.read<ExtendBookingCubit>().extend();
@@ -93,7 +91,7 @@ class _ExtendForm extends StatelessWidget {
         _CurrentBookingCard(booking: state.booking),
         const SizedBox(height: 16),
         Text(
-          'ADD EXTRA TIME',
+          l10n.addExtraTime,
           style: TextStyle(
             fontSize: 9,
             fontWeight: FontWeight.w500,
@@ -131,7 +129,7 @@ class _ExtendForm extends StatelessWidget {
         _WalletCard(balance: state.balance, canAfford: state.canAfford),
         const SizedBox(height: 18),
         AppButton(
-          label: 'Confirm extension · $charge',
+          label: l10n.confirmExtension(charge),
           height: 48,
           isLoading: state.status == ExtendStatus.saving,
           onTap: () => _confirm(context),
@@ -141,7 +139,7 @@ class _ExtendForm extends StatelessWidget {
           child: TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancel',
+              l10n.cancel,
               style: TextStyle(fontSize: 12, color: palette.textMuted),
             ),
           ),
@@ -156,7 +154,7 @@ class _Card extends StatelessWidget {
 
   final double? height;
   final Widget child;
-  final EdgeInsets? padding;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -205,13 +203,13 @@ class _CurrentBookingCard extends StatelessWidget {
     );
 
     return _Card(
-      padding: const EdgeInsets.fromLTRB(14, 10, 10, 9),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 10, 9),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'CURRENT BOOKING',
+            l10n.currentBooking,
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w500,
@@ -247,17 +245,17 @@ class _CurrentBookingCard extends StatelessWidget {
           Row(
             children: [
               column(
-                'Started',
+                l10n.started,
                 Formatters.time(booking.startTime),
                 palette.textPrimary,
               ),
               column(
-                'Ends at',
+                l10n.endsAt,
                 Formatters.time(booking.endTime),
                 AppColors.amber,
               ),
               column(
-                'Elapsed',
+                l10n.elapsed,
                 Formatters.duration(
                   elapsed.isNegative ? Duration.zero : elapsed,
                 ),
@@ -308,7 +306,7 @@ class _HoursChip extends StatelessWidget {
               ),
             ),
             child: Text(
-              '$hours hr',
+              l10n.hoursChip(hours),
               style: TextStyle(
                 fontSize: 11,
                 color: isSelected ? AppColors.tealLight : palette.textHint,
@@ -356,9 +354,9 @@ class _NewEndCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(
         children: [
-          Expanded(child: column('New end time', newEnd, AppColors.tealLight)),
+          Expanded(child: column(l10n.newEndTime, newEnd, AppColors.tealLight)),
           const SizedBox(width: 12),
-          column('Extra charge', charge, palette.textPrimary),
+          column(l10n.extraCharge, charge, palette.textPrimary),
         ],
       ),
     );
@@ -379,7 +377,7 @@ class _WalletCard extends StatelessWidget {
 
     return _Card(
       height: 56,
-      padding: const EdgeInsets.only(left: 11, right: 14),
+      padding: const EdgeInsetsDirectional.only(start: 11, end: 14),
       child: Row(
         children: [
           Icon(LucideIcons.wallet, size: 24, color: palette.textPrimary),
@@ -390,7 +388,7 @@ class _WalletCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'ParkEasy Wallet',
+                  l10n.parkEasyWallet,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -400,8 +398,8 @@ class _WalletCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   canAfford
-                      ? 'Balance: $amount'
-                      : 'Balance: $amount · not enough',
+                      ? l10n.balance(amount)
+                      : l10n.balanceNotEnough(amount),
                   style: TextStyle(
                     fontSize: 10,
                     color: canAfford ? palette.textHint : AppColors.red,

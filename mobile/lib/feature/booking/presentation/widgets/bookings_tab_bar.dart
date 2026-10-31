@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/feature/booking/presentation/cubit/my_bookings_state.dart';
 
@@ -13,9 +14,9 @@ class BookingsTabBar extends StatelessWidget {
   final BookingsTab selected;
   final ValueChanged<BookingsTab> onSelected;
 
-  static const Map<BookingsTab, String> _labels = {
-    BookingsTab.active: 'Active',
-    BookingsTab.history: 'History',
+  static Map<BookingsTab, String> get _labels => {
+    BookingsTab.active: l10n.tabActive,
+    BookingsTab.history: l10n.tabHistory,
   };
 
   @override
@@ -24,7 +25,7 @@ class BookingsTabBar extends StatelessWidget {
 
     return Container(
       height: 44,
-      padding: const EdgeInsets.only(left: 22),
+      padding: const EdgeInsetsDirectional.only(start: 22),
       decoration: BoxDecoration(
         color: palette.bg,
         border: Border(bottom: BorderSide(color: palette.border, width: 0.5)),
@@ -67,8 +68,8 @@ class _Tab extends StatelessWidget {
           height: 44,
           child: Stack(
             children: [
-              Positioned(
-                left: 0,
+              PositionedDirectional(
+                start: 0,
                 top: 14,
                 child: Text(
                   label,
@@ -82,8 +83,8 @@ class _Tab extends StatelessWidget {
                 ),
               ),
               if (isSelected)
-                Positioned(
-                  left: 0,
+                PositionedDirectional(
+                  start: 0,
                   top: 40,
                   child: Container(
                     width: 50,

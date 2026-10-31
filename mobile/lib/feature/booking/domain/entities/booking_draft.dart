@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/pricing/price_rules.dart';
 
 /// What the user picked on the lot details screen, before paying.
@@ -30,7 +31,7 @@ class BookingDraft extends Equatable {
   final int freeCancellationMinutes;
 
   /// "A04 · Level B1"
-  String get slotLabel => '$slotNumber · Level $level';
+  String get slotLabel => l10n.slotLevelLabel(slotNumber, level);
 
   @override
   List<Object?> get props => [

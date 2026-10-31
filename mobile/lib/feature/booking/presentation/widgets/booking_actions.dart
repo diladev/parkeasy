@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
@@ -37,7 +38,11 @@ class GateCodeTile extends StatelessWidget {
                 color: palette.surface2,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(LucideIcons.qrCode, size: 24, color: palette.textHint),
+              child: Icon(
+                LucideIcons.qrCode,
+                size: 24,
+                color: palette.textHint,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -46,7 +51,7 @@ class GateCodeTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Gate QR code',
+                    l10n.gateQrCode,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -55,13 +60,17 @@ class GateCodeTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    'Scan to enter or exit the lot',
+                    l10n.scanToEnterOrExit,
                     style: TextStyle(fontSize: 10, color: palette.textHint),
                   ),
                 ],
               ),
             ),
-            Text('›', style: TextStyle(fontSize: 18, color: palette.textHint)),
+            Text(
+              l10n.forwardChevron,
+              textDirection: TextDirection.ltr,
+              style: TextStyle(fontSize: 18, color: palette.textHint),
+            ),
             const SizedBox(width: 1),
           ],
         ),
@@ -90,7 +99,7 @@ class BookingActionButtons extends StatelessWidget {
         Expanded(
           child: BookingActionButton(
             icon: LucideIcons.clock9,
-            label: 'Extend',
+            label: l10n.extend,
             background: AppColors.teal,
             // Light on teal in both themes.
             foreground: AppColors.textPrimary,
@@ -102,7 +111,7 @@ class BookingActionButtons extends StatelessWidget {
         Expanded(
           child: BookingActionButton(
             icon: LucideIcons.navigation,
-            label: 'Directions',
+            label: l10n.directions,
             background: palette.surface,
             foreground: palette.textMuted,
             border: palette.border,
@@ -235,17 +244,12 @@ class _CancelOrEndParkingState extends State<CancelOrEndParking> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _RedButton(
-            label: '✕  Cancel booking',
-            onTap: widget.onCancel,
-          ),
+          _RedButton(label: l10n.cancelBookingButton, onTap: widget.onCancel),
           const SizedBox(height: 10),
           _Note(
             icon: LucideIcons.timer,
             iconColor: AppColors.tealLight,
-            text: booking.isPaidFromWallet
-                ? 'Free cancellation for $minutes more min · full refund'
-                : 'Free cancellation for $minutes more min',
+            text: l10n.freeCancellationFor(minutes, booking.isPaidFromWallet),
           ),
         ],
       );
@@ -255,7 +259,7 @@ class _CancelOrEndParkingState extends State<CancelOrEndParking> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _RedButton(
-          label: 'End parking',
+          label: l10n.endParking,
           icon: LucideIcons.circleStop,
           onTap: widget.onEnd,
         ),
@@ -263,9 +267,9 @@ class _CancelOrEndParkingState extends State<CancelOrEndParking> {
         _Note(
           icon: LucideIcons.clock,
           iconColor: context.palette.textHint,
-          text:
-              'Free cancellation ended at '
-              '${Formatters.time(booking.cancellableUntil)}',
+          text: l10n.freeCancellationEndedAt(
+            Formatters.time(booking.cancellableUntil),
+          ),
         ),
       ],
     );
@@ -319,7 +323,11 @@ class _RedButton extends StatelessWidget {
 
 /// A small centred line under the button.
 class _Note extends StatelessWidget {
-  const _Note({required this.icon, required this.iconColor, required this.text});
+  const _Note({
+    required this.icon,
+    required this.iconColor,
+    required this.text,
+  });
 
   final IconData icon;
   final Color iconColor;

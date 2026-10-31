@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/constants/default_location.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/geo.dart';
@@ -22,7 +23,7 @@ class FavoritesScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => sl<FavoritesCubit>()..load(),
       child: AppScreen(
-        topBar: const AppTopBar(title: 'Favorites'),
+        topBar: AppTopBar(title: l10n.favorites),
         body: BlocConsumer<FavoritesCubit, FavoritesState>(
           listenWhen: (previous, current) =>
               current.errorSerial != previous.errorSerial &&
@@ -34,7 +35,7 @@ class FavoritesScreen extends StatelessWidget {
               child: CircularProgressIndicator(),
             ),
             FavoritesStatus.failure => AppErrorView(
-              message: state.errorMessage ?? "Couldn't load your favorites.",
+              message: state.errorMessage ?? l10n.couldntLoadFavorites,
               onRetry: context.read<FavoritesCubit>().load,
             ),
             FavoritesStatus.loaded => _FavoriteList(lots: state.lots),
@@ -64,9 +65,9 @@ class _FavoriteList extends StatelessWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text('${lot.name} removed from favorites.'),
+          content: Text(l10n.removedFromFavorites(lot.name)),
           action: SnackBarAction(
-            label: 'Undo',
+            label: l10n.undo,
             textColor: AppColors.tealLight,
             onPressed: () => cubit.restore(lot),
           ),
@@ -132,14 +133,14 @@ class _RemoveBackground extends StatelessWidget {
         color: AppColors.red12,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.heartOff, size: 18, color: AppColors.red),
-          SizedBox(width: 6),
+          const Icon(LucideIcons.heartOff, size: 18, color: AppColors.red),
+          const SizedBox(width: 6),
           Text(
-            'Remove',
-            style: TextStyle(fontSize: 11, color: AppColors.red),
+            l10n.remove,
+            style: const TextStyle(fontSize: 11, color: AppColors.red),
           ),
         ],
       ),
@@ -161,7 +162,7 @@ class _NoFavorites extends StatelessWidget {
           Icon(LucideIcons.heart, size: 40, color: palette.textHint),
           const SizedBox(height: 14),
           Text(
-            'No favorites yet',
+            l10n.noFavoritesYet,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
@@ -171,7 +172,7 @@ class _NoFavorites extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Tap the heart on a parking lot to keep it here.',
+            l10n.noFavoritesHint,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: palette.textHint),
           ),

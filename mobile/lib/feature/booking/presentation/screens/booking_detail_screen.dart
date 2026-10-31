@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -27,7 +28,7 @@ class BookingDetailScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => sl<BookingDetailCubit>()..load(bookingId),
       child: AppScreen(
-        topBar: const AppTopBar(title: 'Booking details'),
+        topBar: AppTopBar(title: l10n.bookingDetails),
         body: _BookingDetailView(bookingId: bookingId),
       ),
     );
@@ -56,7 +57,7 @@ class _BookingDetailView extends StatelessWidget {
         if (booking != null) return _BookingDetails(booking: booking);
         if (state.status == BookingDetailStatus.failure) {
           return AppErrorView(
-            message: state.errorMessage ?? "Couldn't load this booking.",
+            message: state.errorMessage ?? l10n.couldntLoadBooking,
             onRetry: () => cubit.load(bookingId),
           );
         }
@@ -97,19 +98,20 @@ class _BookingDetails extends StatelessWidget {
           const SizedBox(height: 14),
           BookingInfoCard(
             rows: [
-              ('Location', booking.lotName),
-              ('Slot', booking.slotLabel),
-              ('Vehicle', booking.vehicleLabel),
-              ('Start time', Formatters.dayAndTime(booking.startTime)),
-              ('Rate', '${Formatters.money(booking.pricePerHour)} / hr'),
+              (l10n.location, booking.lotName),
+              (l10n.slot, booking.slotLabel),
+              (l10n.vehicle, booking.vehicleLabel),
+              (l10n.startTime, Formatters.dayAndTime(booking.startTime)),
+              (
+                l10n.rate,
+                l10n.ratePerHour(Formatters.money(booking.pricePerHour)),
+              ),
             ],
           ),
           if (booking.isActive) ...[
             const SizedBox(height: 14),
             GateCodeTile(
-              onTap: () => context.showSnack(
-                "Gate QR codes aren't available yet.",
-              ),
+              onTap: () => context.showSnack(l10n.gateQrUnavailable),
             ),
             const SizedBox(height: 14),
             BookingActionButtons(
@@ -117,12 +119,11 @@ class _BookingDetails extends StatelessWidget {
                 context,
                 () => AppRouter.toExtendParking(context, booking),
               ),
-              onDirections: () =>
-                  AppRouter.toDirections(
-                    context,
-                    booking.lotId,
-                    slotLabel: 'Slot ${booking.slotNumber}',
-                  ),
+              onDirections: () => AppRouter.toDirections(
+                context,
+                booking.lotId,
+                slotLabel: l10n.slotName(booking.slotNumber),
+              ),
             ),
             const SizedBox(height: 12),
             CancelOrEndParking(
@@ -133,7 +134,7 @@ class _BookingDetails extends StatelessWidget {
           ] else ...[
             const SizedBox(height: 14),
             AppOutlinedButton(
-              label: 'View receipt',
+              label: l10n.viewReceipt,
               icon: LucideIcons.receipt,
               height: 46,
               onTap: () => AppRouter.toBookingReceipt(context, booking.id),

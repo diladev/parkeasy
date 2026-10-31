@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -37,7 +38,7 @@ class _PaymentView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScreen(
-      topBar: const AppTopBar(title: 'Payment'),
+      topBar: AppTopBar(title: l10n.payment),
       body: BlocConsumer<PaymentCubit, PaymentState>(
         listenWhen: (previous, current) =>
             current.status == PaymentStatus.paid ||
@@ -56,7 +57,7 @@ class _PaymentView extends StatelessWidget {
             child: CircularProgressIndicator(),
           ),
           PaymentStatus.failure => AppErrorView(
-            message: state.errorMessage ?? "Couldn't load your wallet.",
+            message: state.errorMessage ?? l10n.couldntLoadWallet,
             onRetry: context.read<PaymentCubit>().load,
           ),
           _ => _PaymentForm(state: state),
@@ -89,14 +90,11 @@ class _PaymentForm extends StatelessWidget {
 
   void _pay(BuildContext context) {
     if (state.vehicle == null) {
-      context.showSnack('Add a vehicle to book a slot.', isError: true);
+      context.showSnack(l10n.addVehicleToBook, isError: true);
       return;
     }
     if (!state.canAfford) {
-      context.showSnack(
-        'Not enough balance. Tap ParkEasy Wallet to top up.',
-        isError: true,
-      );
+      context.showSnack(l10n.notEnoughBalanceTapWallet, isError: true);
       return;
     }
     context.read<PaymentCubit>().pay();
@@ -112,7 +110,7 @@ class _PaymentForm extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(22, 14, 22, 24),
       children: [
-        const _SectionLabel('BOOKING SUMMARY'),
+        _SectionLabel(l10n.bookingSummary),
         const SizedBox(height: 7),
         BookingSummaryCard(
           valueColumn: 226,
@@ -122,15 +120,15 @@ class _PaymentForm extends StatelessWidget {
           bottomPadding: 14,
           rows: [
             SummaryRow(
-              'Location',
+              l10n.location,
               SummaryRow.text(context, state.draft.lotName),
             ),
             SummaryRow(
-              'Slot',
+              l10n.slot,
               SummaryRow.text(context, state.draft.slotLabel),
             ),
             SummaryRow(
-              'Vehicle',
+              l10n.vehicle,
               VehiclePicker(
                 vehicles: state.vehicles,
                 vehicle: state.vehicle,
@@ -140,7 +138,7 @@ class _PaymentForm extends StatelessWidget {
               isControl: true,
             ),
             SummaryRow(
-              'Duration',
+              l10n.duration,
               DurationStepper(
                 hours: state.durationHours,
                 onDecrease: state.durationHours > 1
@@ -153,7 +151,7 @@ class _PaymentForm extends StatelessWidget {
               isControl: true,
             ),
           ],
-          totalLabel: 'Total',
+          totalLabel: l10n.total,
           total: total,
         ),
         const SizedBox(height: 10),
@@ -165,14 +163,14 @@ class _PaymentForm extends StatelessWidget {
           const SizedBox(height: 4),
         _CancellationPolicy(minutes: state.draft.freeCancellationMinutes),
         const SizedBox(height: 20),
-        const _SectionLabel('PAYMENT METHOD'),
+        _SectionLabel(l10n.paymentMethod),
         const SizedBox(height: 7),
         PaymentMethodTile(
           icon: LucideIcons.wallet200,
-          title: 'ParkEasy Wallet',
+          title: l10n.parkEasyWallet,
           subtitle: state.canAfford
-              ? 'Balance: ${Formatters.money(state.balance)}'
-              : 'Balance: ${Formatters.money(state.balance)} · tap to top up',
+              ? l10n.balance(Formatters.money(state.balance))
+              : l10n.balanceTapToTopUp(Formatters.money(state.balance)),
           subtitleColor: state.canAfford ? null : AppColors.red,
           isSelected: true,
           onTap: () => _openWallet(context),
@@ -180,13 +178,13 @@ class _PaymentForm extends StatelessWidget {
         const SizedBox(height: 8),
         PaymentMethodTile(
           icon: LucideIcons.plus,
-          title: 'Add new card',
+          title: l10n.addNewCard,
           isSelected: false,
           onTap: () => AppRouter.toPaymentMethods(context),
         ),
         const SizedBox(height: 18),
         AppButton(
-          label: 'Confirm & pay $total',
+          label: l10n.confirmAndPay(total),
           height: 48,
           isLoading: isPaying,
           onTap: () => _pay(context),
@@ -217,8 +215,8 @@ class _CancellationPolicy extends StatelessWidget {
         Expanded(
           child: Text(
             minutes > 0
-                ? 'Free cancellation within $minutes min of the start'
-                : "This lot doesn't offer free cancellation",
+                ? l10n.freeCancellationWithin(minutes)
+                : l10n.noFreeCancellation,
             style: TextStyle(fontSize: 10, color: palette.textHint),
           ),
         ),

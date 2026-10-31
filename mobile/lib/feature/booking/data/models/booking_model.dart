@@ -1,3 +1,4 @@
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/core/utils/typedef.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
@@ -44,7 +45,7 @@ class BookingModel extends Booking {
       id: (map['id'] as num).toInt(),
       status: BookingStatus.fromApi(map['status'] as String?),
       lotId: (map['parking_lot_id'] as num).toInt(),
-      lotName: lot?['name'] as String? ?? 'Parking lot',
+      lotName: lot?['name'] as String? ?? l10n.parkingLot,
       lotAddress: lot?['address'] as String? ?? '',
       slotNumber: slot?['slot_number'] as String? ?? '',
       level: slot?['level'] as String? ?? '',

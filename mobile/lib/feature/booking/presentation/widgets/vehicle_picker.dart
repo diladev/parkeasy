@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/feature/profile/domain/entities/vehicle_entity.dart';
 
@@ -43,8 +44,8 @@ class VehiclePicker extends StatelessWidget {
         child: GestureDetector(
           onTap: onAdd,
           behavior: HitTestBehavior.opaque,
-          child: const _SelectBox(
-            label: 'Add a vehicle',
+          child: _SelectBox(
+            label: l10n.addAVehicle,
             icon: LucideIcons.plus,
             isAccent: true,
           ),
@@ -60,7 +61,7 @@ class VehiclePicker extends StatelessWidget {
 
     return PopupMenuButton<int>(
       initialValue: current.id,
-      tooltip: 'Change vehicle',
+      tooltip: l10n.changeVehicle,
       color: palette.surface,
       padding: EdgeInsets.zero,
       position: PopupMenuPosition.under,
@@ -98,17 +99,14 @@ class VehiclePicker extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Add a vehicle',
+                l10n.addAVehicle,
                 style: itemStyle(false).copyWith(color: AppColors.tealLight),
               ),
             ],
           ),
         ),
       ],
-      child: _SelectBox(
-        label: _label(current),
-        icon: LucideIcons.chevronDown,
-      ),
+      child: _SelectBox(label: _label(current), icon: LucideIcons.chevronDown),
     );
   }
 }
@@ -138,11 +136,13 @@ class _SelectBox extends StatelessWidget {
       width: VehiclePicker.width + VehiclePicker._edgeInset,
       height: 48,
       child: Padding(
-        padding: const EdgeInsets.only(right: VehiclePicker._edgeInset),
+        padding: const EdgeInsetsDirectional.only(
+          end: VehiclePicker._edgeInset,
+        ),
         child: Center(
           child: Container(
             height: 32,
-            padding: const EdgeInsets.only(left: 10, right: 8),
+            padding: const EdgeInsetsDirectional.only(start: 10, end: 8),
             decoration: BoxDecoration(
               color: palette.surface2,
               borderRadius: BorderRadius.circular(8),

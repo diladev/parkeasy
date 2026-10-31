@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -34,7 +35,7 @@ class CancellationSuccessScreen extends StatelessWidget {
             const Center(child: _CancelledBadge()),
             const SizedBox(height: 16),
             Text(
-              'Booking cancelled',
+              l10n.bookingCancelled,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -44,10 +45,7 @@ class CancellationSuccessScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              refunded
-                  ? 'Your booking has been cancelled\n'
-                        'and refunded to your wallet.'
-                  : 'Your booking has been cancelled.',
+              refunded ? l10n.cancelledAndRefunded : l10n.bookingWasCancelled,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -58,36 +56,36 @@ class CancellationSuccessScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ResultDetailsCard(
               rows: [
-                ('Location', booking.lotName, false),
-                ('Slot', booking.slotLabel, false),
+                (l10n.location, booking.lotName, false),
+                (l10n.slot, booking.slotLabel, false),
                 (
-                  'Cancelled at',
+                  l10n.cancelledAt,
                   '${Formatters.time(cancelledAt)} · '
                       '${Formatters.day(cancelledAt)}',
                   false,
                 ),
                 (
-                  'Refund amount',
+                  l10n.refundAmount,
                   Formatters.money(cancellation.refund),
                   true,
                 ),
               ],
               afterDivider: refunded
-                  ? const [
-                      ('Refund to', 'ParkEasy Wallet', false),
-                      ('Estimated', 'Instant', false),
+                  ? [
+                      (l10n.refundTo, l10n.parkEasyWallet, false),
+                      (l10n.estimated, l10n.instant, false),
                     ]
                   : const [],
             ),
             const SizedBox(height: 20),
             AppButton(
-              label: 'Find another spot',
+              label: l10n.findAnotherSpot,
               height: 48,
               onTap: () => AppRouter.toHome(context, tab: AppRouter.mapTab),
             ),
             const SizedBox(height: 10),
             ResultSecondaryButton(
-              label: 'Back to home',
+              label: l10n.backToHome,
               onTap: () => AppRouter.toHome(context),
             ),
           ],

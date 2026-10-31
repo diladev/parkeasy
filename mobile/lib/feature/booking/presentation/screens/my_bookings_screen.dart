@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -45,7 +46,9 @@ class _MyBookingsView extends StatelessWidget {
           children: [
             const _Header(),
             BookingsTabBar(selected: state.tab, onSelected: cubit.selectTab),
-            Expanded(child: _BookingListView(tab: state.tab, list: state.current)),
+            Expanded(
+              child: _BookingListView(tab: state.tab, list: state.current),
+            ),
           ],
         );
       },
@@ -62,14 +65,14 @@ class _Header extends StatelessWidget {
 
     return Container(
       height: 52,
-      padding: const EdgeInsets.only(left: 22),
-      alignment: Alignment.centerLeft,
+      padding: const EdgeInsetsDirectional.only(start: 22),
+      alignment: AlignmentDirectional.centerStart,
       decoration: BoxDecoration(
         color: palette.bg,
         border: Border(bottom: BorderSide(color: palette.border, width: 0.5)),
       ),
       child: Text(
-        'My bookings',
+        l10n.myBookings,
         style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
@@ -103,7 +106,7 @@ class _BookingListView extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         case BookingListStatus.failure:
           return AppErrorView(
-            message: list.errorMessage ?? "Couldn't load your bookings.",
+            message: list.errorMessage ?? l10n.couldntLoadBookings,
             onRetry: cubit.load,
           );
         case BookingListStatus.loaded:
@@ -162,14 +165,8 @@ class _EmptyList extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final (title, message) = switch (tab) {
-      BookingsTab.active => (
-        'No active booking',
-        'Book a slot and it will show up here.',
-      ),
-      BookingsTab.history => (
-        'No past bookings yet',
-        'Bookings you finished or cancelled show up here.',
-      ),
+      BookingsTab.active => (l10n.noActiveBooking, l10n.noActiveBookingHint),
+      BookingsTab.history => (l10n.noPastBookings, l10n.noPastBookingsHint),
     };
 
     return ListView(

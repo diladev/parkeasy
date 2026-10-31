@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_screen.dart';
@@ -25,14 +26,14 @@ class BookingReceiptScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => sl<BookingReceiptCubit>()..load(bookingId),
       child: AppScreen(
-        topBar: const AppTopBar(title: 'Receipt'),
+        topBar: AppTopBar(title: l10n.receipt),
         body: BlocBuilder<BookingReceiptCubit, BookingReceiptState>(
           builder: (context, state) {
             final receipt = state.receipt;
             if (receipt != null) return _Receipt(receipt: receipt);
             if (state.status == BookingReceiptStatus.failure) {
               return AppErrorView(
-                message: state.errorMessage ?? "Couldn't load this receipt.",
+                message: state.errorMessage ?? l10n.couldntLoadReceipt,
                 onRetry: () =>
                     context.read<BookingReceiptCubit>().load(bookingId),
               );
@@ -72,7 +73,7 @@ class _Receipt extends StatelessWidget {
       await use(await buildReceiptPdf(receipt));
     } catch (_) {
       if (context.mounted) {
-        context.showSnack("Couldn't create the PDF.", isError: true);
+        context.showSnack(l10n.couldntCreatePdf, isError: true);
       }
     }
   }
@@ -88,62 +89,65 @@ class _Receipt extends StatelessWidget {
       children: [
         _Header(receipt: receipt),
         const SizedBox(height: 16),
-        const _SectionLabel('PARKING DETAILS'),
+        _SectionLabel(l10n.parkingDetailsLabel),
         const SizedBox(height: 5),
         _ReceiptCard(
           rows: [
-            _Row('Location', booking.lotName),
-            _Row('Address', booking.lotAddress),
-            _Row('Slot', booking.slotLabel),
-            _Row('Vehicle', booking.vehicleLabel),
+            _Row(l10n.location, booking.lotName),
+            _Row(l10n.address, booking.lotAddress),
+            _Row(l10n.slot, booking.slotLabel),
+            _Row(l10n.vehicle, booking.vehicleLabel),
           ],
         ),
         const SizedBox(height: 10),
-        const _SectionLabel('SESSION'),
+        _SectionLabel(l10n.sessionLabel),
         const SizedBox(height: 5),
         _ReceiptCard(
           rows: [
-            _Row('Entry', Formatters.dayAndTime(booking.startTime)),
+            _Row(l10n.entry, Formatters.dayAndTime(booking.startTime)),
             // A cancelled booking never ran its time; this is when it would
             // have ended. One ended early shows when it really ended.
             _Row(
-              isCancelled ? 'Booked until' : 'Exit',
+              isCancelled ? l10n.bookedUntil : l10n.exit,
               Formatters.dayAndTime(
                 isCancelled ? booking.endTime : booking.finishedAt,
               ),
             ),
             _Row(
-              booking.endedEarly ? 'Booked' : 'Duration',
+              booking.endedEarly ? l10n.booked : l10n.duration,
               Formatters.duration(
                 booking.endTime.difference(booking.startTime),
               ),
             ),
-            _Row('Rate', '${Formatters.money(booking.pricePerHour)} / hr'),
+            _Row(
+              l10n.rate,
+              l10n.ratePerHour(Formatters.money(booking.pricePerHour)),
+            ),
           ],
         ),
         const SizedBox(height: 10),
-        const _SectionLabel('PAYMENT'),
+        _SectionLabel(l10n.paymentLabel),
         const SizedBox(height: 5),
         _ReceiptCard(
           rows: [
-            _Row('Subtotal', Formatters.money(receipt.subtotal)),
+            _Row(l10n.subtotal, Formatters.money(receipt.subtotal)),
             // ParkEasy has no discounts or tax yet: both are always 0.
-            _Row('Discount', Formatters.money(0)),
-            _Row('Tax', Formatters.money(0)),
+            _Row(l10n.discount, Formatters.money(0)),
+            _Row(l10n.tax, Formatters.money(0)),
             if (receipt.refunded > 0)
               _Row(
-                'Refunded',
-                '-${Formatters.money(receipt.refunded)}',
+                l10n.refunded,
+                Formatters.money(-receipt.refunded),
                 color: AppColors.tealLight,
               ),
             _Row(
-              'Total',
+              l10n.total,
               Formatters.money(receipt.total),
               color: AppColors.tealLight,
               isBold: true,
               dividerAbove: true,
             ),
-            _Row('Paid with', receipt.paymentMethod.label),
+            _Row(l10n.paidWith, receipt.paymentMethod.label),
           ],
         ),
         const SizedBox(height: 14),
@@ -152,7 +156,7 @@ class _Receipt extends StatelessWidget {
             Expanded(
               child: BookingActionButton(
                 icon: LucideIcons.download,
-                label: 'Download PDF',
+                label: l10n.downloadPdf,
                 background: AppColors.teal,
                 // Light on teal in both themes.
                 foreground: AppColors.textPrimary,
@@ -164,7 +168,7 @@ class _Receipt extends StatelessWidget {
             Expanded(
               child: BookingActionButton(
                 icon: LucideIcons.share,
-                label: 'Share',
+                label: l10n.share,
                 background: palette.surface,
                 foreground: palette.textMuted,
                 border: palette.border,
@@ -194,7 +198,6 @@ class _Header extends StatelessWidget {
       ReceiptStatus.partlyRefunded => (AppColors.tealBg, AppColors.tealLight),
       ReceiptStatus.cancelled => (AppColors.red12, AppColors.red),
     };
-    final verb = receipt.subtotal > 0 ? 'Paid' : 'Booked';
 
     return Column(
       children: [
@@ -224,7 +227,10 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '$verb · ${Formatters.readableDate(receipt.issuedAt)}',
+          l10n.receiptHeadline(
+            receipt.subtotal > 0,
+            Formatters.readableDate(receipt.issuedAt),
+          ),
           style: TextStyle(fontSize: 10, color: palette.textHint),
         ),
         const SizedBox(height: 8),

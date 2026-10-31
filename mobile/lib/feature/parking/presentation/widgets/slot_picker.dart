@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_slot.dart';
 
@@ -35,7 +36,7 @@ class SlotPicker extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                'Pick a slot',
+                l10n.pickSlot,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
@@ -54,7 +55,7 @@ class SlotPicker extends StatelessWidget {
         const SizedBox(height: 12),
         if (slots.isEmpty)
           Text(
-            'This lot has no slots yet.',
+            l10n.noSlotsYet,
             style: TextStyle(fontSize: 11, color: palette.textHint),
           )
         else
@@ -102,7 +103,7 @@ class _LevelButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(7),
       ),
       child: Text(
-        'Level $level',
+        l10n.levelName(level),
         style: const TextStyle(
           fontSize: 9,
           fontWeight: FontWeight.w500,
@@ -125,7 +126,7 @@ class _LevelButton extends StatelessWidget {
             value: option,
             height: 36,
             child: Text(
-              'Level $option',
+              l10n.levelName(option),
               style: TextStyle(
                 fontSize: 12,
                 color: option == level
@@ -167,7 +168,7 @@ class _SlotTile extends StatelessWidget {
     return Semantics(
       button: slot.isFree,
       selected: isSelected,
-      label: 'Slot ${slot.slotNumber}${slot.isFree ? '' : ', taken'}',
+      label: l10n.slotSemantics(slot.slotNumber, !slot.isFree),
       child: GestureDetector(
         onTap: slot.isFree ? onTap : null,
         child: Container(
@@ -179,7 +180,10 @@ class _SlotTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
             border: Border.all(color: border, width: 0.5),
           ),
-          child: Text(slot.slotNumber, style: TextStyle(fontSize: 9, color: text)),
+          child: Text(
+            slot.slotNumber,
+            style: TextStyle(fontSize: 9, color: text),
+          ),
         ),
       ),
     );
@@ -222,9 +226,9 @@ class _Legend extends StatelessWidget {
 
     return Row(
       children: [
-        item(palette.surface2, 'Free'),
-        item(AppColors.teal, 'Selected'),
-        item(_SlotColors.taken(palette), 'Taken'),
+        item(palette.surface2, l10n.slotFree),
+        item(AppColors.teal, l10n.slotSelected),
+        item(_SlotColors.taken(palette), l10n.slotTaken),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -19,9 +20,7 @@ class BookingConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration = booking.durationHours == 1
-        ? '1 hour'
-        : '${booking.durationHours} hours';
+    final duration = l10n.hoursLong(booking.durationHours);
 
     return PopScope(
       canPop: false,
@@ -35,7 +34,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             const Center(child: _SuccessBadge()),
             const SizedBox(height: 18),
             Text(
-              'Booking confirmed!',
+              l10n.bookingConfirmed,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
@@ -45,7 +44,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Your spot is reserved. Head there anytime.',
+              l10n.spotReserved,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: context.palette.textHint),
             ),
@@ -57,37 +56,40 @@ class BookingConfirmationScreen extends StatelessWidget {
               topPadding: 12,
               rows: [
                 SummaryRow(
-                  'Location',
+                  l10n.location,
                   SummaryRow.text(context, booking.lotName),
                 ),
-                SummaryRow('Slot', SummaryRow.text(context, booking.slotLabel)),
                 SummaryRow(
-                  'Vehicle',
+                  l10n.slot,
+                  SummaryRow.text(context, booking.slotLabel),
+                ),
+                SummaryRow(
+                  l10n.vehicle,
                   SummaryRow.text(context, booking.vehicleLabel),
                 ),
                 SummaryRow(
-                  'Date & time',
+                  l10n.dateAndTime,
                   SummaryRow.text(
                     context,
                     Formatters.dayAndTime(booking.startTime),
                   ),
                 ),
-                SummaryRow('Duration', SummaryRow.text(context, duration)),
+                SummaryRow(l10n.duration, SummaryRow.text(context, duration)),
               ],
-              totalLabel: 'Paid',
+              totalLabel: l10n.paid,
               total: Formatters.money(booking.totalCost),
             ),
             const SizedBox(height: 18),
             const _GateCodeCard(),
             const SizedBox(height: 18),
             AppButton(
-              label: 'View my booking',
+              label: l10n.viewMyBooking,
               height: 48,
               onTap: () => AppRouter.toBookingDetail(context, '${booking.id}'),
             ),
             const SizedBox(height: 18),
             _SecondaryButton(
-              label: 'Back to home',
+              label: l10n.backToHome,
               onTap: () => AppRouter.toHome(context),
             ),
           ],
@@ -140,7 +142,7 @@ class _GateCodeCard extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'Booking QR code',
+            l10n.bookingQrCode,
             style: TextStyle(fontSize: 10, color: palette.textHint),
           ),
           const SizedBox(height: 3),
@@ -160,7 +162,7 @@ class _GateCodeCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Scan at the gate to enter',
+            l10n.scanAtGate,
             style: TextStyle(fontSize: 9, color: palette.textHint),
           ),
         ],

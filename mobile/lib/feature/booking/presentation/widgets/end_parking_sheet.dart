@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -30,11 +31,12 @@ class _EndParkingSheet extends StatelessWidget {
   /// "You've parked 1h 22m of your 3 hours at City Center, Slot A4."
   String get _message {
     final parked = DateTime.now().difference(booking.startTime);
-    final hours = booking.durationHours == 1
-        ? '1 hour'
-        : '${booking.durationHours} hours';
-    return "You've parked ${Formatters.duration(parked.isNegative ? Duration.zero : parked)} "
-        'of your $hours at\n${booking.lotName}, Slot ${booking.slotNumber}.';
+    return l10n.parkedSoFar(
+      Formatters.duration(parked.isNegative ? Duration.zero : parked),
+      l10n.hoursLong(booking.durationHours),
+      booking.lotName,
+      booking.slotNumber,
+    );
   }
 
   @override
@@ -55,15 +57,12 @@ class _EndParkingSheet extends StatelessWidget {
       },
       builder: (context, state) => BookingSheet(
         icon: LucideIcons.circleStop200,
-        title: 'End parking now?',
+        title: l10n.endParkingQuestion,
         message: _message,
-        note:
-            "Ending early isn't refunded: the full "
-            '${Formatters.money(booking.totalCost)} stays charged. Your slot '
-            'opens up for other drivers right away.',
-        confirmLabel: 'End parking',
+        note: l10n.endingEarlyNote(Formatters.money(booking.totalCost)),
+        confirmLabel: l10n.endParking,
         confirmIcon: LucideIcons.circleStop,
-        backLabel: 'Keep parking',
+        backLabel: l10n.keepParking,
         isBusy: state.status != EndParkingStatus.idle,
         onConfirm: () => context.read<EndParkingCubit>().end(booking),
       ),

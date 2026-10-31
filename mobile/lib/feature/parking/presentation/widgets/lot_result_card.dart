@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/parking/presentation/cubit/search_state.dart';
@@ -71,7 +72,7 @@ class LotResultCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${Formatters.money(lot.pricePerHour)}/hr',
+                        l10n.perHourShort(Formatters.money(lot.pricePerHour)),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -119,16 +120,16 @@ class _FreeSlotsBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, background, foreground) = switch (free) {
-      0 => ('Full', AppColors.red12, AppColors.red),
-      <= _fewLeft => ('$free free', AppColors.amber12, AppColors.amber),
-      _ => ('$free free', AppColors.tealBg, AppColors.tealLight),
+      0 => (l10n.full, AppColors.red12, AppColors.red),
+      <= _fewLeft => (l10n.freeCount(free), AppColors.amber12, AppColors.amber),
+      _ => (l10n.freeCount(free), AppColors.tealBg, AppColors.tealLight),
     };
 
     return Container(
       height: 20,
       constraints: const BoxConstraints(minWidth: 60),
       padding: const EdgeInsets.symmetric(horizontal: 6),
-      alignment: Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerStart,
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(6),
@@ -158,7 +159,7 @@ class _Tag extends StatelessWidget {
       height: 20,
       constraints: const BoxConstraints(minWidth: 64),
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      alignment: Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerStart,
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(6),

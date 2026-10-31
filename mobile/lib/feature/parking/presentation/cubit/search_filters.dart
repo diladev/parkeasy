@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/feature/parking/domain/entities/parking_lot_summary.dart';
 
 /// A lot in the results with its distance from the user.
@@ -14,25 +15,32 @@ class SearchResult extends Equatable {
 
 /// How the results are ordered.
 enum SearchSort {
-  nearest('Nearest'),
-  cheapest('Cheapest'),
-  topRated('Top rated');
+  nearest,
+  cheapest,
+  topRated;
 
-  const SearchSort(this.label);
-
-  final String label;
+  String get label => switch (this) {
+    SearchSort.nearest => l10n.sortNearest,
+    SearchSort.cheapest => l10n.sortCheapest,
+    SearchSort.topRated => l10n.sortTopRated,
+  };
 }
 
 /// How far a lot may be.
 enum DistanceLimit {
-  m500('500 m', 0.5),
-  km1('1 km', 1),
-  km5('5 km', 5),
-  any('Any', null);
+  m500(0.5),
+  km1(1),
+  km5(5),
+  any(null);
 
-  const DistanceLimit(this.label, this.maxKm);
+  const DistanceLimit(this.maxKm);
 
-  final String label;
+  String get label => switch (this) {
+    DistanceLimit.m500 => '500 ${l10n.metresUnit}',
+    DistanceLimit.km1 => '1 ${l10n.kmUnit}',
+    DistanceLimit.km5 => '5 ${l10n.kmUnit}',
+    DistanceLimit.any => l10n.anyDistance,
+  };
 
   /// Null for no limit.
   final double? maxKm;
@@ -40,15 +48,19 @@ enum DistanceLimit {
 
 /// What a lot must offer.
 enum Amenity {
-  covered('Covered'),
-  evCharging('EV charging'),
-  accessible('Accessible'),
-  cctv('CCTV'),
-  open24h('24h open');
+  covered,
+  evCharging,
+  accessible,
+  cctv,
+  open24h;
 
-  const Amenity(this.label);
-
-  final String label;
+  String get label => switch (this) {
+    Amenity.covered => l10n.covered,
+    Amenity.evCharging => l10n.evCharging,
+    Amenity.accessible => l10n.accessible,
+    Amenity.cctv => l10n.cctv,
+    Amenity.open24h => l10n.open24hAmenity,
+  };
 
   bool isOfferedBy(ParkingLotSummary lot) => switch (this) {
     Amenity.covered => lot.isCovered,

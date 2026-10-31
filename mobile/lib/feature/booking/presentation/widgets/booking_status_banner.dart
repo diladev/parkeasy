@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
@@ -51,12 +52,14 @@ class _BookingStatusBannerState extends State<BookingStatusBanner> {
   String _activeSubtitle(Booking booking) {
     final now = DateTime.now();
     if (!now.isBefore(booking.endTime)) {
-      return 'Ended ${Formatters.time(booking.endTime)}';
+      return l10n.endedAt(Formatters.time(booking.endTime));
     }
     final elapsed = now.difference(booking.startTime);
     final shown = elapsed.isNegative ? Duration.zero : elapsed;
-    return 'Started ${Formatters.time(booking.startTime)} · '
-        '${Formatters.duration(shown)} elapsed';
+    return l10n.startedElapsed(
+      Formatters.time(booking.startTime),
+      Formatters.duration(shown),
+    );
   }
 
   @override
@@ -70,7 +73,7 @@ class _BookingStatusBannerState extends State<BookingStatusBanner> {
         background: AppColors.tealBg,
         border: AppColors.teal,
         dot: AppColors.teal,
-        title: 'Active booking',
+        title: l10n.activeBooking,
         titleColor: AppColors.tealLight,
         subtitle: _activeSubtitle(booking),
         subtitleColor: AppColors.tealDim,
@@ -81,11 +84,11 @@ class _BookingStatusBannerState extends State<BookingStatusBanner> {
         background: palette.surface,
         border: palette.border,
         dot: palette.textHint,
-        title: 'Completed booking',
+        title: l10n.completedBooking,
         titleColor: palette.textMuted,
         subtitle: booking.endedEarly
-            ? 'Ended early ${Formatters.time(booking.finishedAt)} · $hours booked'
-            : 'Ended ${Formatters.time(booking.endTime)} · $hours',
+            ? l10n.endedEarlyBooked(Formatters.time(booking.finishedAt), hours)
+            : l10n.endedHours(Formatters.time(booking.endTime), hours),
         subtitleColor: palette.textHint,
         amount: Formatters.money(booking.totalCost),
         amountColor: palette.textPrimary,
@@ -94,9 +97,9 @@ class _BookingStatusBannerState extends State<BookingStatusBanner> {
         background: AppColors.red12,
         border: AppColors.red.withValues(alpha: 0.2),
         dot: AppColors.red,
-        title: 'Cancelled booking',
+        title: l10n.cancelledBooking,
         titleColor: AppColors.red,
-        subtitle: 'Started ${Formatters.time(booking.startTime)} · $hours',
+        subtitle: l10n.startedHours(Formatters.time(booking.startTime), hours),
         subtitleColor: palette.textHint,
         // A cancelled booking was refunded, so no amount here.
         amount: null,
@@ -107,7 +110,7 @@ class _BookingStatusBannerState extends State<BookingStatusBanner> {
 
     return Container(
       height: 54,
-      padding: const EdgeInsets.only(left: 16, right: 14),
+      padding: const EdgeInsetsDirectional.only(start: 16, end: 14),
       decoration: BoxDecoration(
         color: style.background,
         borderRadius: BorderRadius.circular(12),

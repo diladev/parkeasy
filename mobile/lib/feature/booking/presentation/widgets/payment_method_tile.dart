@@ -59,7 +59,7 @@ class PaymentMethodTile extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Container(
-                  alignment: Alignment.topLeft,
+                  alignment: AlignmentDirectional.topStart,
                   padding: const EdgeInsets.only(top: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

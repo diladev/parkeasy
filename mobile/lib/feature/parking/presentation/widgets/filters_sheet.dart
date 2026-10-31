@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -49,12 +50,11 @@ class _FiltersSheetState extends State<_FiltersSheet> {
   /// "Show 24 results", for the choices so far.
   String _showLabel(SearchState search) {
     if (search.status == SearchStatus.loading && search.found.isEmpty) {
-      return 'Show results';
+      return l10n.showResults;
     }
     return switch (_filters.apply(search.found).length) {
-      0 => 'No spots match',
-      1 => 'Show 1 result',
-      final count => 'Show $count results',
+      0 => l10n.noSpotsMatch,
+      final count => l10n.showCountResults(count),
     };
   }
 
@@ -72,10 +72,10 @@ class _FiltersSheetState extends State<_FiltersSheet> {
             const SizedBox(height: 14),
             _Header(onReset: () => _change(const SearchFilters())),
             const SizedBox(height: 12),
-            const _SectionLabel('PRICE RANGE'),
+            _SectionLabel(l10n.priceRangeLabel),
             _PriceRange(filters: _filters, onChanged: _change),
             const SizedBox(height: 13),
-            const _SectionLabel('DISTANCE'),
+            _SectionLabel(l10n.distanceLabel),
             const SizedBox(height: 5),
             _ChoiceRow<DistanceLimit>(
               options: DistanceLimit.values,
@@ -85,7 +85,7 @@ class _FiltersSheetState extends State<_FiltersSheet> {
                   _change(_filters.copyWith(distance: limit)),
             ),
             const SizedBox(height: 16),
-            const _SectionLabel('AMENITIES'),
+            _SectionLabel(l10n.amenitiesLabel),
             const SizedBox(height: 5),
             Wrap(
               spacing: 8,
@@ -100,7 +100,7 @@ class _FiltersSheetState extends State<_FiltersSheet> {
               ],
             ),
             const SizedBox(height: 10),
-            const _SectionLabel('SORT BY'),
+            _SectionLabel(l10n.sortByLabel),
             const SizedBox(height: 5),
             _ChoiceRow<SearchSort>(
               options: SearchSort.values,
@@ -156,7 +156,7 @@ class _Header extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            'Filters',
+            l10n.filters,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -169,11 +169,11 @@ class _Header extends StatelessWidget {
           child: GestureDetector(
             onTap: onReset,
             behavior: HitTestBehavior.opaque,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
               child: Text(
-                'Reset all',
-                style: TextStyle(fontSize: 11, color: AppColors.teal),
+                l10n.resetAll,
+                style: const TextStyle(fontSize: 11, color: AppColors.teal),
               ),
             ),
           ),
@@ -195,11 +195,11 @@ class _PriceRange extends StatelessWidget {
   /// "1,000 – 2,000 IQD / hr", "Any price".
   String get _label {
     final max = filters.maxPrice;
-    if (filters.minPrice == 0 && max == null) return 'Any price';
+    if (filters.minPrice == 0 && max == null) return l10n.anyPrice;
     final upper = max == null
         ? '${Formatters.dinars(SearchFilters.priceSliderMax)}+'
         : Formatters.dinars(max);
-    return '${Formatters.dinars(filters.minPrice)} – $upper IQD / hr';
+    return l10n.priceRangePerHour(Formatters.dinars(filters.minPrice), upper);
   }
 
   void _onChanged(RangeValues values) {

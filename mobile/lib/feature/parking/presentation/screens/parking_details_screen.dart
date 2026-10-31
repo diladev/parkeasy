@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/constants/default_location.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -65,8 +66,7 @@ class _ParkingDetailsView extends StatelessWidget {
                 child: state.status == ParkingDetailsStatus.failure
                     ? AppErrorView(
                         message:
-                            state.errorMessage ??
-                            "Couldn't load this parking lot.",
+                            state.errorMessage ?? l10n.couldntLoadParkingLot,
                         onRetry: () =>
                             context.read<ParkingDetailsCubit>().load(lotId),
                       )
@@ -101,17 +101,18 @@ class _LotDetails extends StatelessWidget {
     ].join(' · ');
   }
 
-  String get _hours =>
-      lot.isOpen24h ? '24h' : '${lot.openingTime}–${lot.closingTime}';
+  String get _hours => lot.isOpen24h
+      ? l10n.open24hShort
+      : '${lot.openingTime}–${lot.closingTime}';
 
   String get _rating =>
-      lot.rating > 0 ? '${lot.rating.toStringAsFixed(1)} ★' : 'New';
+      lot.rating > 0 ? '${lot.rating.toStringAsFixed(1)} ★' : l10n.newLot;
 
   List<String> get _features => [
-    if (lot.hasCctv) 'CCTV',
-    if (lot.hasEvCharging) 'EV charge',
-    if (lot.isCovered) 'Covered',
-    if (lot.isAccessible) 'Accessible',
+    if (lot.hasCctv) l10n.cctv,
+    if (lot.hasEvCharging) l10n.evCharge,
+    if (lot.isCovered) l10n.covered,
+    if (lot.isAccessible) l10n.accessible,
   ];
 
   void _book(BuildContext context) {
@@ -169,7 +170,7 @@ class _LotDetails extends StatelessWidget {
                     Expanded(
                       child: LotStatTile(
                         value: '${lot.availableSlots}',
-                        label: 'Free slots',
+                        label: l10n.freeSlots,
                         isHighlighted: true,
                       ),
                     ),
@@ -177,16 +178,16 @@ class _LotDetails extends StatelessWidget {
                     Expanded(
                       child: LotStatTile(
                         value: Formatters.dinars(pricePerHour),
-                        label: 'IQD / hour',
+                        label: l10n.iqdPerHour,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: LotStatTile(value: _rating, label: 'Rating'),
+                      child: LotStatTile(value: _rating, label: l10n.rating),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: LotStatTile(value: _hours, label: 'Open'),
+                      child: LotStatTile(value: _hours, label: l10n.open),
                     ),
                   ],
                 ),

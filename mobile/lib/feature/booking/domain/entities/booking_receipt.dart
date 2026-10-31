@@ -1,15 +1,17 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/feature/booking/domain/entities/booking.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
 /// How a booking was paid.
 enum ReceiptPaymentMethod {
-  wallet('ParkEasy Wallet'),
-  card('Card');
+  wallet,
+  card;
 
-  const ReceiptPaymentMethod(this.label);
-
-  final String label;
+  String get label => switch (this) {
+    ReceiptPaymentMethod.wallet => l10n.parkEasyWallet,
+    ReceiptPaymentMethod.card => l10n.card,
+  };
 
   static ReceiptPaymentMethod fromApi(String? value) =>
       value == 'card' ? card : wallet;
@@ -17,14 +19,17 @@ enum ReceiptPaymentMethod {
 
 /// Where the money for a booking ended up.
 enum ReceiptStatus {
-  paid('PAID'),
-  refunded('REFUNDED'),
-  partlyRefunded('PART REFUNDED'),
-  cancelled('CANCELLED');
+  paid,
+  refunded,
+  partlyRefunded,
+  cancelled;
 
-  const ReceiptStatus(this.label);
-
-  final String label;
+  String get label => switch (this) {
+    ReceiptStatus.paid => l10n.receiptPaid,
+    ReceiptStatus.refunded => l10n.receiptRefunded,
+    ReceiptStatus.partlyRefunded => l10n.receiptPartlyRefunded,
+    ReceiptStatus.cancelled => l10n.receiptCancelled,
+  };
 }
 
 /// What a booking cost, from the wallet's records: what was charged and

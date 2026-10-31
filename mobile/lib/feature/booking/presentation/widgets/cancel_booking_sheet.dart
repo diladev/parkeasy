@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile/core/injection_container.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/router/app_router.dart';
 import 'package:mobile/core/utils/formatters.dart';
 import 'package:mobile/core/widgets/app_widgets.dart';
@@ -30,11 +31,9 @@ class _CancelBookingSheet extends StatelessWidget {
   String get _refundNote {
     final refund = booking.cancellationRefund;
     if (refund <= 0) {
-      return "Free cancellation applies. This booking was paid by card, so "
-          "there's nothing to refund to your wallet.";
+      return l10n.refundNoteCard;
     }
-    return "Free cancellation applies. You'll get a full refund of "
-        '${Formatters.money(refund)} back to your ParkEasy Wallet right away.';
+    return l10n.refundNoteWallet(Formatters.money(refund));
   }
 
   @override
@@ -56,13 +55,11 @@ class _CancelBookingSheet extends StatelessWidget {
       },
       builder: (context, state) => BookingSheet(
         icon: LucideIcons.circleAlert200,
-        title: 'Cancel booking?',
-        message:
-            'Are you sure you want to cancel your booking at '
-            '${booking.lotName}, Slot ${booking.slotNumber}?',
+        title: l10n.cancelBookingQuestion,
+        message: l10n.cancelBookingConfirm(booking.lotName, booking.slotNumber),
         note: _refundNote,
-        confirmLabel: '✕  Yes, cancel booking',
-        backLabel: 'Keep my booking',
+        confirmLabel: l10n.yesCancelBooking,
+        backLabel: l10n.keepMyBooking,
         isBusy: state.status != CancelStatus.idle,
         onConfirm: () => context.read<CancelBookingCubit>().cancel(booking),
       ),

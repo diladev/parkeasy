@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// `[−] 2 hours [+]` for the Duration line of the summary.
@@ -27,13 +28,13 @@ class DurationStepper extends StatelessWidget {
       children: [
         _StepButton(
           icon: LucideIcons.minus,
-          label: 'One hour less',
+          label: l10n.oneHourLess,
           onTap: onDecrease,
         ),
         SizedBox(
           width: 56,
           child: Text(
-            hours == 1 ? '1 hour' : '$hours hours',
+            l10n.hoursLong(hours),
             textAlign: TextAlign.center,
             maxLines: 1,
             style: TextStyle(
@@ -45,7 +46,7 @@ class DurationStepper extends StatelessWidget {
         ),
         _StepButton(
           icon: LucideIcons.plus,
-          label: 'One hour more',
+          label: l10n.oneHourMore,
           onTap: onIncrease,
         ),
       ],

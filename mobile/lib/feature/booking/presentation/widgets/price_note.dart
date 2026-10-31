@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/formatters.dart';
@@ -23,12 +24,12 @@ class PriceNote extends StatelessWidget {
       for (final price in specialPrices)
         (
           LucideIcons.tag,
-          '${price.label} price: ${Formatters.money(price.pricePerHour)}/hr',
+          l10n.specialPrice(price.label!, Formatters.money(price.pricePerHour)),
         ),
       if (capSaving > 0)
         (
           LucideIcons.circleCheck,
-          'Daily cap applied: you save ${Formatters.money(capSaving)}',
+          l10n.dailyCapSaved(Formatters.money(capSaving)),
         ),
     ];
     if (lines.isEmpty) return const SizedBox.shrink();
@@ -45,7 +46,10 @@ class PriceNote extends StatelessWidget {
               Expanded(
                 child: Text(
                   text,
-                  style: TextStyle(fontSize: 10, color: context.palette.textHint),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: context.palette.textHint,
+                  ),
                 ),
               ),
             ],

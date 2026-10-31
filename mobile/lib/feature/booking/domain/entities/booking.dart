@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/pricing/price_rules.dart';
 import 'package:mobile/feature/home/domain/entities/booking_summary.dart';
 
@@ -71,8 +72,7 @@ class Booking extends Equatable {
   bool get isActive => status == BookingStatus.active;
 
   /// Whether it can still be cancelled at [now], for a full refund.
-  bool canCancelAt(DateTime now) =>
-      isActive && !now.isAfter(cancellableUntil);
+  bool canCancelAt(DateTime now) => isActive && !now.isAfter(cancellableUntil);
 
   /// Whole minutes of free cancellation left at [now], rounded up: 1 for
   /// the last minute, 0 once it's over.
@@ -91,13 +91,11 @@ class Booking extends Equatable {
   DateTime get finishedAt => endedAt ?? endTime;
 
   /// "A04 · Level B1"
-  String get slotLabel => '$slotNumber · Level $level';
+  String get slotLabel => l10n.slotLevelLabel(slotNumber, level);
 
   /// "Toyota Camry · ABC 1234"
-  String get vehicleLabel => [
-    vehicleName,
-    plateNumber,
-  ].where((part) => part.isNotEmpty).join(' · ');
+  String get vehicleLabel =>
+      [vehicleName, plateNumber].where((part) => part.isNotEmpty).join(' · ');
 
   @override
   List<Object?> get props => [

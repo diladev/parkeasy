@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:mobile/core/l10n/l10n.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 
 /// The search box at the top of the search screen.
@@ -49,7 +50,7 @@ class _SearchFieldState extends State<SearchField> {
 
     return Container(
       height: 44,
-      padding: const EdgeInsets.only(left: 9),
+      padding: const EdgeInsetsDirectional.only(start: 9),
       decoration: BoxDecoration(
         color: palette.surface,
         borderRadius: BorderRadius.circular(12),
@@ -74,14 +75,14 @@ class _SearchFieldState extends State<SearchField> {
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
-                hintText: 'Search parking spots...',
+                hintText: l10n.searchParkingSpots,
                 hintStyle: TextStyle(fontSize: 12, color: palette.textHint),
               ),
             ),
           ),
           Semantics(
             button: true,
-            label: 'Clear search',
+            label: l10n.clearSearch,
             child: GestureDetector(
               onTap: _clearOrClose,
               behavior: HitTestBehavior.opaque,
